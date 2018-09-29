@@ -1,4 +1,4 @@
-// -------------------------------
+ // -------------------------------
 // adapted from Kevin T. Manley
 // CSE 593
 // -------------------------------
@@ -151,7 +151,24 @@ public abstract class Middleware implements IResourceManager
     // Reserve bundle
     public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException
     {
-        return false;
+        // Reserve the flights, return false if the reservation failed
+        for(String flightNumber : flightNumbers) {
+            if(reserveFlight(xid, customerId, Integer.parseInt(flightNumber)) == false) {
+                return false;
+            }
+        }
+        
+        // Reserve a car if desired, return false if the reservation failed
+        if(car == true && reserveCar(xid, customerId, location) == false) {
+            return false;
+        }
+        
+        // Reserve a room if desired, return false if the reservation failed
+        if(room == true && reserveRoom(xid, customerId, location) == false) {
+            return false;
+        }
+        
+        return true;
     }
     
     public String getName() throws RemoteException
