@@ -19,7 +19,6 @@ import java.rmi.server.UnicastRemoteObject;
 public class RMIResourceManager extends ResourceManager 
 {
 	private static String s_serverName = "Server";
-
 	private static String s_rmiPrefix = "group32";
 
 	public static void main(String args[])
@@ -35,7 +34,7 @@ public class RMIResourceManager extends ResourceManager
 			RMIResourceManager server = new RMIResourceManager(s_serverName);
 
 			// Dynamically generate the stub (client proxy)
-			IResourceManager resourceManager = (IResourceManager)UnicastRemoteObject.exportObject(server, 0);
+			IResourceManager resourceManager = (IResourceManager) UnicastRemoteObject.exportObject(server, 0);
 
 			// Bind the remote object's stub in the registry
 			Registry l_registry;
@@ -44,6 +43,7 @@ public class RMIResourceManager extends ResourceManager
 			} catch (RemoteException e) {
 				l_registry = LocateRegistry.getRegistry(1099);
 			}
+			
 			final Registry registry = l_registry;
 			registry.rebind(s_rmiPrefix + s_serverName, resourceManager);
 

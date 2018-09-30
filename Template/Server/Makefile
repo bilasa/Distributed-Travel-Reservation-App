@@ -13,10 +13,15 @@ RMIInterface.jar: Server/Interface/IResourceManager.java
 	javac Server/Interface/IResourceManager.java
 	jar cvf RMIInterface.jar Server/Interface/IResourceManager.class
 
+Common.jar: Server/Common/*.java
+	javac Server/Common/*.java
+	jar cvf Common.jar Server/Common/*.class
+
 compile-server-rmi: Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java
 	javac Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java
 
 clean:
 	rm -f Server/Interface/*.class Server/Common/*.class Server/RMI/*.class
 	rm -f RMIInterface.jar
+	rm -f Common.jar
 	rm -f java.policy 
