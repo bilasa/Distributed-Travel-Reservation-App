@@ -22,6 +22,7 @@ compile-server-rmi: Server/RMI/*.java Server/Interface/IResourceManager.java Ser
 
 clean:
 	rm -f Server/Interface/*.class Server/Common/*.class Server/RMI/*.class
+	rm -f Server/Actions/*.class
 	rm -f RMIInterface.jar
 	rm -f Common.jar
 	rm -f java.policy 
