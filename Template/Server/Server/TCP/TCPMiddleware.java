@@ -65,8 +65,10 @@ public class TCPMiddleware extends Middleware
             ServerSocket middlewareSocket = new ServerSocket(s_serverPort);
             
             // Connect to the ResourceManagers
-            Socket flightSocket = new Socket(flightServerName, s_serverPort);
-            PrintWriter
+            TCPServerConnection flightServer = new TCPServerConnection(flightServerName, s_serverPort);
+            TCPServerConnection carServer = new TCPServerConnection(carServerName, s_serverPort);
+            TCPServerConnection roomServer = new TCPServerConnection(roomServerName, s_serverPort);
+            TCPServerConnection customerServer = new TCPServerConnection(customerServerName, s_serverPort);
             
             // ExecutorService to execute the client threads
             ExecutorService executor = Executors.newCachedThreadPool();
@@ -108,6 +110,7 @@ public class TCPMiddleware extends Middleware
             out.println("Successfully connected to server.");
             
             while((inputLine = in.readLine()) != null) {
+                // *** TO-DO ***
                 // Get action class from the input buffer
                 // Check the action type
                 // Send the action to the appropriate ResourceManager
@@ -117,57 +120,10 @@ public class TCPMiddleware extends Middleware
         
     }
 
-    
     public TCPMiddleware(String name)
     {
         super(name);
     }
     
-    // Connects the Middleware to all 4 ResourceManager servers
-    public void connectServers()
-    {
-        connectServer(s_serverHost, s_serverPort, flightServerName);
-        connectServer(s_serverHost, s_serverPort, carServerName);
-        connectServer(s_serverHost, s_serverPort, roomServerName);
-        connectServer(s_serverHost, s_serverPort, customerServerName);
-    }
-    
-    public void connectServer(String server, int port, String name)
-    {
-        try {
-            boolean first = true;
-            while (true) {
-                try {
-                    Registry registry = LocateRegistry.getRegistry(server, port);
-                    
-                    // Assign the remote interface corresponding to the server name
-                    if (name == flightServerName) {
-                        flightResourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
-                    } else if (name == carServerName) {
-                        carResourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
-                    } else if (name == roomServerName) {
-                        roomResourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
-                    } else if (name == customerServerName) {
-                        customerResourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
-                    }
-                    
-                    System.out.println("Connected to '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
-                    break;
-                }
-                catch (NotBoundException|RemoteException e) {
-                    if (first) {
-                        System.out.println("Waiting for '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
-                        first = false;
-                    }
-                }
-                Thread.sleep(500);
-            }
-        }
-        catch (Exception e) {
-            System.err.println((char)27 + "[31;1mServer exception: " + (char)27 + "[0mUncaught exception");
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
 }
 
