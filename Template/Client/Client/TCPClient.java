@@ -1,5 +1,6 @@
 package Client;
 
+import Server.Actions.AddCarLocationAction;
 import Server.Interface.*;
 import Client.Common.*;
 
@@ -154,7 +155,7 @@ public class TCPClient extends Client
 				int price = toInt(arguments.elementAt(4));
 
 				// Send request
-				AddCarLocationAction req = new AddCarLocationAction(id, flightNum, flightSeats, flightPrice);
+				AddCarLocationAction req = new AddCarLocationAction(id, location, numCars, price);
 				this.out.writeObject(req);
 				this.out.flush();
 
