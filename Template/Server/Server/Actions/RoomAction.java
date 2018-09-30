@@ -7,8 +7,8 @@ import java.io.*;
 
 public abstract class RoomAction extends TravelAction implements Serializable
 {
-    public RoomAction(ACTION_TYPE t)
+    public RoomAction(ACTION_TYPE t, ACTION_SUBTYPE st)
 	{
-		super(t);
+		super(t, st);
 	}
 }

@@ -45,7 +45,7 @@ public abstract class TravelAction implements Serializable, Cloneable
 
     // Constructor
     TravelAction(ACTION_TYPE t, ACTION_SUBTYPE st)
-	{
+    {
         super();
         this.TYPE = t;
         this.SUB_TYPE = st;
@@ -64,12 +64,12 @@ public abstract class TravelAction implements Serializable, Cloneable
     
     // Clone function
     public Object clone()
-	{
-		try {
-			return super.clone();
-		}
-		catch (CloneNotSupportedException e) {
-			return null;
-		}
-	}
+    {
+        try {
+            return super.clone();
+        }
+        catch (CloneNotSupportedException e) {
+            return null;
+        }
+    }
 }

@@ -18,7 +18,7 @@ Common.jar: Server/Common/*.java
 	jar cvf Common.jar Server/Common/*.class
 
 compile-server-rmi: Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java
-	javac Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java
+	javac Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java Server/Actions/*.java
 
 clean:
 	rm -f Server/Interface/*.class Server/Common/*.class Server/RMI/*.class
