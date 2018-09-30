@@ -64,25 +64,16 @@ public class TCPMiddleware extends Middleware
         try {
             ServerSocket middlewareSocket = new ServerSocket(s_serverPort);
             
-            // Connect to the ResourceManagers
-            TCPServerConnection flightServer = new TCPServerConnection(flightServerName, s_serverPort);
-            TCPServerConnection carServer = new TCPServerConnection(carServerName, s_serverPort);
-            TCPServerConnection roomServer = new TCPServerConnection(roomServerName, s_serverPort);
-            TCPServerConnection customerServer = new TCPServerConnection(customerServerName, s_serverPort);
-            
-            // ExecutorService to execute the client threads
-            ExecutorService executor = Executors.newCachedThreadPool();
-            
             // Connect to the clients
             while(true) {
                 // Accept a connection from a client, create a thread for that client
                 Socket clientSocket = middlewareSocket.accept();
-                executors.execute(new ClientThread(clientSocket));
+                Thread clientThread = new ClientThread(clientSocket);
             }
 
         }
         catch (Exception e) {
-            System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0mUncaught exception");
+            System.err.println((char)27 + "[31;1mMiddleware exception: " + (char)27 + "[0mUncaught exception");
             e.printStackTrace();
             System.exit(1);
         }
@@ -91,30 +82,78 @@ public class TCPMiddleware extends Middleware
     // Services the requests for each unique client (one thread per client)
     public class ClientThread implements Runnable {
         Socket clientSocket;
-        PrintWriter out; // output buffer
-        BufferedReader in; // input buffer
+        ObjectInputStream in; // input buffer
+        ObjectOutputStream out; // output buffer
         
         public ClientThread(ServerSocket clientSocket) {
             this.clientSocket = clientSocket;
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            in = new ObjectInptStream(clientSocket.getInputStream()));
+            out = new ObjectOutputStream(clientSocket.getOutputStream());
         }
         
+        /*
+         * Service the client's requests
+         */
         @Override
         public void run() {
-            // Service the client's requests
             
-            String inputLine, outputLine;
-            
-            // Optionally send initial message to client to confirm the connection
-            out.println("Successfully connected to server.");
-            
-            while((inputLine = in.readLine()) != null) {
-                // *** TO-DO ***
+            while(true) {
                 // Get action class from the input buffer
-                // Check the action type
-                // Send the action to the appropriate ResourceManager
-                // Send the response from the ResourceManager to the output
+                TravelAction travelAction = (TravelAction) in.readObject();
+                
+                // Send the action to the appropriate ResourceManager server
+                switch (travelAction.getActionType()) {
+                    
+                    case ACTION_TYPE.RESERVE_ACTION:
+                        int xid = (ReserveFlightAction)travelAction.getXid();
+                        int customerID = (ReserveFlightAction)travelAction.getCustomerID();
+                        int flightNumber = (ReserveFlightAction)travelAction.getFlightNumber();
+                        
+                        // *** TO-DO ***
+                        UpdateFlightAction updateFlightAction = new UpdateFlightAction(...);
+                        UpdateCustomerAction updateCustomerAction = new UpdateCustomerAction(...);
+                        
+                        TCPServerConnection flightServer = new TCPServerConnection(out, flightServerName, s_serverPort);
+                        flightServer.sendAction(updateFlightAction); // send the action to the flight server
+                        
+                        TCPServerConnection customerServer = new TCPServerConnection(out, customerServerName, s_serverPort);
+                        customerServer.sendAction(updateCustomerAction); // send the action to the customer server
+                        break;
+                        
+                    case ACTION_TYPE.FLIGHT_ACTION:
+                        TCPServerConnection flightServer = new TCPServerConnection(out, flightServerName, s_serverPort);
+                        flightServer.sendAction(travelAction); // send the action to the flight server
+                        break;
+                        
+                    case ACTION_TYPE.CAR_ACTION:
+                        TCPServerConnection carServer = new TCPServerConnection(out, carServerName, s_serverPort);
+                        carServer.sendAction(travelAction); // send the action to the car server
+                        break;
+                        
+                    case ACTION_TYPE.ROOM_ACTION:
+                        TCPServerConnection roomServer = new TCPServerConnection(out, roomServerName, s_serverPort);
+                        roomServer.sendAction(travelAction); // send the action to the room server
+                        break;
+                        
+                    case ACTION_TYPE.CUSTOMER_ACTION:
+                        TCPServerConnection customerServer = new TCPServerConnection(out, customerServerName, s_serverPort);
+                        customerServer.sendAction(travelAction); // send the action to the customer server
+                        break;
+                        
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+            
+            // Close the streams
+            try {
+                in.close();
+                out.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
             }
         }
         

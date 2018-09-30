@@ -1,18 +1,29 @@
 
 /*
- * Class to represent a connection to a server, and send/receive
- * to/from that server. Used by the Middleware to connect to the
- * 4 different ResourceManager servers.
+ * Class to represent the connection a specific Client has to
+ * a specific ResourceManager
  */
 public class TCPServerConnection {
     Socket serverSocket;
-    PrintWriter out;
-    BufferedReader in;
-    
-    public TCPServerConnection(String serverName, int serverPort) {
+    ObjectInputStream inRM; // input stream from ResourceManager
+    ObjectOutputStream outRM; // output stream to ResourceManager
+    ObjectOutputStream outClient; // output stream used to relay responses from the ResourceManager to the Client
+
+    public TCPServerConnection(ObjectOutputStream outClient, String serverName, int serverPort) {
         serverSocket = new Socket(serverName, serverPort);
-        out = new PrintWriter(serverSocket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
+        inRM = new ObjectInputStream(serverSocket.getInputStream());
+        outRM = new ObjectOutputStream(serverSocket.getOutputStream());
+        this.outClient = outClient;
+    }
+    
+    /*
+     * Send a travel action to the ResourceManager
+     */
+    public void sendAction(TravelAction travelAction) {
+        outRM.writeObject(travelAction);
+        outRM.flush();
+        
+        outClient.writeObject(inRM.readObject()); // relay the object to the Client
     }
 
 }
