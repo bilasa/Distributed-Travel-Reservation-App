@@ -78,8 +78,8 @@ public class TCPMiddleware extends Middleware
      */
     public class RequestThread implements Runnable {
         Socket clientSocket;
-        ObjectInputStream in; // input buffer
-        ObjectOutputStream out; // output buffer
+        ObjectInputStream in; // input stream for client request
+        ObjectOutputStream out; // output stream to client
         
         public RequestThread(ServerSocket clientSocket) {
             this.clientSocket = clientSocket;
@@ -90,48 +90,90 @@ public class TCPMiddleware extends Middleware
         @Override
         public void run() {
 
-            // Get action object from the input stream
-            TravelAction travelAction = (TravelAction)in.readObject();
+            TravelAction travelAction = (TravelAction)in.readObject(); // Get action object from the input stream
+            TravelAction reserveAction, reserveAction_; // extra actions for reserve actions
+            
+            Socket serverSocket, serverSocket_;
+            
+            ObjectInputStream inRM, inRM_; // input stream from ResourceManager (extra one for reserve actions)
+            ObjectOutputStream outRM, outRM_; // output stream to ResourceManager (extra one for reserve actions)
+            
+            boolean reserveAction = false; // is the action a reserve action
                 
             // Send the action to the appropriate ResourceManager server
             try {
                 
                 switch (travelAction.getActionType()) {
                         
-                    case ACTION_TYPE.RESERVE_ACTION:
-                        int xid = (ReserveFlightAction)travelAction.getXid();
-                        int customerID = (ReserveFlightAction)travelAction.getCustomerID();
-                        int flightNumber = (ReserveFlightAction)travelAction.getFlightNumber();
+                    case RESERVE_ACTION:
                         
-                        // *** TO-DO ***
-                        UpdateFlightAction updateFlightAction = new UpdateFlightAction(...);
-                        UpdateCustomerAction updateCustomerAction = new UpdateCustomerAction(...);
+                        switch (travelAction.getActionSubtype()) {
+                            int xid = travelAction.getXid();
+                            
+                            case RESERVE_FLIGHT:
+                                int customerID = (ReserveFlightAction)travelAction.getCustomerID();
+                                int flightNumber = (ReserveFlightAction)travelAction.getFlightNumber();
+                                
+                                // *** TO-DO ***
+                                reserveAction = new UpdateFlightAction(...);
+                                serverSocket = new Socket(flightServerName, s_serverPort); // create a socket to the flight server
+                            
+                                break;
+                                
+                            case RESERVE_CAR:
+                                int customerID = (ReserveCarAction)travelAction.getCustomerID();
+                                String location = (ReserveCarAction)travelAction.getLocation();
+                                
+                                // *** TO-DO ***
+                                reserveAction = new UpdateCarAction(...);
+                                serverSocket = new Socket(carServerName, s_serverPort); // create a socket to the car server
+                                
+                                break;
+                                
+                            case RESERVE_ROOM:
+                                int customerID = (ReserveRoomAction)travelAction.getCustomerID();
+                                String location = (ReserveRoomAction)travelAction.getLocation();
+                                
+                                // *** TO-DO ***
+                                reserveAction = new UpdateRoomAction(...);
+                                serverSocket = new Socket(carServerName, s_serverPort); // create a socket to the room server
+                                
+                                break;
+                                
+                            case RESERVE_BUNDLE:
+                                //int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room
+                                int customerID = (ReserveBundleAction)travelAction.getCustomerID();
+                                Vector<String> flightNumbers = (ReserveBundleAction)travelAction.getFlightNumbers();
+                                String location = (ReserveBundleAction)travelAction.getLocation();
+                                boolean car = (ReserveBundleAction)travelAction.getCar();
+                                boolean room = (ReserveBundleAction)travelAction.getRoom();
+                                
+                                // *** TO-DO ***
+                                
+                                break;
+                                
+                        }
+                
+                        // Customer action/socket for all reserve actions
+                        reserveAction_ = new UpdateCustomerAction(...));
+                        serverSocket_ = new Socket(customerServerName, s_serverPort);
                         
-                        TCPServerConnection flightServer = new TCPServerConnection(out, flightServerName, s_serverPort);
-                        flightServer.send(updateFlightAction); // send the action to the flight server
-                        
-                        TCPServerConnection customerServer = new TCPServerConnection(out, customerServerName, s_serverPort);
-                        customerServer.send(updateCustomerAction); // send the action to the customer server
                         break;
                         
-                    case ACTION_TYPE.FLIGHT_ACTION:
-                        TCPServerConnection flightServer = new TCPServerConnection(out, flightServerName, s_serverPort);
-                        flightServer.send(travelAction); // send the action to the flight server
+                    case FLIGHT_ACTION:
+                        serverSocket = new Socket(flightServerName, s_serverPort); // create a socket to the flight server
                         break;
                         
-                    case ACTION_TYPE.CAR_ACTION:
-                        TCPServerConnection carServer = new TCPServerConnection(out, carServerName, s_serverPort);
-                        carServer.send(travelAction); // send the action to the car server
+                    case CAR_ACTION:
+                        serverSocket = new Socket(carServerName, s_serverPort); // create a socket to the car server
                         break;
                         
-                    case ACTION_TYPE.ROOM_ACTION:
-                        TCPServerConnection roomServer = new TCPServerConnection(out, roomServerName, s_serverPort);
-                        roomServer.send(travelAction); // send the action to the room server
+                    case ROOM_ACTION:
+                        serverSocket = new Socket(roomServerName, s_serverPort); // create a socket to the room server
                         break;
                         
-                    case ACTION_TYPE.CUSTOMER_ACTION:
-                        TCPServerConnection customerServer = new TCPServerConnection(out, customerServerName, s_serverPort);
-                        customerServer.send(travelAction); // send the action to the customer server
+                    case CUSTOMER_ACTION:
+                        serverSocket = new Socket(customerServerName, s_serverPort); // create a socket to the customer server
                         break;
                         
                 }
@@ -141,13 +183,43 @@ public class TCPMiddleware extends Middleware
                 System.exit(1);
             }
             
-            // Close the streams
-            try {
-                in.close();
-                out.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
+            if (reserveAction == true) {
+                // *** TO-DO ***
+                // CODE FOR RESERVE ACTIONS
+            } else {
+                // Create input stream and output stream from the server socket
+                inRM = new ObjectInputStream(serverSocket.getInputStream());
+                outRM = new ObjectOutputStream(serverSocket.getOutputStream());
+                
+                // Send the action to the server
+                outRM.writeObject(travelAction);
+                outRM.flush();
+                
+                // Send the response to the client
+                Object response = inRM.readObject();
+                if (response != null) {
+                    out.writeObject(response);
+                } else {
+                    out.writeObject(new String("NULL"));
+                }
+                
+                // Close the RM streams
+                try {
+                    inRM.close();
+                    outRM.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+                
+                // Close the client streams
+                try {
+                    in.close();
+                    out.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
             }
         }
         
