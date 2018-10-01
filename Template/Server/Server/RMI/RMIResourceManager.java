@@ -5,16 +5,14 @@
 
 package Server.RMI;
 
+import java.util.*;
 import Server.Interface.*;
 import Server.Common.*;
-
-import java.rmi.NotBoundException;
-import java.util.*;
-
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.rmi.NotBoundException;
 
 public class RMIResourceManager extends ResourceManager 
 {

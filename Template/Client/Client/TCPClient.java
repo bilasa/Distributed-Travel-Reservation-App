@@ -127,7 +127,7 @@ public class TCPClient extends Client
 				int flightPrice = toInt(arguments.elementAt(4));
 
 				// Send request
-				AddFlightAction req = new AddFlightAction(id, flightNum, flightSeats, flightPrice);
+				TravelAction req = new AddFlightAction(id, flightNum, flightSeats, flightPrice);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -155,7 +155,7 @@ public class TCPClient extends Client
 				int price = toInt(arguments.elementAt(4));
 
 				// Send request
-				AddCarLocationAction req = new AddCarLocationAction(id, location, numCars, price);
+				TravelAction req = new AddCarLocationAction(id, location, numCars, price);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -183,7 +183,7 @@ public class TCPClient extends Client
 				int price = toInt(arguments.elementAt(4));
 
 				// Send request
-				AddRoomLocationAction req = new AddRoomLocationAction(id, location, numRooms, price);
+				TravelAction req = new AddRoomLocationAction(id, location, numRooms, price);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -204,7 +204,7 @@ public class TCPClient extends Client
 
 				int id = toInt(arguments.elementAt(1));
 
-				AddCustomerAction req = new AddCustomerAction(id);
+				TravelAction req = new AddCustomerAction(id);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -222,7 +222,7 @@ public class TCPClient extends Client
 				int customerID = toInt(arguments.elementAt(2));
 
 				// Send request
-				AddCustomerAction req = new AddCustomerAction(id, customerID);
+				TravelAction req = new AddCustomerAction(id, customerID);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -246,7 +246,7 @@ public class TCPClient extends Client
 				int flightNum = toInt(arguments.elementAt(2));
 
 				// Send request
-				DeleteFlightAction req = new DeleteFlightAction(id, flightNum);
+				TravelAction req = new DeleteFlightAction(id, flightNum);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -270,7 +270,7 @@ public class TCPClient extends Client
 				String location = arguments.elementAt(2);
 				
 				// Send request
-				DeleteCarLocationAction req = new DeleteCarLocationAction(id, location);
+				TravelAction req = new DeleteCarLocationAction(id, location);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -294,7 +294,7 @@ public class TCPClient extends Client
 				String location = arguments.elementAt(2);
 
 				// Send request
-				DeleteRoomLocationAction req = new DeleteRoomLocationAction(id, location);
+				TravelAction req = new DeleteRoomLocationAction(id, location);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -318,7 +318,7 @@ public class TCPClient extends Client
 				int customerID = toInt(arguments.elementAt(2));
 
 				// Send request
-				DeleteCustomerAction req = new DeleteCustomerAction(id, customerID);
+				TravelAction req = new DeleteCustomerAction(id, customerID);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -342,7 +342,7 @@ public class TCPClient extends Client
 				int flightNum = toInt(arguments.elementAt(2));
 
 				// Send request
-				QueryFlightAction req = new QueryFlightAction(id, flightNumber);
+				TravelAction req = new QueryFlightAction(id, flightNumber);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -361,7 +361,7 @@ public class TCPClient extends Client
 				String location = arguments.elementAt(2);
 
 				// Send request
-				QueryCarLocationAction req = new QueryCarLocationAction(id, location);
+				TravelAction req = new QueryCarLocationAction(id, location);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -380,7 +380,7 @@ public class TCPClient extends Client
 				String location = arguments.elementAt(2);
 
 				// Send request
-				QueryRoomLocationAction req = new QueryRoomLocationAction(id, location);
+				TravelAction req = new QueryRoomLocationAction(id, location);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -399,7 +399,7 @@ public class TCPClient extends Client
 				int customerID = toInt(arguments.elementAt(2));
 
 				// Send request
-				QueryCustomerAction req = new QueryCustomerAction(id, customerID);
+				TravelAction req = new QueryCustomerAction(id, customerID);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -418,7 +418,7 @@ public class TCPClient extends Client
 				int flightNum = toInt(arguments.elementAt(2));
 
 				// Send request
-				QueryFlightPriceAction req = new QueryFlightPriceAction(id, flightNum);
+				TravelAction req = new QueryFlightPriceAction(id, flightNum);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -437,7 +437,7 @@ public class TCPClient extends Client
 				String location = arguments.elementAt(2);
 
 				// Send request
-				QueryCarPriceAction req = new QueryCarPriceAction(id, location);
+				TravelAction req = new QueryCarPriceAction(id, location);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -456,7 +456,7 @@ public class TCPClient extends Client
 				String location = arguments.elementAt(2);
 
 				// Send request
-				QueryRoomPriceAction req = new QueryRoomPriceAction(id, location);
+				TravelAction req = new QueryRoomPriceAction(id, location);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -477,7 +477,7 @@ public class TCPClient extends Client
 				int flightNum = toInt(arguments.elementAt(3));
 
 				// Send request
-				ReserveFlightAction req = new ReserveFlightAction(id, customerID, flightNum);
+				TravelAction req = new ReserveFlightAction(id, customerID, flightNum);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -503,7 +503,7 @@ public class TCPClient extends Client
 				String location = arguments.elementAt(3);
 
 				// Send request
-				ReserveCarAction req = new ReserveCarAction(id, customerID, location);
+				TravelAction req = new ReserveCarAction(id, customerID, location);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -529,7 +529,7 @@ public class TCPClient extends Client
 				String location = arguments.elementAt(3);
 
 				// Send request
-				ReserveRoomAction req = new ReserveRoomAction(id, customerID, location);
+				TravelAction req = new ReserveRoomAction(id, customerID, location);
 				this.out.writeObject(req);
 				this.out.flush();
 
@@ -570,7 +570,7 @@ public class TCPClient extends Client
 				boolean room = toBoolean(arguments.elementAt(arguments.size()-1));
 
 				// Send request
-				ReserveBundleAction req = new ReserveBundleAction(id, customerID, flightNumbers, location, car, room);
+				TravelAction req = new ReserveBundleAction(id, customerID, flightNumbers, location, car, room);
 				this.out.writeObject(req);
 				this.out.flush();
 				
