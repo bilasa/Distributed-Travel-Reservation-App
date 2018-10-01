@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 import Server.Interface.*;
+import sun.net.www.content.image.x_xpixmap;
 import Server.Actions.*;
 import Server.Common.*;
 
@@ -216,16 +217,23 @@ public class TCPResourceManager extends ResourceManager
                 };
 
                 if (res != null) {
-                    out.writeObject(res);
-                    out.flush();
+                    out.writeObject(res); 
                 }
                 else if (res_ != null) {
                     out.writeObject(res_);
-                    out.flush();
                 }
                 else {
                     out.writeObject(new String("NULL"));
-                    out.flush();
+                }
+
+                out.flush();
+
+                try { 
+                    in.close();
+                    out.close();   
+                }
+                catch(IOException e){ 
+                    e.printStackTrace(); 
                 }
             }
 		}
