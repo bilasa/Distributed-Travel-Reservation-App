@@ -133,26 +133,35 @@ public abstract class Middleware implements IResourceManager
     // Adds flight reservation to this customer
     public boolean reserveFlight(int xid, int customerID, int flightNum) throws RemoteException
     {
-        return flightResourceManager.reserveFlight(xid, customerID, flightNum);
+        /*boolean res = flightResourceManager.updateFlight(flightNum);
+        
+        if (res == true) {
+            return customerResourceManager.reserveFlight()
+        } else {
+            return false;
+        }*/
+        return false;
     }
     
     // Adds car reservation to this customer
     public boolean reserveCar(int xid, int customerID, String location) throws RemoteException
     {
-        return carResourceManager.reserveCar(xid, customerID, location);
+        //return carResourceManager.reserveCar(xid, customerID, location);
+        return false;
     }
     
     // Adds room reservation to this customer
     public boolean reserveRoom(int xid, int customerID, String location) throws RemoteException
     {
-        return roomResourceManager.reserveRoom(xid, customerID, location);
+        //return roomResourceManager.reserveRoom(xid, customerID, location);
+        return false;
     }
     
     // Reserve bundle
     public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException
     {
         // Reserve the flights, return false if the reservation failed
-        for(String flightNumber : flightNumbers) {
+        /*for(String flightNumber : flightNumbers) {
             if(reserveFlight(xid, customerId, Integer.parseInt(flightNumber)) == false) {
                 return false;
             }
@@ -168,7 +177,8 @@ public abstract class Middleware implements IResourceManager
             return false;
         }
         
-        return true;
+        return true;*/
+        return false;
     }
     
     public String getName() throws RemoteException

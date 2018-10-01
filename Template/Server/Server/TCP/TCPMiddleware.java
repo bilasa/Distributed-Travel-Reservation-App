@@ -3,7 +3,7 @@ package Server.TCP;
 import Server.Interface.*;
 import Server.Common.*;
 
-import java.net;
+import java.net.*;
 
 import java.util.*;
 import java.io.*;
@@ -62,7 +62,7 @@ public class TCPMiddleware extends Middleware
             
             while(true) {
                 Socket clientSocket = middlewareSocket.accept(); // accept a new request from a client
-                Thread reqThread = new RequestThread(clientSocket); // create a thread to service that request
+                RequestThread reqThread = new RequestThread(clientSocket); // create a thread to service that request
             }
 
         }
@@ -76,14 +76,14 @@ public class TCPMiddleware extends Middleware
     /*
      * Services a request from a client
      */
-    public class RequestThread implements Runnable {
+    public static class RequestThread implements Runnable {
         Socket clientSocket;
         ObjectInputStream in; // input stream for client request
         ObjectOutputStream out; // output stream to client
         
-        public RequestThread(ServerSocket clientSocket) {
+        public RequestThread(Socket clientSocket) {
             this.clientSocket = clientSocket;
-            in = new ObjectInptStream(clientSocket.getInputStream()));
+            in = new ObjectInputStream(clientSocket.getInputStream());
             out = new ObjectOutputStream(clientSocket.getOutputStream());
         }
         
@@ -93,7 +93,7 @@ public class TCPMiddleware extends Middleware
             TravelAction travelAction = (TravelAction)in.readObject(); // Get action object from the input stream
             TravelAction reserveAction, reserveAction_; // extra actions for reserve actions
             
-            Socket serverSocket, serverSocket_;
+            Socket socket, socket_;
             
             ObjectInputStream inRM, inRM_; // input stream from ResourceManager (extra one for reserve actions)
             ObjectOutputStream outRM, outRM_; // output stream to ResourceManager (extra one for reserve actions)
@@ -107,7 +107,7 @@ public class TCPMiddleware extends Middleware
                         
                     case RESERVE_ACTION:
                         
-                        switch (travelAction.getActionSubtype()) {
+                        /*switch (travelAction.getActionSubtype()) {
                             int xid = travelAction.getXid();
                             
                             case RESERVE_FLIGHT:
@@ -159,24 +159,24 @@ public class TCPMiddleware extends Middleware
                 
                         // Customer action/socket for all reserve actions
                         reserveAction_ = new UpdateCustomerAction(...));
-                        serverSocket_ = new Socket(customerServerName, s_serverPort);
+                        serverSocket_ = new Socket(customerServerName, s_serverPort);*/
                         
                         break;
                         
                     case FLIGHT_ACTION:
-                        serverSocket = new Socket(flightServerName, s_serverPort); // create a socket to the flight server
+                        socket = new Socket(flightServerName, s_serverPort); // create a socket to the flight server
                         break;
                         
                     case CAR_ACTION:
-                        serverSocket = new Socket(carServerName, s_serverPort); // create a socket to the car server
+                        socket = new Socket(carServerName, s_serverPort); // create a socket to the car server
                         break;
                         
                     case ROOM_ACTION:
-                        serverSocket = new Socket(roomServerName, s_serverPort); // create a socket to the room server
+                        socket = new Socket(roomServerName, s_serverPort); // create a socket to the room server
                         break;
                         
                     case CUSTOMER_ACTION:
-                        serverSocket = new Socket(customerServerName, s_serverPort); // create a socket to the customer server
+                        socket = new Socket(customerServerName, s_serverPort); // create a socket to the customer server
                         break;
                         
                 }
@@ -185,14 +185,10 @@ public class TCPMiddleware extends Middleware
                 e.printStackTrace();
                 System.exit(1);
             }
-            
-            if (reserveAction == true) {
-                // *** TO-DO ***
-                // CODE FOR RESERVE ACTIONS
-            } else {
+
                 // Create input stream and output stream from the server socket
-                inRM = new ObjectInputStream(serverSocket.getInputStream());
-                outRM = new ObjectOutputStream(serverSocket.getOutputStream());
+                inRM = new ObjectInputStream(socket.getInputStream());
+                outRM = new ObjectOutputStream(socket.getOutputStream());
                 
                 // Send the action to the server
                 outRM.writeObject(travelAction);
@@ -223,7 +219,6 @@ public class TCPMiddleware extends Middleware
                     e.printStackTrace();
                     System.exit(1);
                 }
-            }
         }
         
     }
