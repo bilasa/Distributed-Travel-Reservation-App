@@ -7,8 +7,8 @@ import java.io.*;
 
 public abstract class CustomerAction extends TravelAction implements Serializable
 {
-    public CustomerAction(ACTION_TYPE t, ACTION_SUBTYPE st)
+    public CustomerAction(ACTION_TYPE t, ACTION_SUBTYPE st, int xid)
 	{
-		super(t, st);
+		super(t, st, xid);
 	}
 }

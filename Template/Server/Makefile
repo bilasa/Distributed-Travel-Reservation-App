@@ -13,15 +13,16 @@ RMIInterface.jar: Server/Interface/IResourceManager.java
 	javac Server/Interface/IResourceManager.java
 	jar cvf RMIInterface.jar Server/Interface/IResourceManager.class
 
-Common.jar: Server/Common/*.java
-	javac Server/Common/*.java
-	jar cvf Common.jar Server/Common/*.class
+Actions.jar: Server/Actions/*.java
+	@echo "Compiling TCP server actions"
+	javac Server/Actions/*.java
+	jar cvf Common.jar Server/Actions/*.class
 
-compile-server-rmi: Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java
+compile-server-rmi: Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java Server/Actions/*.java Server/TCP/*.java
 	javac Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java Server/Actions/*.java Server/TCP/*.java
 
 clean:
 	rm -f Server/Interface/*.class Server/Actions/*.class Server/Common/*.class Server/RMI/*.class Server/TCP/*.class
 	rm -f RMIInterface.jar
-	rm -f Common.jar
+	rm -f Actions.jar
 	rm -f java.policy 

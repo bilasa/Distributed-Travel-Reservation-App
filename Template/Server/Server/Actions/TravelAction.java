@@ -8,13 +8,15 @@ public abstract class TravelAction implements Serializable, Cloneable
 {   
     private ACTION_TYPE TYPE;
     private ACTION_SUBTYPE SUB_TYPE;
+    private int xid;
 
     // Constructor
-    TravelAction(ACTION_TYPE t, ACTION_SUBTYPE st)
+    TravelAction(ACTION_TYPE t, ACTION_SUBTYPE st, int xid)
     {
         super();
         this.TYPE = t;
         this.SUB_TYPE = st;
+        this.xid = xid;
     }
 
     // Getters
@@ -27,8 +29,14 @@ public abstract class TravelAction implements Serializable, Cloneable
     {
         return this.SUB_TYPE;
     }
-    
-    // Clone function
+
+    // Getter
+    public int getXid() 
+    {
+        return this.xid;
+    }
+
+    // Function to clone
     public Object clone()
     {
         try {

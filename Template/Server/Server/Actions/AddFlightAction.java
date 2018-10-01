@@ -4,7 +4,6 @@ import Server.Actions.*;
 
 public class AddFlightAction extends FlightAction
 {   
-    private int xid;
     private int flightNumber;
     private int flightSeats;
     private int flightPrice;
@@ -12,19 +11,13 @@ public class AddFlightAction extends FlightAction
     // Constructor
     public AddFlightAction(int xid, int flightNumber, int flightSeats, int flightPrice) 
 	{
-        super(ACTION_TYPE.FLIGHT_ACTION, ACTION_SUBTYPE.ADD_FLIGHT);
-        this.xid = xid;
+        super(ACTION_TYPE.FLIGHT_ACTION, ACTION_SUBTYPE.ADD_FLIGHT, xid);
         this.flightNumber = flightNumber;
         this.flightSeats = flightSeats;
         this.flightPrice = flightPrice;
     }
     
     // Getters
-    public int getXid() 
-    {
-        return this.xid;
-    }
-
     public int getFlightNumber() 
     {
         return this.flightNumber;

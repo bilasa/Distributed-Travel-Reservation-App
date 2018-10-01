@@ -6,7 +6,6 @@ import java.util.*;
 
 public class ReserveBundleAction extends TravelAction
 {   
-    private int xid;
     private int customerID;
     private Vector<String> flightNumbers;
     private String location;
@@ -16,8 +15,7 @@ public class ReserveBundleAction extends TravelAction
     // Constructor
     public ReserveBundleAction(int xid, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room)
 	{
-        super(ACTION_TYPE.RESERVE_ACTION, ACTION_SUBTYPE.RESERVE_BUNDLE);
-        this.xid = xid;
+        super(ACTION_TYPE.RESERVE_ACTION, ACTION_SUBTYPE.RESERVE_BUNDLE, xid);
         this.customerID = customerID;
         this.flightNumbers = flightNumbers;
         this.location = location;
@@ -26,11 +24,6 @@ public class ReserveBundleAction extends TravelAction
     }
     
     // Getters
-    public int getXid() 
-    {
-        return this.xid;
-    }
-
     public int getCustomerID() 
     {
         return this.customerID;
