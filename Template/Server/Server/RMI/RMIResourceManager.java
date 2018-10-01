@@ -73,6 +73,63 @@ public class RMIResourceManager extends ResourceManager
 			System.setSecurityManager(new SecurityManager());
 		}
 	}
+    
+    /*
+     * Check if a flight exists. If it does and seats are available decrement the seats
+     */
+    /*public boolean updateFlight(int flightNum) {
+        Flight curObj = (Flight)readData(xid, Flight.getKey(flightNum));
+        if (curObj == null) {
+            return false;
+        } else {
+            int numSeats = curObj.getCount();
+            if (numSeats <= 0) {
+                return false
+            }
+        }
+        
+        curObj.setCount(numSeats - 1);
+        
+        return true;
+    }
+    
+    /*
+     * Check if a flight exists. If it does and seats are available decrement the seats
+     */
+    /*public boolean updateCar(int flightNum) {
+        Flight curObj = (Flight)readData(xid, Flight.getKey(flightNum));
+        if (curObj == null) {
+            return false;
+        } else {
+            int numSeats = curObj.getCount();
+            if (numSeats <= 0) {
+                return false
+            }
+        }
+        
+        curObj.setCount(numSeats - 1);
+        
+        return true;
+    }*/
+    
+    /*
+     * Check if a flight exists. If it does and seats are available decrement the seats
+     */
+    /*public boolean updateRoom(int flightNum) {
+        Flight curObj = (Flight)readData(xid, Flight.getKey(flightNum));
+        if (curObj == null) {
+            return false;
+        } else {
+            int numSeats = curObj.getCount();
+            if (numSeats <= 0) {
+                return false
+            }
+        }
+        
+        curObj.setCount(numSeats - 1);
+        
+        return true;
+    }*/
 
 	public RMIResourceManager(String name)
 	{
