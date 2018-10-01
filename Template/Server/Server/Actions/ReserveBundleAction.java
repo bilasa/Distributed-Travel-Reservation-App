@@ -16,7 +16,7 @@ public class ReserveBundleAction extends TravelAction
     // Constructor
     public ReserveBundleAction(int xid, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room)
 	{
-        super(ACTION_TYPE.CUSTOMER_ACTION, ACTION_SUBTYPE.RESERVE_BUNDLE);
+        super(ACTION_TYPE.RESERVE_ACTION, ACTION_SUBTYPE.RESERVE_BUNDLE);
         this.xid = xid;
         this.customerID = customerID;
         this.flightNumbers = flightNumbers;

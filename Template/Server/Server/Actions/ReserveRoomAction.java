@@ -11,7 +11,7 @@ public class ReserveRoomAction extends RoomAction
     // Constructor
     public ReserveRoomAction(int xid, int customerID, String location)
 	{
-        super(ACTION_TYPE.ROOM_ACTION, ACTION_SUBTYPE.RESERVE_ROOM);
+        super(ACTION_TYPE.RESERVE_ACTION, ACTION_SUBTYPE.RESERVE_ROOM);
         this.xid = xid;
         this.customerID = customerID;
         this.location = location;

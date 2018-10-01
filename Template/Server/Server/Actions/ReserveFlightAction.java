@@ -11,7 +11,7 @@ public class ReserveFlightAction extends FlightAction
     // Constructor
     public ReserveFlightAction(int xid, int customerID, int flightNumber)
 	{
-        super(ACTION_TYPE.FLIGHT_ACTION, ACTION_SUBTYPE.RESERVE_FLIGHT);
+        super(ACTION_TYPE.RESERVE_ACTION, ACTION_SUBTYPE.RESERVE_FLIGHT);
         this.xid = xid;
         this.customerID = customerID;
         this.flightNumber = flightNumber;
