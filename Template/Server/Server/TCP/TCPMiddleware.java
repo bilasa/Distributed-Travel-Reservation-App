@@ -152,6 +152,9 @@ public class TCPMiddleware extends Middleware
                                 
                                 break;
                                 
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            System.exit(1);
                         }
                 
                         // Customer action/socket for all reserve actions
