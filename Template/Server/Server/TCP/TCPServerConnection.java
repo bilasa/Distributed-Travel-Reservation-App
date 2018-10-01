@@ -17,13 +17,22 @@ public class TCPServerConnection {
     }
     
     /*
-     * Send a travel action to the ResourceManager
+     * Send a travel action to the ResourceManager and send the response back to the client
      */
-    public void sendAction(TravelAction travelAction) {
+    public void send(TravelAction travelAction) {
         outRM.writeObject(travelAction);
         outRM.flush();
         
         outClient.writeObject(inRM.readObject()); // relay the object to the Client
+        
+        // Close the streams
+        try {
+            inRM.close();
+            outRM.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
 }

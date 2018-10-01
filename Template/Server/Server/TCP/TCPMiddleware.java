@@ -1,11 +1,9 @@
-
-package Server.RMI;
+package Server.TCP;
 
 import Server.Interface.*;
+import Server.Common.*;
 
 import java.net;
-
-import Server.Common.*;
 
 import java.util.*;
 import java.io.*;
@@ -23,8 +21,6 @@ public class TCPMiddleware extends Middleware
     private static String carServerName = "carServer";
     private static String roomServerName = "roomServer";
     private static String customerServerName = "customerServer";
-    
-    private static String s_rmiPrefix = "group32";
     
     public static void main(String args[])
     {
@@ -64,11 +60,9 @@ public class TCPMiddleware extends Middleware
         try {
             ServerSocket middlewareSocket = new ServerSocket(s_serverPort);
             
-            // Connect to the clients
             while(true) {
-                // Accept a connection from a client, create a thread for that client
-                Socket clientSocket = middlewareSocket.accept();
-                Thread clientThread = new ClientThread(clientSocket);
+                Socket clientSocket = middlewareSocket.accept(); // accept a new request from a client
+                Thread reqThread = new RequestThread(clientSocket); // create a thread to service that request
             }
 
         }
@@ -79,31 +73,31 @@ public class TCPMiddleware extends Middleware
         }
     }
     
-    // Services the requests for each unique client (one thread per client)
-    public class ClientThread implements Runnable {
+    /*
+     * Services a request from a client
+     */
+    public class RequestThread implements Runnable {
         Socket clientSocket;
         ObjectInputStream in; // input buffer
         ObjectOutputStream out; // output buffer
         
-        public ClientThread(ServerSocket clientSocket) {
+        public RequestThread(ServerSocket clientSocket) {
             this.clientSocket = clientSocket;
             in = new ObjectInptStream(clientSocket.getInputStream()));
             out = new ObjectOutputStream(clientSocket.getOutputStream());
         }
         
-        /*
-         * Service the client's requests
-         */
         @Override
         public void run() {
-            
-            while(true) {
-                // Get action class from the input buffer
-                TravelAction travelAction = (TravelAction) in.readObject();
+
+            // Get action object from the input stream
+            TravelAction travelAction = (TravelAction)in.readObject();
                 
-                // Send the action to the appropriate ResourceManager server
+            // Send the action to the appropriate ResourceManager server
+            try {
+                
                 switch (travelAction.getActionType()) {
-                    
+                        
                     case ACTION_TYPE.RESERVE_ACTION:
                         int xid = (ReserveFlightAction)travelAction.getXid();
                         int customerID = (ReserveFlightAction)travelAction.getCustomerID();
@@ -114,34 +108,34 @@ public class TCPMiddleware extends Middleware
                         UpdateCustomerAction updateCustomerAction = new UpdateCustomerAction(...);
                         
                         TCPServerConnection flightServer = new TCPServerConnection(out, flightServerName, s_serverPort);
-                        flightServer.sendAction(updateFlightAction); // send the action to the flight server
+                        flightServer.send(updateFlightAction); // send the action to the flight server
                         
                         TCPServerConnection customerServer = new TCPServerConnection(out, customerServerName, s_serverPort);
-                        customerServer.sendAction(updateCustomerAction); // send the action to the customer server
+                        customerServer.send(updateCustomerAction); // send the action to the customer server
                         break;
                         
                     case ACTION_TYPE.FLIGHT_ACTION:
                         TCPServerConnection flightServer = new TCPServerConnection(out, flightServerName, s_serverPort);
-                        flightServer.sendAction(travelAction); // send the action to the flight server
+                        flightServer.send(travelAction); // send the action to the flight server
                         break;
                         
                     case ACTION_TYPE.CAR_ACTION:
                         TCPServerConnection carServer = new TCPServerConnection(out, carServerName, s_serverPort);
-                        carServer.sendAction(travelAction); // send the action to the car server
+                        carServer.send(travelAction); // send the action to the car server
                         break;
                         
                     case ACTION_TYPE.ROOM_ACTION:
                         TCPServerConnection roomServer = new TCPServerConnection(out, roomServerName, s_serverPort);
-                        roomServer.sendAction(travelAction); // send the action to the room server
+                        roomServer.send(travelAction); // send the action to the room server
                         break;
                         
                     case ACTION_TYPE.CUSTOMER_ACTION:
                         TCPServerConnection customerServer = new TCPServerConnection(out, customerServerName, s_serverPort);
-                        customerServer.sendAction(travelAction); // send the action to the customer server
+                        customerServer.send(travelAction); // send the action to the customer server
                         break;
                         
                 }
-
+                
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
