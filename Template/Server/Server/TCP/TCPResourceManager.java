@@ -5,7 +5,6 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 import Server.Interface.*;
-import sun.net.www.content.image.x_xpixmap;
 import Server.Actions.*;
 import Server.Common.*;
 
@@ -42,197 +41,264 @@ public class TCPResourceManager extends ResourceManager
             {   
                 // Socket and stream objects to an incoming request
                 Socket s = null;
-                ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
-                ObjectInputStream in = new ObjectInputStream(s.getInputStream());
 
-                Boolean res = null;
-                Integer res_ = null;
+                try {
+                    // Receive incoming request
+                    s = ss.accept();
+                    ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
+                    ObjectInputStream in = new ObjectInputStream(s.getInputStream());
 
-                // Initialize thread
-                Thread t = new Thread() {
+                    // Initialize thread
+                    Thread t = new Thread() {
 
-                    @Override
-                    public void run() {
+                        @Override
+                        public void run() {
 
-                        TravelAction req = (TravelAction) in.readObject();
+                            try {
 
-                        switch (req.getSubtype()) {
-                            
-                            case ADD_FLIGHT:
+                                TravelAction req = (TravelAction) in.readObject();
 
-                                res = Boolean(
-                                    server.addFlight(
-                                        ((AddFlightAction) req).getXid(),
-                                        ((AddFlightAction) req).getFlightNumber(),
-                                        ((AddFlightAction) req).getFlightSeats(),
-                                        ((AddFlightAction) req).getFlightPrice()
-                                    )
-                                );
+                                Boolean res = null;
+                                Integer res_ = null;
 
-                                break;
+                                switch (req.getSubtype()) {
+                                    
+                                    case ADD_FLIGHT:
 
-                            case ADD_CAR_LOCATION:
+                                        res = new Boolean(
+                                            server.addFlight(
+                                                ((AddFlightAction) req).getXid(),
+                                                ((AddFlightAction) req).getFlightNumber(),
+                                                ((AddFlightAction) req).getFlightSeats(),
+                                                ((AddFlightAction) req).getFlightPrice()
+                                            )
+                                        );
+                                        break;
 
-                                res = Boolean(
-                                    server.addCars(
-                                        ((AddCarLocationAction) req).getXid(),
-                                        ((AddCarLocationAction) req).getLocation(),
-                                        ((AddCarLocationAction) req).getNumCars(),
-                                        ((AddCarLocationAction) req).getPrice()
-                                    )
-                                );
-                                break;
+                                    case ADD_CAR_LOCATION:
 
-                            case ADD_ROOM_LOCATION:
+                                        res = new Boolean(
+                                            server.addCars(
+                                                ((AddCarLocationAction) req).getXid(),
+                                                ((AddCarLocationAction) req).getLocation(),
+                                                ((AddCarLocationAction) req).getNumCars(),
+                                                ((AddCarLocationAction) req).getPrice()
+                                            )
+                                        );
+                                        break;
 
-                                // TODO
-                                break;
+                                    case ADD_ROOM_LOCATION:
 
-                            case ADD_CUSTOMER:
+                                        res = new Boolean(
+                                            server.addRooms(
+                                                ((AddRoomLocationAction) req).getXid(),
+                                                ((AddRoomLocationAction) req).getLocation(),
+                                                ((AddRoomLocationAction) req).getNumRooms(),
+                                                ((AddRoomLocationAction) req).getPrice()
+                                            )
+                                        );
+                                        break;
 
-                                // TODO
-                                break;
+                                    case ADD_CUSTOMER:
 
-                            case QUERY_FLIGHT:
+                                        int xid = ((AddCustomerAction) req).getXid();
+                                        int customerID = ((AddCustomerAction) req).getCustomerID();
 
-                                res_ = Integer(
-                                    server.queryFlight(
-                                        ((QueryFlightAction) req).getXid(),
-                                        ((QueryFlightAction) req).getFlightNumber()
-                                    )
-                                );
-                                break;
+                                        if (customerID == -1) {
+                                            res_ = new Integer(
+                                                server.newCustomer(xid)
+                                            );
+                                        }
+                                        else {
+                                            res = new Boolean(
+                                                server.newCustomer(xid, customerID)
+                                            );
+                                        }
+                                        break;
 
-                            case QUERY_CAR_LOCATION:
+                                    case QUERY_FLIGHT:
 
-                                res_ = Integer(
-                                    server.queryCars(
-                                        ((QueryCarLocationAction) req).getXid(),
-                                        ((QueryCarLocationAction) req).getLocation()
-                                    )
-                                );
-                                break;
+                                        res_ = new Integer(
+                                            server.queryFlight(
+                                                ((QueryFlightAction) req).getXid(),
+                                                ((QueryFlightAction) req).getFlightNumber()
+                                            )
+                                        );
+                                        break;
 
-                            case QUERY_ROOM_LOCATION:
+                                    case QUERY_CAR_LOCATION:
 
-                                // TODO
-                                break;
+                                        res_ = new Integer(
+                                            server.queryCars(
+                                                ((QueryCarLocationAction) req).getXid(),
+                                                ((QueryCarLocationAction) req).getLocation()
+                                            )
+                                        );
+                                        break;
 
-                            case QUERY_CUSTOMER:
+                                    case QUERY_ROOM_LOCATION:
 
-                                // TODO
-                                break;
+                                        res_ = new Integer(
+                                            server.queryRooms(
+                                                ((QueryRoomLocationAction) req).getXid(),
+                                                ((QueryRoomLocationAction) req).getLocation()
+                                            )
+                                        );
+                                        break;
 
-                            case QUERY_FLIGHT_PRICE:
+                                    case QUERY_CUSTOMER:
 
-                                res_ = Integer(
-                                    server.queryFlightPrice(
-                                        ((QueryFlightPriceAction) req).getXid(),
-                                        ((QueryFlightPriceAction) req).getFlightNumber()
-                                    )
-                                );
-                                break;
+                                        res_ = new Integer(
+                                            server.queryCustomerInfo(
+                                                ((QueryCustomerAction) req).getXid(),
+                                                ((QueryCustomerAction) req).getCustomerID()
+                                            )
+                                        );
+                                        break;
 
-                            case QUERY_CAR_PRICE:
+                                    case QUERY_FLIGHT_PRICE:
 
-                                res_ = Integer(
-                                    server.queryCars(
-                                        ((QueryCarPriceAction) req).getXid(),
-                                        ((QueryCarPriceAction) req).getLocation()
-                                    )
-                                );
-                                break;
+                                        res_ = new Integer(
+                                            server.queryFlightPrice(
+                                                ((QueryFlightPriceAction) req).getXid(),
+                                                ((QueryFlightPriceAction) req).getFlightNumber()
+                                            )
+                                        );
+                                        break;
 
-                            case QUERY_ROOM_PRICE:
+                                    case QUERY_CAR_PRICE:
 
-                                // TODO
-                                break;
+                                        res_ = new Integer(
+                                            server.queryCars(
+                                                ((QueryCarPriceAction) req).getXid(),
+                                                ((QueryCarPriceAction) req).getLocation()
+                                            )
+                                        );
+                                        break;
 
-                            case DELETE_FLIGHT:
+                                    case QUERY_ROOM_PRICE:
 
-                                res = Boolean(
-                                    server.deleteFlight(
-                                        ((DeleteFlightAction) req).getXid(),
-                                        ((DeleteFlightAction) req).getFlightNumber()
-                                    )
-                                );
-                                break;
+                                        res_ = new Integer(
+                                            server.queryRoomsPrice(
+                                                ((QueryRoomPriceAction) req).getXid(),
+                                                ((QueryRoomPriceAction) req).getLocation()
+                                            )
+                                        );
+                                        break;
 
-                            case DELETE_CAR_LOCATION:
+                                    case DELETE_FLIGHT:
 
-                                res = Boolean(
-                                    server.deleteCars(
-                                        ((DeleteCarLocationAction) req).getXid(),
-                                        ((DeleteCarLocationAction) req).getLocation()
-                                    )
-                                );
-                                break;
+                                        res = new Boolean(
+                                            server.deleteFlight(
+                                                ((DeleteFlightAction) req).getXid(),
+                                                ((DeleteFlightAction) req).getFlightNumber()
+                                            )
+                                        );
+                                        break;
 
-                            case DELETE_ROOM_LOCATION:
+                                    case DELETE_CAR_LOCATION:
 
-                                // TODO
-                                break;
+                                        res = new Boolean(
+                                            server.deleteCars(
+                                                ((DeleteCarLocationAction) req).getXid(),
+                                                ((DeleteCarLocationAction) req).getLocation()
+                                            )
+                                        );
+                                        break;
 
-                            case DELETE_CUSTOMER:
+                                    case DELETE_ROOM_LOCATION:
 
-                                // TODO
-                                break;
+                                        res = new Boolean(
+                                            server.deleteRooms(
+                                                ((DeleteRoomLocationAction) req).getXid(),
+                                                ((DeleteRoomLocationAction) req).getLocation()
+                                            )
+                                        );
+                                        break;
 
-                            case RESERVE_FLIGHT:
+                                    case DELETE_CUSTOMER:
 
-                                res = Boolean(
-                                    server.reserveFlight(
-                                        ((ReserveFlightAction) req).getXid(),
-                                        ((ReserveFlightAction) req).getCustomerID(),
-                                        ((ReserveFlightAction) req).getFlightNumber()
-                                    )
-                                );
-                                break;
+                                        res = new Boolean(
+                                            server.deleteCustomer(
+                                                ((DeleteCustomerAction) req).getXid(),
+                                                ((DeleteCustomerAction) req).getCustomerID()
+                                            )
+                                        );
+                                        break;
 
-                            case RESERVE_CAR: 
+                                    case RESERVE_FLIGHT:
 
-                                res = Boolean(
-                                    server.reserveCar(
-                                        ((ReserveCarAction) req).getXid(),
-                                        ((ReserveCarAction) req).getCustomerID(),
-                                        ((ReserveCarAction) req).getLocation()
-                                    )
-                                );
-                                break;  
+                                        res = new Boolean(
+                                            server.reserveFlight(
+                                                ((ReserveFlightAction) req).getXid(),
+                                                ((ReserveFlightAction) req).getCustomerID(),
+                                                ((ReserveFlightAction) req).getFlightNumber()
+                                            )
+                                        );
+                                        break;
 
-                            case RESERVE_ROOM:
+                                    case RESERVE_CAR: 
 
-                                // TODO 
-                                break;
+                                        res = new Boolean(
+                                            server.reserveCar(
+                                                ((ReserveCarAction) req).getXid(),
+                                                ((ReserveCarAction) req).getCustomerID(),
+                                                ((ReserveCarAction) req).getLocation()
+                                            )
+                                        );
+                                        break;  
 
-                            case RESERVE_BUNDLE:
+                                    case RESERVE_ROOM:
 
-                                // TODO
-                                break;
+                                        res = new Boolean(
+                                            server.reserveRoom(
+                                                ((ReserveRoomAction) req).getXid(),
+                                                ((ReserveRoomAction) req).getCustomerID(),
+                                                ((ReserveRoomAction) req).getLocation()
+                                            )
+                                        );
+                                        break;
 
-                            default: 
-                                break;
+                                    case RESERVE_BUNDLE:
+
+                                        // Handled in middleware
+                                        break;
+
+                                    default: 
+                                        break;
+                                }
+
+                                if (res != null) {
+                                    out.writeObject(res); 
+                                }
+                                else if (res_ != null) {
+                                    out.writeObject(res_);
+                                }
+                                else {
+                                    out.writeObject(new String("NULL"));
+                                }
+                
+                                out.flush();
+                            } 
+                            catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
                         }
+                    };
+
+                    try { 
+                        in.close();
+                        out.close();   
                     }
-                };
-
-                if (res != null) {
-                    out.writeObject(res); 
+                    catch(IOException e){ 
+                        e.printStackTrace(); 
+                    }
                 }
-                else if (res_ != null) {
-                    out.writeObject(res_);
-                }
-                else {
-                    out.writeObject(new String("NULL"));
-                }
-
-                out.flush();
-
-                try { 
-                    in.close();
-                    out.close();   
-                }
-                catch(IOException e){ 
+                catch (Exception e) {
+                    s.close(); 
                     e.printStackTrace(); 
                 }
             }

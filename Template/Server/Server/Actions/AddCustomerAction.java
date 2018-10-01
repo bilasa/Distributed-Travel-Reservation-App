@@ -12,6 +12,7 @@ public class AddCustomerAction extends CustomerAction
 	{
         super(ACTION_TYPE.CUSTOMER_ACTION, ACTION_SUBTYPE.ADD_CUSTOMER);
         this.xid = xid;
+        this.customerID = -1;
     }
 
     public AddCustomerAction(int xid, int customerID)

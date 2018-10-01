@@ -1,6 +1,6 @@
 package Server.Actions;
 
-import Server.Actions.TravelAction;
+import Server.Actions.*;
 
 import java.util.*;
 import java.io.*;
