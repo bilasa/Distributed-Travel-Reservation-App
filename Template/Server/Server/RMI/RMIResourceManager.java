@@ -76,7 +76,7 @@ public class RMIResourceManager extends ResourceManager
 
 	/* NOTE: The following functions are to support the Client-Middleware-RMs design */
 
-	// Function to update flight
+	// Function to reserve flight in FlightResourceManager
 	public Integer reserveFlight_FlightRM(int xid, int flightNum, int toReserve) throws RemoteException
 	{	
 		Trace.info("RM::updateFlight(" + xid + ", " + flightNum + ") called");
@@ -100,7 +100,7 @@ public class RMIResourceManager extends ResourceManager
 		return new Integer(curObj.getPrice());
 	}
 
-	// Function to update car
+	// Function to reserve car in CarResourceManager (this returns an integer value as updating in the customer resource manager requires latest reserved price of item)
 	public Integer reserveCar_CarRM(int xid, String location, int toReserve)
 	{	
 		Trace.info("RM::updateCars(" + xid + ", " + location + ") called");
@@ -124,7 +124,7 @@ public class RMIResourceManager extends ResourceManager
 		return new Integer(curObj.getPrice());
 	}
 
-	// Function to udpate room 
+	// Function to reserve room in RoomResourceManager (this returns an integer value as updating in the customer resource manager requires latest reserved price of item)
 	public Integer reserveRoom_RoomRM(int xid, String location, int toReserve)
 	{
 		Trace.info("RM::updateRooms(" + xid + ", " + location + ") called");
@@ -148,25 +148,25 @@ public class RMIResourceManager extends ResourceManager
 		return new Integer(curObj.getPrice());
 	}
 
-	// Function to reserve flight
+	// Function to reserve flight in CustomerResourceManager (this returns an integer value as updating in the customer resource manager requires latest reserved price of item)
 	public boolean reserveFlight_CustomerRM(int xid, int customerID, int flightNum, int price) throws RemoteException
 	{
 		return reserveItem_CustomerRM(xid, customerID, Flight.getKey(flightNum), String.valueOf(flightNum), price);
 	}
 
-	// Function to reserve car
+	// Function to reserve car in CustomerResourceManager
 	public boolean reserveCar_CustomerRM(int xid, int customerID, String location, int price) throws RemoteException
 	{
 		return reserveItem_CustomerRM(xid, customerID, Car.getKey(location), location, price);
 	}
 
-	// Function to reserve room
+	// Function to reserve room in CustomerResourceManager
 	public boolean reserveRoom_CustomerRM(int xid, int customerID, String location, int price) throws RemoteException
 	{
 		return reserveItem_CustomerRM(xid, customerID, Room.getKey(location), location, price);
 	}
 
-	// Function to reserve item 
+	// Function to reserve item in CustomerResourceManager
 	protected boolean reserveItem_CustomerRM(int xid, int customerID, String key, String location, int price)
 	{
 		Trace.info("RM::reserveItem(" + xid + ", customer=" + customerID + ", " + key + ", " + location + ") called" );   
