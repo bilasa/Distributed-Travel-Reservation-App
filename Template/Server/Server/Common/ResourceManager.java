@@ -296,7 +296,7 @@ public class ResourceManager implements IResourceManager
 
 	public int newCustomer(int xid) throws RemoteException
 	{
-        	Trace.info("RM::newCustomer(" + xid + ") called");
+        Trace.info("RM::newCustomer(" + xid + ") called");
 		// Generate a globally unique ID for the new customer
 		int cid = Integer.parseInt(String.valueOf(xid) +
 			String.valueOf(Calendar.getInstance().get(Calendar.MILLISECOND)) +
