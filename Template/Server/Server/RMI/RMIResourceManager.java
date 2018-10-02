@@ -215,6 +215,37 @@ public class RMIResourceManager extends ResourceManager
 
 		return res;
 	}
+
+	public boolean bundle(int xid, int customerID, Vector<String> flightNumbers, ArrayList<Integer> flightPrices, String location, boolean car, Integer carPrice, boolean room, Integer roomPrice) throws RemoteException
+	{	
+		Customer customer = (Customer) readData(xid, Customer.getKey(customerID));
+
+		
+		if (customer == null)
+		{
+			Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ")  failed--customer doesn't exist");
+			return false;
+		} 
+		
+		// Reserve flights
+		for (int i = 0; i < flightNumbers.size() ; i++) {
+			reserveFlight_CustomerRM(xid, customerID, Integer.parseInt(flightNumbers.get(i)), flightPrices.get(i));
+		}
+
+		// Reserve car
+		if (car) 
+		{
+			reserveCar_CustomerRM(xid, customerID, location, carPrice);
+		}
+
+		// Reserve room 
+		if (room) 
+		{
+			reserveRoom_CustomerRM(xid, customerID, location, roomPrice);
+		}
+
+		return true;
+	}
     
 	public RMIResourceManager(String name)
 	{
