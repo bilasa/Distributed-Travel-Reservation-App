@@ -36,6 +36,7 @@ public class RMIResourceManager extends ResourceManager
 
 			// Bind the remote object's stub in the registry
 			Registry l_registry;
+
 			try {
 				l_registry = LocateRegistry.createRegistry(1099);
 			} catch (RemoteException e) {
@@ -56,7 +57,8 @@ public class RMIResourceManager extends ResourceManager
 						e.printStackTrace();
 					}
 				}
-			});                                       
+			});    
+
 			System.out.println("'" + s_serverName + "' resource manager server ready and bound to '" + s_rmiPrefix + s_serverName + "'");
 		}
 		catch (Exception e) {
@@ -71,64 +73,149 @@ public class RMIResourceManager extends ResourceManager
 			System.setSecurityManager(new SecurityManager());
 		}
 	}
-    
-    /*
-     * Check if a flight exists. If it does and seats are available decrement the seats
-     */
-    /*public boolean updateFlight(int flightNum) {
-        Flight curObj = (Flight)readData(xid, Flight.getKey(flightNum));
-        if (curObj == null) {
-            return false;
-        } else {
-            int numSeats = curObj.getCount();
-            if (numSeats <= 0) {
-                return false
-            }
-        }
-        
-        curObj.setCount(numSeats - 1);
-        
-        return true;
-    }
-    
-    /*
-     * Check if a flight exists. If it does and seats are available decrement the seats
-     */
-    /*public boolean updateCar(int flightNum) {
-        Flight curObj = (Flight)readData(xid, Flight.getKey(flightNum));
-        if (curObj == null) {
-            return false;
-        } else {
-            int numSeats = curObj.getCount();
-            if (numSeats <= 0) {
-                return false
-            }
-        }
-        
-        curObj.setCount(numSeats - 1);
-        
-        return true;
-    }*/
-    
-    /*
-     * Check if a flight exists. If it does and seats are available decrement the seats
-     */
-    /*public boolean updateRoom(int flightNum) {
-        Flight curObj = (Flight)readData(xid, Flight.getKey(flightNum));
-        if (curObj == null) {
-            return false;
-        } else {
-            int numSeats = curObj.getCount();
-            if (numSeats <= 0) {
-                return false
-            }
-        }
-        
-        curObj.setCount(numSeats - 1);
-        
-        return true;
-    }*/
 
+	/* NOTE: The following functions are to support the Client-Middleware-RMs design */
+
+	// Function to update flight
+	public Integer reserveFlight_FlightRM(int xid, int flightNum, int toReserve) throws RemoteException
+	{	
+		Trace.info("RM::updateFlight(" + xid + ", " + flightNum + ") called");
+		
+		// Retrieve flight
+		Flight curObj = (Flight) readData(xid, Flight.getKey(flightNum));
+
+		if (curObj == null) return new Integer(-1);
+
+		// Count and reservations
+		int nCount = curObj.getCount() - toReserve;
+		int nReserved = curObj.getReserved() + toReserve;
+
+		if (nCount < 0 || nReserved < 0) return new Integer(-1);
+
+		// Update 
+		curObj.setCount(nCount);
+		curObj.setReserved(nReserved);
+		writeData(xid, curObj.getKey(), curObj);
+
+		return new Integer(curObj.getPrice());
+	}
+
+	// Function to update car
+	public Integer reserveCar_CarRM(int xid, String location, int toReserve)
+	{	
+		Trace.info("RM::updateCars(" + xid + ", " + location + ") called");
+
+		// Retrieve car
+		Car curObj = (Car) readData(xid, Car.getKey(location));
+
+		if (curObj == null) return new Integer(-1);
+
+		// Count and reservations
+		int nCount = curObj.getCount() - toReserve;
+		int nReserved = curObj.getReserved() + toReserve;
+
+		if (nCount < 0 || nReserved < 0) return new Integer(-1);
+
+		// Update 
+		curObj.setCount(nCount);
+		curObj.setReserved(nReserved);
+		writeData(xid, curObj.getKey(), curObj);
+		
+		return new Integer(curObj.getPrice());
+	}
+
+	// Function to udpate room 
+	public Integer reserveRoom_RoomRM(int xid, String location, int toReserve)
+	{
+		Trace.info("RM::updateRooms(" + xid + ", " + location + ") called");
+
+		// Reserve room
+		Room curObj = (Room) readData(xid, Room.getKey(location));
+
+		if (curObj == null) return new Integer(-1);
+
+		// Count and reservations
+		int nCount = curObj.getCount() - toReserve;
+		int nReserved = curObj.getReserved() + toReserve;
+
+		if (nCount < 0 || nReserved < 0) return new Integer(-1);
+
+		// Update 
+		curObj.setCount(nCount);
+		curObj.setReserved(nReserved);
+		writeData(xid, curObj.getKey(), curObj);
+
+		return new Integer(curObj.getPrice());
+	}
+
+	// Function to reserve flight
+	public boolean reserveFlight_CustomerRM(int xid, int customerID, int flightNum, int price) throws RemoteException
+	{
+		return reserveItem_CustomerRM(xid, customerID, Flight.getKey(flightNum), String.valueOf(flightNum), price);
+	}
+
+	// Function to reserve car
+	public boolean reserveCar_CustomerRM(int xid, int customerID, String location, int price) throws RemoteException
+	{
+		return reserveItem_CustomerRM(xid, customerID, Car.getKey(location), location, price);
+	}
+
+	// Function to reserve room
+	public boolean reserveRoom_CustomerRM(int xid, int customerID, String location, int price) throws RemoteException
+	{
+		return reserveItem_CustomerRM(xid, customerID, Room.getKey(location), location, price);
+	}
+
+	// Function to reserve item 
+	protected boolean reserveItem_CustomerRM(int xid, int customerID, String key, String location, int price)
+	{
+		Trace.info("RM::reserveItem(" + xid + ", customer=" + customerID + ", " + key + ", " + location + ") called" );   
+		
+		// Retrieve customer
+		Customer customer = (Customer) readData(xid, Customer.getKey(customerID));
+
+		if (customer == null)
+		{
+			Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ")  failed--customer doesn't exist");
+			return false;
+		} 
+
+		// Update customer
+		customer.reserve(key, location, price);        
+		writeData(xid, customer.getKey(), customer);
+
+		Trace.info("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ") succeeded");
+		return true;
+	}
+
+	public ArrayList<ReservedItem> deleteCustomer_(int xid, int customerID) throws RemoteException 
+	{	
+		Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
+
+		// Retrieve customer 
+		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
+
+		if (customer == null)
+		{
+			Trace.warn("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--customer doesn't exist");
+			return new ArrayList<ReservedItem>();
+		}
+
+		ArrayList<ReservedItem> res = new ArrayList<ReservedItem>();
+		RMHashMap reservations = customer.getReservations();
+		
+		for (String reservedKey : reservations.keySet()) {
+			ReservedItem item = customer.getReservedItem(reservedKey);
+			res.add(item);
+		}
+
+		// Remove customer from storage
+		removeData(xid, customer.getKey());
+		Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") succeeded");
+
+		return res;
+	}
+    
 	public RMIResourceManager(String name)
 	{
 		super(name);
