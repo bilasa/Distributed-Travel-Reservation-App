@@ -1,13 +1,15 @@
 package Server.TCP;
 
-import Server.Interface.*;
-import Server.Common.*;
-
-import java.net.*;
-
 import java.util.*;
 import java.io.*;
+import java.net.*;
+import Server.Interface.*;
+import Server.Common.*;
+import Server.Actions.*;
 
+// TODO
+
+/*
 public class TCPMiddleware extends Middleware
 {
     private static String s_serverHost = "localhost";
@@ -75,7 +77,7 @@ public class TCPMiddleware extends Middleware
     
     /*
      * Services a request from a client
-     */
+  
     public static class RequestThread implements Runnable {
         Socket clientSocket;
         ObjectInputStream in; // input stream for client request
@@ -91,19 +93,19 @@ public class TCPMiddleware extends Middleware
         public void run() {
 
             TravelAction travelAction = (TravelAction)in.readObject(); // Get action object from the input stream
-            TravelAction reserveAction, reserveAction_; // extra actions for reserve actions
+            TravelAction reserveAction = null, reserveAction_ = null;// extra actions for reserve actions
             
-            Socket socket, socket_;
+            Socket socket = null, socket_ = null;
             
             ObjectInputStream inRM, inRM_; // input stream from ResourceManager (extra one for reserve actions)
             ObjectOutputStream outRM, outRM_; // output stream to ResourceManager (extra one for reserve actions)
             
-            boolean reserveAction = false; // is the action a reserve action
+            boolean flag = false; // is the action a reserve action
                 
             // Send the action to the appropriate ResourceManager server
             try {
                 
-                switch (travelAction.getActionType()) {
+                switch (travelAction.getType()) {
                         
                     case RESERVE_ACTION:
                         
@@ -159,7 +161,7 @@ public class TCPMiddleware extends Middleware
                 
                         // Customer action/socket for all reserve actions
                         reserveAction_ = new UpdateCustomerAction(...));
-                        serverSocket_ = new Socket(customerServerName, s_serverPort);*/
+                        serverSocket_ = new Socket(customerServerName, s_serverPort);
                         
                         break;
                         
@@ -185,7 +187,7 @@ public class TCPMiddleware extends Middleware
                 e.printStackTrace();
                 System.exit(1);
             }
-
+            
                 // Create input stream and output stream from the server socket
                 inRM = new ObjectInputStream(socket.getInputStream());
                 outRM = new ObjectOutputStream(socket.getOutputStream());
@@ -229,4 +231,6 @@ public class TCPMiddleware extends Middleware
     }
     
 }
+
+*/
 
