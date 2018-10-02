@@ -489,7 +489,7 @@ public class ResourceManager implements IResourceManager
 	}
 
 	// Function to delete customer in customer database
-	public ArrayList<ReservedItem> deleteCustomer_(int xid, int customerID) throws RemoteException 
+	public ArrayList<ReservedItem> deleteCustomer_CustomerRM(int xid, int customerID) throws RemoteException 
 	{	
 		Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
 

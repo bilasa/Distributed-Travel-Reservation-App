@@ -219,7 +219,7 @@ public class TCPResourceManager extends ResourceManager
 									case DELETE_CUSTOMER:
 
 										res = new Boolean(
-											server.deleteCustomer(
+											server.deleteCustomer_CustomerRM(
 												((DeleteCustomerAction) req).getXid(),
 												((DeleteCustomerAction) req).getCustomerID()
 											)

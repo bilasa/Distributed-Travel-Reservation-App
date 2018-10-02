@@ -1,6 +1,6 @@
 package Client;
 
-//import Server.Actions.*;
+import Server.Actions.*;
 import Server.Interface.*;
 
 import java.io.*; 
@@ -72,7 +72,9 @@ public class TCPClient extends Client
 		try {
 
 			boolean first = true;
-
+			this.out = new ObjectOutputStream(s.getOutputStream());
+					this.in = new ObjectInputStream(s.getInputStream());
+			/*
 			while (true) {
 
 				try {
@@ -88,6 +90,8 @@ public class TCPClient extends Client
 				}
 				Thread.sleep(500);
 			}
+			*/ 
+			
 		}
 		catch (Exception e) {
 			System.err.println((char)27 + "[31;1mServer exception: " + (char)27 + "[0mUncaught exception");
@@ -96,8 +100,13 @@ public class TCPClient extends Client
 		}
 	}
 
+	// NOTE: Override execute function
 	public void execute(Command cmd, Vector<String> arguments) throws RemoteException, NumberFormatException
-	{
+	{	
+		TravelAction req = null;
+		Boolean res = null;
+		Integer res_ = null;
+
 		switch (cmd)
 		{
 			case Help:
@@ -125,14 +134,22 @@ public class TCPClient extends Client
 				int flightSeats = toInt(arguments.elementAt(3));
 				int flightPrice = toInt(arguments.elementAt(4));
 
-				// Send request
-				TravelAction req = new AddFlightAction(id, flightNum, flightSeats, flightPrice);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new AddFlightAction(id, flightNum, flightSeats, flightPrice);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				Boolean res = (Boolean) this.in.readObject();
-				
+					// Await response
+					res = (Boolean) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+
 				if (res.booleanValue()) {
 					System.out.println("Flight added");
 				} else {
@@ -153,14 +170,22 @@ public class TCPClient extends Client
 				int numCars = toInt(arguments.elementAt(3));
 				int price = toInt(arguments.elementAt(4));
 
-				// Send request
-				TravelAction req = new AddCarLocationAction(id, location, numCars, price);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new AddCarLocationAction(id, location, numCars, price);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				Boolean res = (Boolean) this.in.readObject();
-				
+					// Await response
+					res = (Boolean) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+
 				if (res.booleanValue()) {
 					System.out.println("Cars added");
 				} else {
@@ -181,13 +206,21 @@ public class TCPClient extends Client
 				int numRooms = toInt(arguments.elementAt(3));
 				int price = toInt(arguments.elementAt(4));
 
-				// Send request
-				TravelAction req = new AddRoomLocationAction(id, location, numRooms, price);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new AddRoomLocationAction(id, location, numRooms, price);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				Boolean res = (Boolean) this.in.readObject();
+					// Await response
+					res = (Boolean) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
 				
 				if (res.booleanValue()) {
 					System.out.println("Rooms added");
@@ -202,12 +235,22 @@ public class TCPClient extends Client
 				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
 
 				int id = toInt(arguments.elementAt(1));
+				int customer = -1;
 
-				TravelAction req = new AddCustomerAction(id);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					req = new AddCustomerAction(id);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				int customer = (int) this.in.readObject();
+					customer = (int) this.in.readObject();
+					}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+
 				System.out.println("Add customer ID: " + customer);
 				break;
 			}
@@ -220,13 +263,21 @@ public class TCPClient extends Client
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 
-				// Send request
-				TravelAction req = new AddCustomerAction(id, customerID);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new AddCustomerAction(id, customerID);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				Boolean res = (Boolean) this.in.readObject();
+					// Await response
+					res = (Boolean) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
 				
 				if (res.booleanValue()) {
 					System.out.println("Add customer ID: " + customerID);
@@ -244,14 +295,22 @@ public class TCPClient extends Client
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
 
-				// Send request
-				TravelAction req = new DeleteFlightAction(id, flightNum);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new DeleteFlightAction(id, flightNum);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				Boolean res = (Boolean) this.in.readObject();
-				
+					// Await response
+					res = (Boolean) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+
 				if (res.booleanValue()) {
 					System.out.println("Flight Deleted");
 				} else {
@@ -268,14 +327,22 @@ public class TCPClient extends Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 				
-				// Send request
-				TravelAction req = new DeleteCarLocationAction(id, location);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new DeleteCarLocationAction(id, location);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				Boolean res = (Boolean) this.in.readObject();
-				
+					// Await response
+					res = (Boolean) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+
 				if (res.booleanValue()) {
 					System.out.println("Cars Deleted");
 				} else {
@@ -292,14 +359,22 @@ public class TCPClient extends Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				// Send request
-				TravelAction req = new DeleteRoomLocationAction(id, location);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new DeleteRoomLocationAction(id, location);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				Boolean res = (Boolean) this.in.readObject();
-				
+					// Await response
+					res = (Boolean) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+
 				if (res.booleanValue()) {
 					System.out.println("Rooms Deleted");
 				} else {
@@ -316,14 +391,22 @@ public class TCPClient extends Client
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 
-				// Send request
-				TravelAction req = new DeleteCustomerAction(id, customerID);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new DeleteCustomerAction(id, customerID);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				Boolean res = (Boolean) this.in.readObject();
-				
+					// Await response
+					res = (Boolean) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+
 				if (res.booleanValue()) {
 					System.out.println("Customer Deleted");
 				} else {
@@ -340,14 +423,22 @@ public class TCPClient extends Client
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
 
-				// Send request
-				TravelAction req = new QueryFlightAction(id, flightNumber);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new QueryFlightAction(id, flightNum);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				int res = (int) this.in.readObject();
-				System.out.println("Number of seats available: " + res);
+					// Await response
+					res_ = (Integer) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+				System.out.println("Number of seats available: " + ((int) res_));
 				break;
 			}
 			case QueryCars: {
@@ -358,15 +449,24 @@ public class TCPClient extends Client
 				
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
+			
+				try {
+					// Send request
+					req = new QueryCarLocationAction(id, location);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Send request
-				TravelAction req = new QueryCarLocationAction(id, location);
-				this.out.writeObject(req);
-				this.out.flush();
+					// Await response
+					res_ = (Integer) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
 
-				// Await response
-				int numCars = (int) this.in.readObject();
-				System.out.println("Number of cars at this location: " + numCars);
+				System.out.println("Number of cars at this location: " + ((int) res_));
 				break;
 			}
 			case QueryRooms: {
@@ -378,14 +478,23 @@ public class TCPClient extends Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				// Send request
-				TravelAction req = new QueryRoomLocationAction(id, location);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new QueryRoomLocationAction(id, location);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				int numRoom = (int) this.in.readObject();
-				System.out.println("Number of rooms at this location: " + numRoom);
+					// Await response
+					res_ = (Integer) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+
+				System.out.println("Number of rooms at this location: " + ((int) res_));
 				break;
 			}
 			case QueryCustomer: {
@@ -396,14 +505,24 @@ public class TCPClient extends Client
 
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
+				String bill = null;
 
-				// Send request
-				TravelAction req = new QueryCustomerAction(id, customerID);
-				this.out.writeObject(req);
-				this.out.flush();
+				try{ 
+					// Send request
+					req = new QueryCustomerAction(id, customerID);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				String bill = (String) this.in.readObject();
+					// Await response
+					bill = (String) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+
 				System.out.print(bill);
 				break;               
 			}
@@ -416,14 +535,23 @@ public class TCPClient extends Client
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
 
-				// Send request
-				TravelAction req = new QueryFlightPriceAction(id, flightNum);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new QueryFlightPriceAction(id, flightNum);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				int price = (int) this.in.readObject();
-				System.out.println("Price of a seat: " + price);
+					// Await response
+					res_ = (Integer) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+
+				System.out.println("Price of a seat: " + ((int) res_));
 				break;
 			}
 			case QueryCarsPrice: {
@@ -435,14 +563,23 @@ public class TCPClient extends Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				// Send request
-				TravelAction req = new QueryCarPriceAction(id, location);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new QueryCarPriceAction(id, location);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				int price = (int) this.in.readObject();
-				System.out.println("Price of cars at this location: " + price);
+					// Await response
+					res_ = (Integer) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+
+				System.out.println("Price of cars at this location: " + ((int) res_));
 				break;
 			}
 			case QueryRoomsPrice: {
@@ -454,14 +591,23 @@ public class TCPClient extends Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				// Send request
-				TravelAction req = new QueryRoomPriceAction(id, location);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new QueryRoomPriceAction(id, location);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				int price = (int) this.in.readObject();
-				System.out.println("Price of rooms at this location: " + price);
+					// Await response
+					res_ = (int) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+
+				System.out.println("Price of rooms at this location: " + ((int) res_));
 				break;
 			}
 			case ReserveFlight: {
@@ -475,13 +621,22 @@ public class TCPClient extends Client
 				int customerID = toInt(arguments.elementAt(2));
 				int flightNum = toInt(arguments.elementAt(3));
 
-				// Send request
-				TravelAction req = new ReserveFlightAction(id, customerID, flightNum);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new ReserveFlightCustomerRmAction(id, customerID, flightNum, -1);
 
-				// Await response
-				Boolean res = (Boolean) this.in.readObject();
+					this.out.writeObject(req);
+					this.out.flush();
+
+					// Await response
+					res = (Boolean) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
 
 				if (res.booleanValue()) {
 					System.out.println("Flight Reserved");
@@ -501,13 +656,21 @@ public class TCPClient extends Client
 				int customerID = toInt(arguments.elementAt(2));
 				String location = arguments.elementAt(3);
 
-				// Send request
-				TravelAction req = new ReserveCarAction(id, customerID, location);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new ReserveCarCustomerRmAction(id, customerID, location, -1);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				Boolean res = (Boolean) this.in.readObject();
+					// Await response
+					res = (Boolean) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
 
 				if (res.booleanValue()) {
 					System.out.println("Car Reserved");
@@ -527,13 +690,21 @@ public class TCPClient extends Client
 				int customerID = toInt(arguments.elementAt(2));
 				String location = arguments.elementAt(3);
 
-				// Send request
-				TravelAction req = new ReserveRoomAction(id, customerID, location);
-				this.out.writeObject(req);
-				this.out.flush();
+				try {
+					// Send request
+					req = new ReserveRoomCustomerRmAction(id, customerID, location, -1);
+					this.out.writeObject(req);
+					this.out.flush();
 
-				// Await response
-				Boolean res = (Boolean) this.in.readObject();
+					// Await response
+					res = (Boolean) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
 
 				if (res.booleanValue()) {
 					System.out.println("Room Reserved");
@@ -567,14 +738,22 @@ public class TCPClient extends Client
 				String location = arguments.elementAt(arguments.size()-3);
 				boolean car = toBoolean(arguments.elementAt(arguments.size()-2));
 				boolean room = toBoolean(arguments.elementAt(arguments.size()-1));
-
-				// Send request
-				TravelAction req = new ReserveBundleAction(id, customerID, flightNumbers, location, car, room);
-				this.out.writeObject(req);
-				this.out.flush();
 				
-				// Await response
-				Boolean res = (Boolean) this.in.readObject();
+				try {
+					// Send request
+					req = new ReserveBundleCustomerRmAction(id, customerID, flightNumbers, new ArrayList<Integer>(), location, car, -1, room, -1);
+					this.out.writeObject(req);
+					this.out.flush();
+					
+					// Await response
+					res = (Boolean) this.in.readObject();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
 
 				if (res.booleanValue()) {
 					System.out.println("Bundle Reserved");
@@ -586,12 +765,18 @@ public class TCPClient extends Client
 			case Quit:
 				checkArgumentsCount(1, arguments.size());
 
-				this.s.close();
-				this.in.close();
-				this.out.close();
+				try {
+					this.in.close();
+					this.out.close();
+					this.s.close();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
 
 				System.out.println("Quitting client");
 				System.exit(0);
 		}
+		
 	}
 }
