@@ -341,6 +341,7 @@ public class TCPResourceManager extends ResourceManager
 					try { 
 						in.close();
 						out.close();   
+						s.close();
 					}
 					catch(IOException e) { 
 						e.printStackTrace(); 
