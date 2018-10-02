@@ -70,11 +70,8 @@ public class TCPClient extends Client
 	public void connectServer(String server, int port, String name)
 	{
 		try {
-
 			boolean first = true;
-			this.out = new ObjectOutputStream(s.getOutputStream());
-					this.in = new ObjectInputStream(s.getInputStream());
-			/*
+
 			while (true) {
 
 				try {
@@ -82,7 +79,7 @@ public class TCPClient extends Client
 					this.in = new ObjectInputStream(s.getInputStream());
 					break;
 				}
-				catch (NotBoundException|RemoteException e) {
+				catch (Exception e) {
 					if (first) {
 						System.out.println("Waiting for '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
 						first = false;
@@ -90,8 +87,6 @@ public class TCPClient extends Client
 				}
 				Thread.sleep(500);
 			}
-			*/ 
-			
 		}
 		catch (Exception e) {
 			System.err.println((char)27 + "[31;1mServer exception: " + (char)27 + "[0mUncaught exception");
@@ -107,34 +102,34 @@ public class TCPClient extends Client
 		Boolean res = null;
 		Integer res_ = null;
 
-		switch (cmd)
-		{
-			case Help:
+		try {
+			switch (cmd)
 			{
-				if (arguments.size() == 1) {
-					System.out.println(Command.description());
-				} else if (arguments.size() == 2) {
-					Command l_cmd = Command.fromString((String)arguments.elementAt(1));
-					System.out.println(l_cmd.toString());
-				} else {
-					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mImproper use of help command. Location \"help\" or \"help,<CommandName>\"");
+				case Help:
+				{
+					if (arguments.size() == 1) {
+						System.out.println(Command.description());
+					} else if (arguments.size() == 2) {
+						Command l_cmd = Command.fromString((String)arguments.elementAt(1));
+						System.out.println(l_cmd.toString());
+					} else {
+						System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mImproper use of help command. Location \"help\" or \"help,<CommandName>\"");
+					}
+					break;
 				}
-				break;
-			}
-			case AddFlight: {
-				checkArgumentsCount(5, arguments.size());
+				case AddFlight: {
+					checkArgumentsCount(5, arguments.size());
 
-				System.out.println("Adding a new flight [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Flight Number: " + arguments.elementAt(2));
-				System.out.println("-Flight Seats: " + arguments.elementAt(3));
-				System.out.println("-Flight Price: " + arguments.elementAt(4));
+					System.out.println("Adding a new flight [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Flight Number: " + arguments.elementAt(2));
+					System.out.println("-Flight Seats: " + arguments.elementAt(3));
+					System.out.println("-Flight Price: " + arguments.elementAt(4));
 
-				int id = toInt(arguments.elementAt(1));
-				int flightNum = toInt(arguments.elementAt(2));
-				int flightSeats = toInt(arguments.elementAt(3));
-				int flightPrice = toInt(arguments.elementAt(4));
+					int id = toInt(arguments.elementAt(1));
+					int flightNum = toInt(arguments.elementAt(2));
+					int flightSeats = toInt(arguments.elementAt(3));
+					int flightPrice = toInt(arguments.elementAt(4));
 
-				try {
 					// Send request
 					req = new AddFlightAction(id, flightNum, flightSeats, flightPrice);
 					this.out.writeObject(req);
@@ -142,35 +137,27 @@ public class TCPClient extends Client
 
 					// Await response
 					res = (Boolean) this.in.readObject();
+
+					if (res.booleanValue()) {
+						System.out.println("Flight added");
+					} else {
+						System.out.println("Flight could not be added");
+					} 
+					break;
 				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
+				case AddCars: {
+					checkArgumentsCount(5, arguments.size());
 
-				if (res.booleanValue()) {
-					System.out.println("Flight added");
-				} else {
-					System.out.println("Flight could not be added");
-				} 
-				break;
-			}
-			case AddCars: {
-				checkArgumentsCount(5, arguments.size());
+					System.out.println("Adding new cars [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Car Location: " + arguments.elementAt(2));
+					System.out.println("-Number of Cars: " + arguments.elementAt(3));
+					System.out.println("-Car Price: " + arguments.elementAt(4));
 
-				System.out.println("Adding new cars [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Car Location: " + arguments.elementAt(2));
-				System.out.println("-Number of Cars: " + arguments.elementAt(3));
-				System.out.println("-Car Price: " + arguments.elementAt(4));
+					int id = toInt(arguments.elementAt(1));
+					String location = arguments.elementAt(2);
+					int numCars = toInt(arguments.elementAt(3));
+					int price = toInt(arguments.elementAt(4));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-				int numCars = toInt(arguments.elementAt(3));
-				int price = toInt(arguments.elementAt(4));
-
-				try {
 					// Send request
 					req = new AddCarLocationAction(id, location, numCars, price);
 					this.out.writeObject(req);
@@ -178,35 +165,27 @@ public class TCPClient extends Client
 
 					// Await response
 					res = (Boolean) this.in.readObject();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
 
-				if (res.booleanValue()) {
-					System.out.println("Cars added");
-				} else {
-					System.out.println("Cars could not be added");
+					if (res.booleanValue()) {
+						System.out.println("Cars added");
+					} else {
+						System.out.println("Cars could not be added");
+					}
+					break;
 				}
-				break;
-			}
-			case AddRooms: {
-				checkArgumentsCount(5, arguments.size());
+				case AddRooms: {
+					checkArgumentsCount(5, arguments.size());
 
-				System.out.println("Adding new rooms [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Room Location: " + arguments.elementAt(2));
-				System.out.println("-Number of Rooms: " + arguments.elementAt(3));
-				System.out.println("-Room Price: " + arguments.elementAt(4));
+					System.out.println("Adding new rooms [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Room Location: " + arguments.elementAt(2));
+					System.out.println("-Number of Rooms: " + arguments.elementAt(3));
+					System.out.println("-Room Price: " + arguments.elementAt(4));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-				int numRooms = toInt(arguments.elementAt(3));
-				int price = toInt(arguments.elementAt(4));
+					int id = toInt(arguments.elementAt(1));
+					String location = arguments.elementAt(2);
+					int numRooms = toInt(arguments.elementAt(3));
+					int price = toInt(arguments.elementAt(4));
 
-				try {
 					// Send request
 					req = new AddRoomLocationAction(id, location, numRooms, price);
 					this.out.writeObject(req);
@@ -214,56 +193,40 @@ public class TCPClient extends Client
 
 					// Await response
 					res = (Boolean) this.in.readObject();
+					
+					if (res.booleanValue()) {
+						System.out.println("Rooms added");
+					} else {
+						System.out.println("Rooms could not be added");
+					}
+					break;
 				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-				
-				if (res.booleanValue()) {
-					System.out.println("Rooms added");
-				} else {
-					System.out.println("Rooms could not be added");
-				}
-				break;
-			}
-			case AddCustomer: {
-				checkArgumentsCount(2, arguments.size());
+				case AddCustomer: {
+					checkArgumentsCount(2, arguments.size());
 
-				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
 
-				int id = toInt(arguments.elementAt(1));
-				int customer = -1;
+					int id = toInt(arguments.elementAt(1));
+					int customer = -1;
 
-				try {
 					req = new AddCustomerAction(id);
 					this.out.writeObject(req);
 					this.out.flush();
 
 					customer = (int) this.in.readObject();
-					}
-				catch (IOException e) {
-					e.printStackTrace();
+
+					System.out.println("Add customer ID: " + customer);
+					break;
 				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
+				case AddCustomerID: {
+					checkArgumentsCount(3, arguments.size());
 
-				System.out.println("Add customer ID: " + customer);
-				break;
-			}
-			case AddCustomerID: {
-				checkArgumentsCount(3, arguments.size());
+					System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Customer ID: " + arguments.elementAt(2));
 
-				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Customer ID: " + arguments.elementAt(2));
+					int id = toInt(arguments.elementAt(1));
+					int customerID = toInt(arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-
-				try {
 					// Send request
 					req = new AddCustomerAction(id, customerID);
 					this.out.writeObject(req);
@@ -271,31 +234,23 @@ public class TCPClient extends Client
 
 					// Await response
 					res = (Boolean) this.in.readObject();
+					
+					if (res.booleanValue()) {
+						System.out.println("Add customer ID: " + customerID);
+					} else {
+						System.out.println("Customer could not be added");
+					}
+					break;
 				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-				
-				if (res.booleanValue()) {
-					System.out.println("Add customer ID: " + customerID);
-				} else {
-					System.out.println("Customer could not be added");
-				}
-				break;
-			}
-			case DeleteFlight: {
-				checkArgumentsCount(3, arguments.size());
+				case DeleteFlight: {
+					checkArgumentsCount(3, arguments.size());
 
-				System.out.println("Deleting a flight [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Flight Number: " + arguments.elementAt(2));
+					System.out.println("Deleting a flight [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Flight Number: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				int flightNum = toInt(arguments.elementAt(2));
+					int id = toInt(arguments.elementAt(1));
+					int flightNum = toInt(arguments.elementAt(2));
 
-				try {
 					// Send request
 					req = new DeleteFlightAction(id, flightNum);
 					this.out.writeObject(req);
@@ -303,31 +258,23 @@ public class TCPClient extends Client
 
 					// Await response
 					res = (Boolean) this.in.readObject();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
 
-				if (res.booleanValue()) {
-					System.out.println("Flight Deleted");
-				} else {
-					System.out.println("Flight could not be deleted");
+					if (res.booleanValue()) {
+						System.out.println("Flight Deleted");
+					} else {
+						System.out.println("Flight could not be deleted");
+					}
+					break;
 				}
-				break;
-			}
-			case DeleteCars: {
-				checkArgumentsCount(3, arguments.size());
+				case DeleteCars: {
+					checkArgumentsCount(3, arguments.size());
 
-				System.out.println("Deleting all cars at a particular location [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Car Location: " + arguments.elementAt(2));
+					System.out.println("Deleting all cars at a particular location [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Car Location: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-				
-				try {
+					int id = toInt(arguments.elementAt(1));
+					String location = arguments.elementAt(2);
+					
 					// Send request
 					req = new DeleteCarLocationAction(id, location);
 					this.out.writeObject(req);
@@ -335,31 +282,23 @@ public class TCPClient extends Client
 
 					// Await response
 					res = (Boolean) this.in.readObject();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
 
-				if (res.booleanValue()) {
-					System.out.println("Cars Deleted");
-				} else {
-					System.out.println("Cars could not be deleted");
+					if (res.booleanValue()) {
+						System.out.println("Cars Deleted");
+					} else {
+						System.out.println("Cars could not be deleted");
+					}
+					break;
 				}
-				break;
-			}
-			case DeleteRooms: {
-				checkArgumentsCount(3, arguments.size());
+				case DeleteRooms: {
+					checkArgumentsCount(3, arguments.size());
 
-				System.out.println("Deleting all rooms at a particular location [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Car Location: " + arguments.elementAt(2));
+					System.out.println("Deleting all rooms at a particular location [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Car Location: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
+					int id = toInt(arguments.elementAt(1));
+					String location = arguments.elementAt(2);
 
-				try {
 					// Send request
 					req = new DeleteRoomLocationAction(id, location);
 					this.out.writeObject(req);
@@ -367,31 +306,23 @@ public class TCPClient extends Client
 
 					// Await response
 					res = (Boolean) this.in.readObject();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
 
-				if (res.booleanValue()) {
-					System.out.println("Rooms Deleted");
-				} else {
-					System.out.println("Rooms could not be deleted");
+					if (res.booleanValue()) {
+						System.out.println("Rooms Deleted");
+					} else {
+						System.out.println("Rooms could not be deleted");
+					}
+					break;
 				}
-				break;
-			}
-			case DeleteCustomer: {
-				checkArgumentsCount(3, arguments.size());
+				case DeleteCustomer: {
+					checkArgumentsCount(3, arguments.size());
 
-				System.out.println("Deleting a customer from the database [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Customer ID: " + arguments.elementAt(2));
-				
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
+					System.out.println("Deleting a customer from the database [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Customer ID: " + arguments.elementAt(2));
+					
+					int id = toInt(arguments.elementAt(1));
+					int customerID = toInt(arguments.elementAt(2));
 
-				try {
 					// Send request
 					req = new DeleteCustomerAction(id, customerID);
 					this.out.writeObject(req);
@@ -399,31 +330,23 @@ public class TCPClient extends Client
 
 					// Await response
 					res = (Boolean) this.in.readObject();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
 
-				if (res.booleanValue()) {
-					System.out.println("Customer Deleted");
-				} else {
-					System.out.println("Customer could not be deleted");
+					if (res.booleanValue()) {
+						System.out.println("Customer Deleted");
+					} else {
+						System.out.println("Customer could not be deleted");
+					}
+					break;
 				}
-				break;
-			}
-			case QueryFlight: {
-				checkArgumentsCount(3, arguments.size());
+				case QueryFlight: {
+					checkArgumentsCount(3, arguments.size());
 
-				System.out.println("Querying a flight [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Flight Number: " + arguments.elementAt(2));
-				
-				int id = toInt(arguments.elementAt(1));
-				int flightNum = toInt(arguments.elementAt(2));
+					System.out.println("Querying a flight [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Flight Number: " + arguments.elementAt(2));
+					
+					int id = toInt(arguments.elementAt(1));
+					int flightNum = toInt(arguments.elementAt(2));
 
-				try {
 					// Send request
 					req = new QueryFlightAction(id, flightNum);
 					this.out.writeObject(req);
@@ -431,26 +354,19 @@ public class TCPClient extends Client
 
 					// Await response
 					res_ = (Integer) this.in.readObject();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-				System.out.println("Number of seats available: " + ((int) res_));
-				break;
-			}
-			case QueryCars: {
-				checkArgumentsCount(3, arguments.size());
 
-				System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Car Location: " + arguments.elementAt(2));
+					System.out.println("Number of seats available: " + ((int) res_));
+					break;
+				}
+				case QueryCars: {
+					checkArgumentsCount(3, arguments.size());
+
+					System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Car Location: " + arguments.elementAt(2));
+					
+					int id = toInt(arguments.elementAt(1));
+					String location = arguments.elementAt(2);
 				
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-			
-				try {
 					// Send request
 					req = new QueryCarLocationAction(id, location);
 					this.out.writeObject(req);
@@ -458,27 +374,19 @@ public class TCPClient extends Client
 
 					// Await response
 					res_ = (Integer) this.in.readObject();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
 
-				System.out.println("Number of cars at this location: " + ((int) res_));
-				break;
-			}
-			case QueryRooms: {
-				checkArgumentsCount(3, arguments.size());
+					System.out.println("Number of cars at this location: " + ((int) res_));
+					break;
+				}
+				case QueryRooms: {
+					checkArgumentsCount(3, arguments.size());
 
-				System.out.println("Querying rooms location [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Room Location: " + arguments.elementAt(2));
-				
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
+					System.out.println("Querying rooms location [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Room Location: " + arguments.elementAt(2));
+					
+					int id = toInt(arguments.elementAt(1));
+					String location = arguments.elementAt(2);
 
-				try {
 					// Send request
 					req = new QueryRoomLocationAction(id, location);
 					this.out.writeObject(req);
@@ -486,28 +394,20 @@ public class TCPClient extends Client
 
 					// Await response
 					res_ = (Integer) this.in.readObject();
+
+					System.out.println("Number of rooms at this location: " + ((int) res_));
+					break;
 				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
+				case QueryCustomer: {
+					checkArgumentsCount(3, arguments.size());
 
-				System.out.println("Number of rooms at this location: " + ((int) res_));
-				break;
-			}
-			case QueryCustomer: {
-				checkArgumentsCount(3, arguments.size());
+					System.out.println("Querying customer information [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Customer ID: " + arguments.elementAt(2));
 
-				System.out.println("Querying customer information [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Customer ID: " + arguments.elementAt(2));
+					int id = toInt(arguments.elementAt(1));
+					int customerID = toInt(arguments.elementAt(2));
+					String bill = null;
 
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-				String bill = null;
-
-				try{ 
 					// Send request
 					req = new QueryCustomerAction(id, customerID);
 					this.out.writeObject(req);
@@ -515,27 +415,19 @@ public class TCPClient extends Client
 
 					// Await response
 					bill = (String) this.in.readObject();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
 
-				System.out.print(bill);
-				break;               
-			}
-			case QueryFlightPrice: {
-				checkArgumentsCount(3, arguments.size());
-				
-				System.out.println("Querying a flight price [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Flight Number: " + arguments.elementAt(2));
+					System.out.print(bill);
+					break;               
+				}
+				case QueryFlightPrice: {
+					checkArgumentsCount(3, arguments.size());
+					
+					System.out.println("Querying a flight price [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Flight Number: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				int flightNum = toInt(arguments.elementAt(2));
+					int id = toInt(arguments.elementAt(1));
+					int flightNum = toInt(arguments.elementAt(2));
 
-				try {
 					// Send request
 					req = new QueryFlightPriceAction(id, flightNum);
 					this.out.writeObject(req);
@@ -543,27 +435,19 @@ public class TCPClient extends Client
 
 					// Await response
 					res_ = (Integer) this.in.readObject();
+
+					System.out.println("Price of a seat: " + ((int) res_));
+					break;
 				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
+				case QueryCarsPrice: {
+					checkArgumentsCount(3, arguments.size());
 
-				System.out.println("Price of a seat: " + ((int) res_));
-				break;
-			}
-			case QueryCarsPrice: {
-				checkArgumentsCount(3, arguments.size());
+					System.out.println("Querying cars price [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Car Location: " + arguments.elementAt(2));
 
-				System.out.println("Querying cars price [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Car Location: " + arguments.elementAt(2));
+					int id = toInt(arguments.elementAt(1));
+					String location = arguments.elementAt(2);
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-
-				try {
 					// Send request
 					req = new QueryCarPriceAction(id, location);
 					this.out.writeObject(req);
@@ -571,27 +455,19 @@ public class TCPClient extends Client
 
 					// Await response
 					res_ = (Integer) this.in.readObject();
+
+					System.out.println("Price of cars at this location: " + ((int) res_));
+					break;
 				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
+				case QueryRoomsPrice: {
+					checkArgumentsCount(3, arguments.size());
 
-				System.out.println("Price of cars at this location: " + ((int) res_));
-				break;
-			}
-			case QueryRoomsPrice: {
-				checkArgumentsCount(3, arguments.size());
+					System.out.println("Querying rooms price [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Room Location: " + arguments.elementAt(2));
 
-				System.out.println("Querying rooms price [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Room Location: " + arguments.elementAt(2));
+					int id = toInt(arguments.elementAt(1));
+					String location = arguments.elementAt(2);
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-
-				try {
 					// Send request
 					req = new QueryRoomPriceAction(id, location);
 					this.out.writeObject(req);
@@ -599,29 +475,21 @@ public class TCPClient extends Client
 
 					// Await response
 					res_ = (int) this.in.readObject();
+
+					System.out.println("Price of rooms at this location: " + ((int) res_));
+					break;
 				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
+				case ReserveFlight: {
+					checkArgumentsCount(4, arguments.size());
 
-				System.out.println("Price of rooms at this location: " + ((int) res_));
-				break;
-			}
-			case ReserveFlight: {
-				checkArgumentsCount(4, arguments.size());
+					System.out.println("Reserving seat in a flight [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Customer ID: " + arguments.elementAt(2));
+					System.out.println("-Flight Number: " + arguments.elementAt(3));
 
-				System.out.println("Reserving seat in a flight [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Customer ID: " + arguments.elementAt(2));
-				System.out.println("-Flight Number: " + arguments.elementAt(3));
+					int id = toInt(arguments.elementAt(1));
+					int customerID = toInt(arguments.elementAt(2));
+					int flightNum = toInt(arguments.elementAt(3));
 
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-				int flightNum = toInt(arguments.elementAt(3));
-
-				try {
 					// Send request
 					req = new ReserveFlightCustomerRmAction(id, customerID, flightNum, -1);
 
@@ -630,33 +498,25 @@ public class TCPClient extends Client
 
 					// Await response
 					res = (Boolean) this.in.readObject();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
 
-				if (res.booleanValue()) {
-					System.out.println("Flight Reserved");
-				} else {
-					System.out.println("Flight could not be reserved");
+					if (res.booleanValue()) {
+						System.out.println("Flight Reserved");
+					} else {
+						System.out.println("Flight could not be reserved");
+					}
+					break;
 				}
-				break;
-			}
-			case ReserveCar: {
-				checkArgumentsCount(4, arguments.size());
+				case ReserveCar: {
+					checkArgumentsCount(4, arguments.size());
 
-				System.out.println("Reserving a car at a location [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Customer ID: " + arguments.elementAt(2));
-				System.out.println("-Car Location: " + arguments.elementAt(3));
+					System.out.println("Reserving a car at a location [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Customer ID: " + arguments.elementAt(2));
+					System.out.println("-Car Location: " + arguments.elementAt(3));
 
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-				String location = arguments.elementAt(3);
+					int id = toInt(arguments.elementAt(1));
+					int customerID = toInt(arguments.elementAt(2));
+					String location = arguments.elementAt(3);
 
-				try {
 					// Send request
 					req = new ReserveCarCustomerRmAction(id, customerID, location, -1);
 					this.out.writeObject(req);
@@ -664,33 +524,25 @@ public class TCPClient extends Client
 
 					// Await response
 					res = (Boolean) this.in.readObject();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
 
-				if (res.booleanValue()) {
-					System.out.println("Car Reserved");
-				} else {
-					System.out.println("Car could not be reserved");
+					if (res.booleanValue()) {
+						System.out.println("Car Reserved");
+					} else {
+						System.out.println("Car could not be reserved");
+					}
+					break;
 				}
-				break;
-			}
-			case ReserveRoom: {
-				checkArgumentsCount(4, arguments.size());
+				case ReserveRoom: {
+					checkArgumentsCount(4, arguments.size());
 
-				System.out.println("Reserving a room at a location [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Customer ID: " + arguments.elementAt(2));
-				System.out.println("-Room Location: " + arguments.elementAt(3));
+					System.out.println("Reserving a room at a location [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Customer ID: " + arguments.elementAt(2));
+					System.out.println("-Room Location: " + arguments.elementAt(3));
+					
+					int id = toInt(arguments.elementAt(1));
+					int customerID = toInt(arguments.elementAt(2));
+					String location = arguments.elementAt(3);
 				
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-				String location = arguments.elementAt(3);
-
-				try {
 					// Send request
 					req = new ReserveRoomCustomerRmAction(id, customerID, location, -1);
 					this.out.writeObject(req);
@@ -698,48 +550,40 @@ public class TCPClient extends Client
 
 					// Await response
 					res = (Boolean) this.in.readObject();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
 
-				if (res.booleanValue()) {
-					System.out.println("Room Reserved");
-				} else {
-					System.out.println("Room could not be reserved");
-				}
-				break;
-			}
-			case Bundle: {
-				if (arguments.size() < 7) {
-					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mBundle command expects at least 7 arguments. Location \"help\" or \"help,<CommandName>\"");
+					if (res.booleanValue()) {
+						System.out.println("Room Reserved");
+					} else {
+						System.out.println("Room could not be reserved");
+					}
 					break;
 				}
+				case Bundle: {
+					if (arguments.size() < 7) {
+						System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mBundle command expects at least 7 arguments. Location \"help\" or \"help,<CommandName>\"");
+						break;
+					}
 
-				System.out.println("Reserving an bundle [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Customer ID: " + arguments.elementAt(2));
-				for (int i = 0; i < arguments.size() - 6; ++i)
-				{
-					System.out.println("-Flight Number: " + arguments.elementAt(3+i));
-				}
-				System.out.println("-Car Location: " + arguments.elementAt(arguments.size()-2));
-				System.out.println("-Room Location: " + arguments.elementAt(arguments.size()-1));
+					System.out.println("Reserving an bundle [xid=" + arguments.elementAt(1) + "]");
+					System.out.println("-Customer ID: " + arguments.elementAt(2));
+					for (int i = 0; i < arguments.size() - 6; ++i)
+					{
+						System.out.println("-Flight Number: " + arguments.elementAt(3+i));
+					}
+					System.out.println("-Car Location: " + arguments.elementAt(arguments.size()-2));
+					System.out.println("-Room Location: " + arguments.elementAt(arguments.size()-1));
 
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-				Vector<String> flightNumbers = new Vector<String>();
-				for (int i = 0; i < arguments.size() - 6; ++i)
-				{
-					flightNumbers.addElement(arguments.elementAt(3+i));
-				}
-				String location = arguments.elementAt(arguments.size()-3);
-				boolean car = toBoolean(arguments.elementAt(arguments.size()-2));
-				boolean room = toBoolean(arguments.elementAt(arguments.size()-1));
-				
-				try {
+					int id = toInt(arguments.elementAt(1));
+					int customerID = toInt(arguments.elementAt(2));
+					Vector<String> flightNumbers = new Vector<String>();
+					for (int i = 0; i < arguments.size() - 6; ++i)
+					{
+						flightNumbers.addElement(arguments.elementAt(3+i));
+					}
+					String location = arguments.elementAt(arguments.size()-3);
+					boolean car = toBoolean(arguments.elementAt(arguments.size()-2));
+					boolean room = toBoolean(arguments.elementAt(arguments.size()-1));
+					
 					// Send request
 					req = new ReserveBundleCustomerRmAction(id, customerID, flightNumbers, new ArrayList<Integer>(), location, car, -1, room, -1);
 					this.out.writeObject(req);
@@ -747,36 +591,35 @@ public class TCPClient extends Client
 					
 					// Await response
 					res = (Boolean) this.in.readObject();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
 
-				if (res.booleanValue()) {
-					System.out.println("Bundle Reserved");
-				} else {
-					System.out.println("Bundle could not be reserved");
+					if (res.booleanValue()) {
+						System.out.println("Bundle Reserved");
+					} else {
+						System.out.println("Bundle could not be reserved");
+					}
+					break;
 				}
-				break;
+				case Quit:
+					checkArgumentsCount(1, arguments.size());
+
+					try {
+						this.in.close();
+						this.out.close();
+						this.s.close();
+					}
+					catch (IOException e) {
+						e.printStackTrace();
+					}
+
+					System.out.println("Quitting client");
+					System.exit(0);
 			}
-			case Quit:
-				checkArgumentsCount(1, arguments.size());
-
-				try {
-					this.in.close();
-					this.out.close();
-					this.s.close();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-
-				System.out.println("Quitting client");
-				System.exit(0);
 		}
-		
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 }
