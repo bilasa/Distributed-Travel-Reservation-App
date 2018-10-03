@@ -128,7 +128,31 @@ public abstract class Middleware implements IResourceManager
     
     public boolean deleteCustomer(int xid, int customerID) throws RemoteException
     {
-        return customerResourceManager.deleteCustomer(xid, customerID);
+        ArrayList<ReservedItem> items = customerResourceManager.deleteCustomer_CustomerRM(xid, customerID);
+
+        for (ReservedItem item : items) 
+        {
+            String key = item.getKey();
+            String[] parts = key.split("-");
+            int count = item.getCount();
+
+            if (parts[0].equals("flight"))
+            {
+                flightResourceManager.reserveFlight_FlightRM(xid, Integer.parseInt(parts[1]), -count);
+            }
+
+            if (parts[0].equals("car"))
+            {
+                carResourceManager.reserveCar_CarRM(xid, parts[1], -count);
+            }
+
+            if (parts[0].equals("room"))
+            {
+                roomResourceManager.reserveRoom_RoomRM(xid, parts[1], -count);
+            }
+        }
+
+        return true;
     }
     
     // Adds flight reservation to this customer

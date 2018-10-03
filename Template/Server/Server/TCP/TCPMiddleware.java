@@ -243,17 +243,21 @@ public class TCPMiddleware {
                     for (ReservedItem item : items) {
                         
                         String key = item.getKey().toLowerCase();
+                        int count = item.getCount();
                         String[] parts = key.split("-");
                         Boolean deleted = null;
+
+                        
 
                         // Flight item
                         if (parts[0].equals("flight")) 
                         {
                             outf.writeObject(
-                                new DeleteFlightAction(
+                                new ReserveFlightRmAction(
                                     req.getXid(),
-                                    Integer.parseInt(parts[1])
-                                )
+                                    Integer.parseInt(parts[1]),
+                                    -count
+                                )    
                             );
                             outf.flush();
 
@@ -264,9 +268,10 @@ public class TCPMiddleware {
                         if (parts[0].equals("car"))
                         {
                             outc.writeObject(
-                                new DeleteCarLocationAction(
+                                new ReserveCarRmAction(
                                     req.getXid(),
-                                    parts[1] 
+                                    parts[1],
+                                    -count
                                 )
                             );
                             outc.flush();
@@ -278,9 +283,10 @@ public class TCPMiddleware {
                         if (parts[0].equals("room"))
                         {
                             outr.writeObject(
-                                new DeleteRoomLocationAction(
+                                new ReserveRoomRmAction(
                                     req.getXid(),
-                                    parts[1]
+                                    parts[1],
+                                    -count
                                 )
                             );
                         }
