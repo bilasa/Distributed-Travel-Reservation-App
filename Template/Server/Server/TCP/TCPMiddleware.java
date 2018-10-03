@@ -11,7 +11,11 @@ public class TCPMiddleware {
 
     private static String s_serverName = "TCPMiddleware";
     private static String  s_rmiPrefix = "group32";
-    private static int s_serverPort = 2123;
+    private static int s_serverPort= 2127;
+    private static int s_serverPort_flight = 2124;
+    private static int s_serverPort_car = 2125;
+    private static int s_serverPort_room = 2126;
+    private static int s_serverPort_customer = 2128;
     private static String flightServerName = "Flights";
     private static String carServerName = "Cars";
     private static String roomServerName = "Rooms";
@@ -53,100 +57,108 @@ public class TCPMiddleware {
         }
 
         // Initiate Middleware
-        TCPResourceManager server = new TCPResourceManager(s_serverName);
-		System.out.println("'" + s_serverName + "' resource manager server ready and bound to '" + s_rmiPrefix + s_serverName + "'");
-        
-         // Initiate server socket
+        try {
+            TCPMiddleware server = new TCPMiddleware(s_serverName);
+            server.start();
+            System.out.println("'" + s_serverName + "' resource manager server ready and bound to '" + s_rmiPrefix + s_serverName + "'");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void start()
+    {   
         ServerSocket ss = null;
-    
+
+        // Initiate server socket
         try {
             ss = new ServerSocket(s_serverPort);
         }
-        catch (IOException e) {
+        catch(IOException e) {
             e.printStackTrace();
         }
-
-        // Listen to incoming socket connections
-        while (true) 
-        {      
+        
+        while (true)
+        {
             Socket s_client = null;
 
             try {
-                // Receive incoming client socket connection
                 s_client = ss.accept();
                 ObjectInputStream in_client = new ObjectInputStream(s_client.getInputStream());
                 ObjectOutputStream out_client = new ObjectOutputStream(s_client.getOutputStream());
-                
-                // Initiate client responses
-                Boolean res_client = null;
-                Integer res_client_ = null;
 
-                // Initiate thread
                 Thread t = new Thread() {
 
                     @Override
-					public void run() {
+                    public void run() {
+ 
+                    // Handle action
+                    try {
+                        // Initiate client responses
+                        //Boolean res_client = null;
+                        //Integer res_client_ = null;
 
-                        // Handle action
-                        try {
-                             // Incoming action
-                            TravelAction req = (TravelAction) in_client.readObject();
+                        // Incoming action
+                        TravelAction req = (TravelAction) in_client.readObject();
 
-                            switch (req.getType()) {
+                        switch (req.getType()) {
 
-                                case FLIGHT_ACTION:
+                            case FLIGHT_ACTION:
 
-                                    Socket s_flight = new Socket(flightServerName, s_serverPort);
-                                    singleRmRequest(req, out_client, s_flight);
-                                    s_flight.close();
-                                    break;
+                                Socket s_flight = new Socket(flightServerName, s_serverPort_flight);
+                                singleRmRequest(req, out_client, s_flight);
+                                s_flight.close();
+                                break;
 
-                                case CAR_ACTION:
+                            case CAR_ACTION:
 
-                                    Socket s_car = new Socket(carServerName, s_serverPort);
-                                    singleRmRequest(req, out_client, s_car);
-                                    s_car.close();
-                                    break;
+                                Socket s_car = new Socket(carServerName, s_serverPort_car);
+                                singleRmRequest(req, out_client, s_car);
+                                s_car.close();
+                                break;
 
-                                case ROOM_ACTION:
+                            case ROOM_ACTION:
 
-                                    Socket s_room = new Socket(roomServerName, s_serverPort);
-                                    singleRmRequest(req, out_client, s_room);
-                                    s_room.close();
-                                    break;
+                                Socket s_room = new Socket(roomServerName, s_serverPort_room);
+                                singleRmRequest(req, out_client, s_room);
+                                s_room.close();
+                                break;
 
-                                case CUSTOMER_ACTION:
+                            case CUSTOMER_ACTION:
 
-                                    multipleRmRequest(req, out_client);
-                                    break;
+                                multipleRmRequest(req, out_client);
+                                break;
 
-                                default:
-                                    break;
-                            }
+                            default:
+                                break;
                         }
-                        catch (IOException e) {
-                            e.printStackTrace();
+                        /*
+                        if (res_client != null) {
+                            out_client.writeObject(res_client); 
                         }
-                        catch (ClassNotFoundException e) {
-                            e.printStackTrace();
+                        else if (res_client_ != null) {
+                            out_client.writeObject(res_client_);
                         }
-                        catch (Exception e) {
-                            e.printStackTrace();
+                        else {
+                            out_client.writeObject(new String("NULL"));
                         }
+                        */
+                        out_client.flush();
+                    }
+                    catch (IOException e) {
+                    e.printStackTrace();
+                    }
+                    catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                    }
+                    catch (Exception e) {
+                    e.printStackTrace();
+                    }
                     }
                 };
 
-                if (res_client != null) {
-                    out_client.writeObject(res_client); 
-                }
-                else if (res_client_ != null) {
-                    out_client.writeObject(res_client_);
-                }
-                else {
-                    out_client.writeObject(new String("NULL"));
-                }
-
-                out_client.flush();
+                t.start();
             }
             catch (IOException e) {
                 e.printStackTrace();
@@ -202,22 +214,22 @@ public class TCPMiddleware {
 
                 case DELETE_CUSTOMER:
                     // Customer RM
-                    s_customerRm = new Socket(customerServerName, s_serverPort);
+                    s_customerRm = new Socket(customerServerName, s_serverPort_customer);
                     in_customerRm = new ObjectInputStream(s_customerRm.getInputStream());
                     out_customerRm = new ObjectOutputStream(s_customerRm.getOutputStream());
 
                     // Flight RM
-                    Socket sf = new Socket(flightServerName, s_serverPort);
+                    Socket sf = new Socket(flightServerName, s_serverPort_flight);
                     ObjectInputStream inf = new ObjectInputStream(sf.getInputStream());
                     ObjectOutputStream outf = new ObjectOutputStream(sf.getOutputStream());
 
                     // Car RM
-                    Socket sc = new Socket(carServerName, s_serverPort);
+                    Socket sc = new Socket(carServerName, s_serverPort_car);
                     ObjectInputStream inc = new ObjectInputStream(sc.getInputStream());
                     ObjectOutputStream outc = new ObjectOutputStream(sc.getOutputStream());
 
                     // Room RM
-                    Socket sr = new Socket(roomServerName, s_serverPort);
+                    Socket sr = new Socket(roomServerName, s_serverPort_room);
                     ObjectInputStream inr = new ObjectInputStream(sr.getInputStream());
                     ObjectOutputStream outr = new ObjectOutputStream(sr.getOutputStream());
 
@@ -291,11 +303,11 @@ public class TCPMiddleware {
 
                 case RESERVE_FLIGHT_CUSTOMER_RM:
 
-                    Socket s_flightRm = new Socket(flightServerName, s_serverPort);
+                    Socket s_flightRm = new Socket(flightServerName, s_serverPort_flight);
                     ObjectInputStream in_flightRm = new ObjectInputStream(s_flightRm.getInputStream());
                     ObjectOutputStream out_flightRm = new ObjectOutputStream(s_flightRm.getOutputStream());
 
-                    s_customerRm = new Socket(customerServerName, s_serverPort);
+                    s_customerRm = new Socket(customerServerName, s_serverPort_customer);
                     in_customerRm = new ObjectInputStream(s_customerRm.getInputStream());
                     out_customerRm = new ObjectOutputStream(s_customerRm.getOutputStream());
 
@@ -338,11 +350,11 @@ public class TCPMiddleware {
                     
                 case RESERVE_CAR_CUSTOMER_RM:
 
-                    Socket s_carRm = new Socket(carServerName, s_serverPort);
+                    Socket s_carRm = new Socket(carServerName, s_serverPort_car);
                     ObjectInputStream in_carRm = new ObjectInputStream(s_carRm.getInputStream());
                     ObjectOutputStream out_carRm = new ObjectOutputStream(s_carRm.getOutputStream());
 
-                    s_customerRm = new Socket(customerServerName, s_serverPort);
+                    s_customerRm = new Socket(customerServerName, s_serverPort_customer);
                     in_customerRm = new ObjectInputStream(s_customerRm.getInputStream());
                     out_customerRm = new ObjectOutputStream(s_customerRm.getOutputStream());
                     
@@ -385,11 +397,11 @@ public class TCPMiddleware {
                     
                 case RESERVE_ROOM_CUSTOMER_RM:
 
-                    Socket s_roomRm = new Socket(roomServerName, s_serverPort);
+                    Socket s_roomRm = new Socket(roomServerName, s_serverPort_room);
                     ObjectInputStream in_roomRm = new ObjectInputStream(s_roomRm.getInputStream());
                     ObjectOutputStream out_roomRm = new ObjectOutputStream(s_roomRm.getOutputStream());
 
-                    s_customerRm = new Socket(customerServerName, s_serverPort);
+                    s_customerRm = new Socket(customerServerName, s_serverPort_customer);
                     in_customerRm = new ObjectInputStream(s_customerRm.getInputStream());
                     out_customerRm = new ObjectOutputStream(s_customerRm.getOutputStream());
                     
@@ -451,7 +463,7 @@ public class TCPMiddleware {
 
                     if (len > 0)
                     {   
-                        Socket s_f = new Socket(flightServerName, s_serverPort);
+                        Socket s_f = new Socket(flightServerName, s_serverPort_flight);
                         ObjectInputStream in_f = new ObjectInputStream(s_f.getInputStream());
                         ObjectOutputStream out_f = new ObjectOutputStream(s_f.getOutputStream());
 
@@ -473,7 +485,7 @@ public class TCPMiddleware {
 
                     if (car) 
                     {
-                        Socket s_c = new Socket(carServerName, s_serverPort);
+                        Socket s_c = new Socket(carServerName, s_serverPort_car);
                         ObjectInputStream in_c = new ObjectInputStream(s_c.getInputStream());
                         ObjectOutputStream out_c = new ObjectOutputStream(s_c.getOutputStream());
 
@@ -495,7 +507,7 @@ public class TCPMiddleware {
 
                     if (room)
                     {
-                        Socket s_r = new Socket(roomServerName, s_serverPort);
+                        Socket s_r = new Socket(roomServerName, s_serverPort_room);
                         ObjectInputStream in_r = new ObjectInputStream(s_r.getInputStream());
                         ObjectOutputStream out_r = new ObjectOutputStream(s_r.getOutputStream());
 
@@ -535,7 +547,7 @@ public class TCPMiddleware {
                         // Reset
                         if (prices.size() == flights_.size()) 
                         {
-                            Socket s_f = new Socket(flightServerName, s_serverPort);
+                            Socket s_f = new Socket(flightServerName, s_serverPort_flight);
                             ObjectInputStream in_f = new ObjectInputStream(s_f.getInputStream());
                             ObjectOutputStream out_f = new ObjectOutputStream(s_f.getOutputStream());
 
@@ -557,7 +569,7 @@ public class TCPMiddleware {
 
                         if (car && !carPrice.equals(new Integer(-1)))
                         {
-                            Socket s_c = new Socket(carServerName, s_serverPort);
+                            Socket s_c = new Socket(carServerName, s_serverPort_car);
                             ObjectInputStream in_c = new ObjectInputStream(s_c.getInputStream());
                             ObjectOutputStream out_c = new ObjectOutputStream(s_c.getOutputStream());
 
@@ -579,7 +591,7 @@ public class TCPMiddleware {
 
                         if (room && !roomPrice.equals(new Integer(-1)))
                         {
-                            Socket s_r = new Socket(roomServerName, s_serverPort);
+                            Socket s_r = new Socket(roomServerName, s_serverPort_room);
                             ObjectInputStream in_r = new ObjectInputStream(s_r.getInputStream());
                             ObjectOutputStream out_r = new ObjectOutputStream(s_r.getOutputStream());
 

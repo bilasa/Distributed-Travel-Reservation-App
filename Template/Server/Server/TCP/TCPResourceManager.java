@@ -21,6 +21,23 @@ public class TCPResourceManager extends ResourceManager
 			s_serverName = args[0];
 		}
 
+		if (s_serverName.equals("Flights")) 
+		{
+			s_serverPort = 2124;
+		}
+		else if (s_serverName.equals("Cars")) 
+		{
+			s_serverPort = 2125;
+		}
+		else if (s_serverName.equals("Rooms")) 
+		{	
+			s_serverPort = 2126;
+		}
+		else if (s_serverName.equals("Customers")) 
+		{
+			s_serverPort = 2128;
+		}
+
 		// Create and install a security manager
 		if (System.getSecurityManager() == null)
 		{
@@ -368,6 +385,8 @@ public class TCPResourceManager extends ResourceManager
 							}
 						}
 					};
+
+					t.start();
 
 					try { 
 						in.close();
