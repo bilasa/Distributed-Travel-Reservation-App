@@ -38,10 +38,10 @@ public class RMIResourceManager extends ResourceManager
 			Registry l_registry;
 
 			try {
-				l_registry = LocateRegistry.createRegistry(1099);
+				l_registry = LocateRegistry.createRegistry(1798);
 			} 
 			catch (RemoteException e) {
-				l_registry = LocateRegistry.getRegistry(1099);
+				l_registry = LocateRegistry.getRegistry(1798);
 			}
 			
 			final Registry registry = l_registry;
