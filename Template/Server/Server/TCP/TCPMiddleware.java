@@ -9,44 +9,38 @@ import Server.Actions.*;
 
 public class TCPMiddleware {
 
-    private static String s_serverHost = "localhost";
-    private static String s_serverName = "Middleware";
+    private static String s_serverName = "TCPMiddleware";
     private static String  s_rmiPrefix = "group32";
     private static int s_serverPort = 1099;
-    private static String flightServerName = "FlightServer";
-    private static String carServerName = "CarServer";
-    private static String roomServerName = "RoomServer";
-    private static String customerServerName = "CustomerServer";
+    private static String flightServerName = "Flights";
+    private static String carServerName = "Cars";
+    private static String roomServerName = "Rooms";
+    private static String customerServerName = "Customers";
 
     public static void main(String args[])
     {
-        // Set the server host and server names based on arguments
+        // Set the server host names based on arguments
         if (args.length > 0)
         {
-            s_serverHost = args[0];
+            flightServerName = args[0];
         }
 
         if (args.length > 1)
         {
-            flightServerName = args[1];
+            carServerName = args[1];
         }
 
         if (args.length > 2)
         {
-            carServerName = args[2];
+            roomServerName = args[2];
         }
 
         if (args.length > 3)
         {
-            roomServerName = args[3];
+            customerServerName = args[3];
         }
 
         if (args.length > 4)
-        {
-            customerServerName = args[4];
-        }
-
-        if (args.length > 5)
         {
             System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0mUsage: java server.Middleware [server_hostname [server_rmiobject]]");
             System.exit(1);

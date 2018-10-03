@@ -13,8 +13,8 @@ import java.lang.*;
 
 public class TCPClient extends Client
 {
-	private static String s_serverHost = "localhost";
-	private static String s_serverName = "Server";
+	private static String s_serverHost = "server_host";
+	private static String s_serverName = "server_name";
 	private static String s_rmiPrefix = "group32";
 	private static int s_serverPort = 1099;
 
@@ -75,6 +75,7 @@ public class TCPClient extends Client
 			while (true) {
 
 				try {
+					this.s = new Socket(server, port);
 					this.out = new ObjectOutputStream(s.getOutputStream());
 					this.in = new ObjectInputStream(s.getInputStream());
 					break;

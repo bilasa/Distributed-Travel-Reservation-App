@@ -16,7 +16,7 @@ import java.rmi.NotBoundException;
 
 public class RMIResourceManager extends ResourceManager 
 {
-	private static String s_serverName = "Server";
+	private static String s_serverName = "RMIMiddleware";
 	private static String s_rmiPrefix = "group32";
 
 	public static void main(String args[])
@@ -39,7 +39,8 @@ public class RMIResourceManager extends ResourceManager
 
 			try {
 				l_registry = LocateRegistry.createRegistry(1099);
-			} catch (RemoteException e) {
+			} 
+			catch (RemoteException e) {
 				l_registry = LocateRegistry.getRegistry(1099);
 			}
 			

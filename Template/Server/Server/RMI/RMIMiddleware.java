@@ -33,25 +33,21 @@ public class RMIMiddleware extends Middleware
         // Set the server host and server names based on the arguments
         if (args.length > 0)
         {
-            s_serverHost = args[0];
+            flightServerName = args[0];
         }
         if (args.length > 1)
         {
-            flightServerName = args[1];
+            carServerName = args[1];
         }
         if (args.length > 2)
         {
-            carServerName = args[2];
+            roomServerName = args[2];
         }
         if (args.length > 3)
         {
-            roomServerName = args[3];
+            customerServerName = args[3];
         }
         if (args.length > 4)
-        {
-            customerServerName = args[4];
-        }
-        if (args.length > 5)
         {
             System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0mUsage: java client.RMIClient [server_hostname [server_rmiobject]]");
             System.exit(1);
