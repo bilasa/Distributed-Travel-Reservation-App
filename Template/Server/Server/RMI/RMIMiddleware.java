@@ -17,6 +17,7 @@ public class RMIMiddleware extends Middleware
 {
     private static String s_serverHost = "localhost";
     private static int s_serverPort = 2123;
+    private static int s_serverPort2 = 2124;
     
     // Server name
     private static String s_serverName = "RMIMiddleware";
@@ -64,16 +65,16 @@ public class RMIMiddleware extends Middleware
         try {
             RMIMiddleware middleware = new RMIMiddleware(s_serverName);
            
-            IResourceManager stub = (IResourceManager) UnicastRemoteObject.exportObject(middleware, s_serverPort);
+            IResourceManager stub = (IResourceManager) UnicastRemoteObject.exportObject(middleware, s_serverPort2);
 
             // Bind the remote object's stub in the registry
 			Registry l_registry;
 
 			try {
-				l_registry = LocateRegistry.createRegistry(s_serverPort);
+				l_registry = LocateRegistry.createRegistry(s_serverPort2);
 			} 
 			catch (RemoteException e) {
-				l_registry = LocateRegistry.getRegistry(s_serverPort);
+				l_registry = LocateRegistry.getRegistry(s_serverPort2);
             }
             
             final Registry registry = l_registry;
@@ -93,7 +94,6 @@ public class RMIMiddleware extends Middleware
             });
             
             System.out.println("'" + s_serverName + "' resource manager server ready and bound to '" + s_rmiPrefix + s_serverName + "'");
-
 
             middleware.connectServers();
         }
