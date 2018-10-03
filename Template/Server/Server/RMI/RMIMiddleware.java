@@ -98,14 +98,21 @@ public class RMIMiddleware extends Middleware
                     Registry registry = LocateRegistry.getRegistry(server, port);
                     
                     // Assign the remote interface corresponding to the server name
-                    if (name == flightServerName) {
-                            flightResourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
-                    } else if (name == carServerName) {
-                            carResourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
-                    } else if (name == roomServerName) {
-                            roomResourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
-                    } else if (name == customerServerName) {
-                            customerResourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
+                    if (name == flightServerName) 
+                    {
+                        flightResourceManager = (RMIResourceManager) registry.lookup(s_rmiPrefix + name);
+                    } 
+                    else if (name == carServerName) 
+                    {
+                        carResourceManager = (RMIResourceManager) registry.lookup(s_rmiPrefix + name);
+                    } 
+                    else if (name == roomServerName) 
+                    {
+                        roomResourceManager = (RMIResourceManager) registry.lookup(s_rmiPrefix + name);
+                    } 
+                    else if (name == customerServerName) 
+                    {
+                            customerResourceManager = (RMIResourceManager) registry.lookup(s_rmiPrefix + name);
                     }
                     
                     System.out.println("Connected to '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");

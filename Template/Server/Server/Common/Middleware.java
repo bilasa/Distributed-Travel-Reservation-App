@@ -6,6 +6,7 @@
 package Server.Common;
 
 import Server.Interface.*;
+import Server.RMI.*;
 
 import java.util.*;
 import java.rmi.RemoteException;
@@ -25,10 +26,10 @@ public abstract class Middleware implements IResourceManager
     //protected RMHashMap m_data = new RMHashMap();
     
     // ResourceManager remote interfaces (made public to access outside of package)
-    public IResourceManager flightResourceManager = null;
-    public IResourceManager carResourceManager = null;
-    public IResourceManager roomResourceManager = null;
-    public IResourceManager customerResourceManager = null;
+    public RMIResourceManager flightResourceManager = null;
+    public RMIResourceManager carResourceManager = null;
+    public RMIResourceManager roomResourceManager = null;
+    public RMIResourceManager customerResourceManager = null;
     
     public Middleware(String p_name)
     {
@@ -133,52 +134,86 @@ public abstract class Middleware implements IResourceManager
     // Adds flight reservation to this customer
     public boolean reserveFlight(int xid, int customerID, int flightNum) throws RemoteException
     {
-        /*boolean res = flightResourceManager.updateFlight(flightNum);
-        
-        if (res == true) {
-            return customerResourceManager.reserveFlight()
-        } else {
-            return false;
-        }*/
-        return false;
+        // Reserve a seat in the flight and get the price for the flight
+        Integer flightPrice = flightResourceManager.reserveFlight_FlightRM(xid, flightNum, 1).intValue();
+    
+        if ((int) flightPrice == -1) 
+        {
+            return false; // flight reservation failed
+        } 
+        else {
+            return customerResourceManager.reserveFlight_CustomerRM(xid, customerID, flightNum, flightPrice);
+        }
     }
     
     // Adds car reservation to this customer
     public boolean reserveCar(int xid, int customerID, String location) throws RemoteException
     {
-        //return carResourceManager.reserveCar(xid, customerID, location);
-        return false;
+        // Reserve a car and get its price
+        Integer carPrice = carResourceManager.reserveCar_CarRM(xid, location, 1).intValue();
+        
+        if ((int) carPrice == -1) 
+        {
+            return false; // car reservation failed
+        } 
+        else {
+            return customerResourceManager.reserveCar_CustomerRM(xid, customerID, location, carPrice);
+        }
     }
     
     // Adds room reservation to this customer
     public boolean reserveRoom(int xid, int customerID, String location) throws RemoteException
     {
-        //return roomResourceManager.reserveRoom(xid, customerID, location);
-        return false;
+        // Reserve a room and get its price
+        Integer roomPrice = roomResourceManager.reserveRoom_RoomRM(xid, location, 1).intValue();
+        
+        if ((int) roomPrice == -1) 
+        {
+            return false; // room reservation failed
+        } 
+        else {
+            return customerResourceManager.reserveRoom_CustomerRM(xid, customerID, location, roomPrice);
+        }
     }
     
     // Reserve bundle
-    public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException
-    {
-        // Reserve the flights, return false if the reservation failed
-        /*for(String flightNumber : flightNumbers) {
-            if(reserveFlight(xid, customerId, Integer.parseInt(flightNumber)) == false) {
-                return false;
-            }
-        }
-        
-        // Reserve a car if desired, return false if the reservation failed
-        if(car == true && reserveCar(xid, customerId, location) == false) {
+    public boolean bundle(int xid, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException
+    {   
+        ArrayList<Integer> prices = new ArrayList<Integer>();
+        int carPrice = -1;
+        int roomPrice = -1;
+        boolean customer = true;
+
+        // Convert flight numbers from string format to integer format
+        ArrayList<Integer> flights  = new ArrayList<Integer>();
+        for (String f : flightNumbers) flights.add(Integer.parseInt(f));
+
+        // Validate 
+        prices = flightResourceManager.reserveFlights_FlightRM(xid, flights, 1);
+        if (car) carPrice = carResourceManager.reserveCar_CarRM(xid, location, 1);
+        if (room) roomPrice = roomResourceManager.reserveRoom_RoomRM(xid, location, 1);
+        customer = !(customerResourceManager.queryCustomerInfo(xid, customerID).isEmpty());
+
+        // Invalid cases
+        if (
+            (prices.size() != flightNumbers.size()) ||
+            (car && carPrice == -1) || 
+            (room && roomPrice == -1) || 
+            (customer == false)
+        ) { 
+            if (prices.size() == flightNumbers.size()) flightResourceManager.reserveFlights_FlightRM(xid, flights, -1);
+            if (car && carPrice != -1) carResourceManager.reserveCar_CarRM(xid, location, -1);
+            if (room && roomPrice != -1) roomResourceManager.reserveRoom_RoomRM(xid, location, -1);
+
             return false;
         }
         
-        // Reserve a room if desired, return false if the reservation failed
-        if(room == true && reserveRoom(xid, customerId, location) == false) {
-            return false;
-        }
-        
-        return true;*/
-        return false;
+        // Reserve items for customer
+        customerResourceManager.reserveFlights_CustomerRM(xid, customerID, flights, prices);
+        if (car) customerResourceManager.reserveCar_CustomerRM(xid, customerID, location, carPrice);
+        if (room) customerResourceManager.reserveRoom_CustomerRM(xid, customerID, location, roomPrice);
+
+        return true; 
     }
     
     public String getName() throws RemoteException

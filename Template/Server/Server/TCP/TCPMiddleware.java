@@ -1,9 +1,6 @@
 package Server.TCP;
 
 import java.util.*;
-
-import javax.lang.model.util.ElementScanner6;
-
 import java.io.*;
 import java.net.*;
 import Server.Interface.*;
@@ -16,7 +13,6 @@ public class TCPMiddleware {
     private static String s_serverName = "Middleware";
     private static String  s_rmiPrefix = "group32";
     private static int s_serverPort = 1099;
-
     private static String flightServerName = "FlightServer";
     private static String carServerName = "CarServer";
     private static String roomServerName = "RoomServer";
@@ -80,7 +76,6 @@ public class TCPMiddleware {
         while (true) 
         {      
             Socket s_client = null;
-            //Socket s_rm = null;
 
             try {
                 // Receive incoming client socket connection
@@ -447,9 +442,11 @@ public class TCPMiddleware {
                     // Convert flight numbers from string format to integer format
                     ArrayList<Integer> flights_ = new ArrayList<Integer>();
                     for (String s : flights) flights_.add(Integer.parseInt(s));
-
-                    // Flights
+                   
                     ArrayList<Integer> prices = new ArrayList<Integer>();
+                    Integer carPrice = null;
+                    Integer roomPrice = null;
+                    boolean customerExists = true;
                     int len = flights.size();
 
                     if (len > 0)
@@ -474,15 +471,91 @@ public class TCPMiddleware {
                         s_f.close();
                     }
 
-                    if (prices.size() != len) 
+                    if (car) 
                     {
-                        dest.writeObject(new Boolean(false));
+                        Socket s_c = new Socket(carServerName, s_serverPort);
+                        ObjectInputStream in_c = new ObjectInputStream(s_c.getInputStream());
+                        ObjectOutputStream out_c = new ObjectOutputStream(s_c.getOutputStream());
+
+                        out_c.writeObject(
+                            new ReserveCarRmAction(
+                                xid,
+                                loc, 
+                                1
+                            )
+                        );
+                        out_c.flush();
+
+                        carPrice = (Integer) in_c.readObject();
+
+                        in_c.close();
+                        out_c.close();
+                        s_c.close();
                     }
-                    else 
+
+                    if (room)
                     {
-                        // Car
-                        Integer carPrice = null;
-                        if (car) 
+                        Socket s_r = new Socket(roomServerName, s_serverPort);
+                        ObjectInputStream in_r = new ObjectInputStream(s_r.getInputStream());
+                        ObjectOutputStream out_r = new ObjectOutputStream(s_r.getOutputStream());
+
+                        out_r.writeObject(
+                            new ReserveRoomRmAction(
+                                xid,
+                                loc,
+                                1
+                            )
+                        );
+                        out_r.flush();
+
+                        roomPrice = (Integer) in_r.readObject();
+
+                        in_r.close();
+                        out_r.close();
+                        s_r.close();
+                    }
+
+                    // Check if customer exists
+                    out_customerRm.writeObject(
+                        new QueryCustomerAction(xid, customer)
+                    );
+                    out_customerRm.flush();
+                    customerExists = !(((String) in_customerRm.readObject()).isEmpty());
+
+                    if (
+                        (prices.size() != flights_.size()) || 
+                        (car && carPrice.equals(new Integer(-1))) || 
+                        (room && roomPrice.equals(new Integer(-1))) ||
+                        customerExists == false
+                    ) {
+                        // Invalid bundle
+                        dest.writeObject(new Boolean(false));
+                        dest.flush();
+
+                        // Reset
+                        if (prices.size() == flights_.size()) 
+                        {
+                            Socket s_f = new Socket(flightServerName, s_serverPort);
+                            ObjectInputStream in_f = new ObjectInputStream(s_f.getInputStream());
+                            ObjectOutputStream out_f = new ObjectOutputStream(s_f.getOutputStream());
+
+                            out_f.writeObject(
+                                new ReserveFlightsRmAction(
+                                    xid, 
+                                    flights_, 
+                                    -1
+                                ) 
+                            );
+                            out_f.flush();
+
+                            prices = (ArrayList<Integer>) in_f.readObject();
+
+                            in_f.close();
+                            out_f.close();
+                            s_f.close();
+                        }
+
+                        if (car && !carPrice.equals(new Integer(-1)))
                         {
                             Socket s_c = new Socket(carServerName, s_serverPort);
                             ObjectInputStream in_c = new ObjectInputStream(s_c.getInputStream());
@@ -492,7 +565,7 @@ public class TCPMiddleware {
                                 new ReserveCarRmAction(
                                     xid,
                                     loc, 
-                                    1
+                                    -1
                                 )
                             );
                             out_c.flush();
@@ -504,101 +577,69 @@ public class TCPMiddleware {
                             s_c.close();
                         }
 
-                        if (car && carPrice.equals(new Integer(-1)))
+                        if (room && !roomPrice.equals(new Integer(-1)))
                         {
-                            dest.writeObject(new Boolean(false));
-                        }
-                        else
-                        {
-                            // Room
-                            Integer roomPrice = null;
-                            if (room)
-                            {
-                                Socket s_r = new Socket(roomServerName, s_serverPort);
-                                ObjectInputStream in_r = new ObjectInputStream(s_r.getInputStream());
-                                ObjectOutputStream out_r = new ObjectOutputStream(s_r.getOutputStream());
+                            Socket s_r = new Socket(roomServerName, s_serverPort);
+                            ObjectInputStream in_r = new ObjectInputStream(s_r.getInputStream());
+                            ObjectOutputStream out_r = new ObjectOutputStream(s_r.getOutputStream());
 
-                                out_r.writeObject(
-                                    new ReserveRoomRmAction(
-                                        xid,
-                                        loc,
-                                        1
-                                    )
-                                );
-                                out_r.flush();
+                            out_r.writeObject(
+                                new ReserveRoomRmAction(
+                                    xid,
+                                    loc,
+                                    -1
+                                )
+                            );
+                            out_r.flush();
 
-                                roomPrice = (Integer) in_r.readObject();
+                            roomPrice = (Integer) in_r.readObject();
 
-                                in_r.close();
-                                out_r.close();
-                                s_r.close();
-                            }
-
-                            if (room && roomPrice.equals(new Integer(-1)))
-                            {
-                                dest.writeObject(new Boolean(false));
-                            }
-                            else 
-                            {
-                                // No issue with other RMs
-                                // Check if customer exists
-                                out_customerRm.writeObject(
-                                    new QueryCustomerAction(xid, customer)
-                                );
-                                out_customerRm.flush();
-
-                                String bill = (String) in_customerRm.readObject();
-                        
-                                if (bill.isEmpty()) {
-                                    dest.writeObject(new Boolean(false));
-                                }
-                                else
-                                {
-                                    // Update flights
-                                    out_customerRm.writeObject(
-                                        new ReserveFlightsCustomerRmAction(
-                                            xid,
-                                            customer,
-                                            flights_,
-                                            prices
-                                        )
-                                    );
-                                    out_customerRm.flush();
-                                    
-                                    // Update car
-                                    if (car)
-                                    {
-                                        out_customerRm.writeObject(
-                                            new ReserveCarCustomerRmAction(
-                                                xid, 
-                                                customer, 
-                                                loc,
-                                                (int) carPrice
-                                            )
-                                        );
-                                        out_customerRm.flush();
-                                    }
-                                    
-                                    // Update room
-                                    if (room)
-                                    {
-                                        out_customerRm.writeObject(
-                                            new ReserveRoomCustomerRmAction(
-                                                xid, 
-                                                customer, 
-                                                loc, 
-                                                roomPrice
-                                            )
-                                        );
-                                        out_customerRm.flush();
-                                    }
-
-                                    dest.writeObject(new Boolean(true));
-                                }
-                            }
+                            in_r.close();
+                            out_r.close();
+                            s_r.close();
                         }
                     }
+
+                    // Update customer flights
+                    out_customerRm.writeObject(
+                        new ReserveFlightsCustomerRmAction(
+                            xid,
+                            customer,
+                            flights_,
+                            prices
+                        )
+                    );
+                    out_customerRm.flush();
                     
+                    // Update customer car
+                    if (car)
+                    {
+                        out_customerRm.writeObject(
+                            new ReserveCarCustomerRmAction(
+                                xid, 
+                                customer, 
+                                loc,
+                                (int) carPrice
+                            )
+                        );
+                        out_customerRm.flush();
+                    }
+                    
+                    // Update customer room
+                    if (room)
+                    {
+                        out_customerRm.writeObject(
+                            new ReserveRoomCustomerRmAction(
+                                xid, 
+                                customer, 
+                                loc, 
+                                roomPrice
+                            )
+                        );
+                        out_customerRm.flush();
+                    }
+
+                    dest.writeObject(new Boolean(true));
                     dest.flush();
                     break;
 

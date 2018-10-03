@@ -567,13 +567,13 @@ public class ResourceManager implements IResourceManager
 		return res;
 	}
 
-	// Function to bundle (not used)
+	// Function to bundle (Not used)
 	public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException
-	{
+	{	
 		return false;
 	} 
 
-	// Function to reserve bundle
+	// Function to reserve bundle (TCP)
 	public boolean bundle(
 		int xid, 
 		int customerID, 
