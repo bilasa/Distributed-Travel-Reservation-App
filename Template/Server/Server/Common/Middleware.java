@@ -26,10 +26,10 @@ public abstract class Middleware implements IResourceManager
     //protected RMHashMap m_data = new RMHashMap();
     
     // ResourceManager remote interfaces (made public to access outside of package)
-    public RMIResourceManager flightResourceManager = null;
-    public RMIResourceManager carResourceManager = null;
-    public RMIResourceManager roomResourceManager = null;
-    public RMIResourceManager customerResourceManager = null;
+    public IResourceManager flightResourceManager = null;
+    public IResourceManager carResourceManager = null;
+    public IResourceManager roomResourceManager = null;
+    public IResourceManager customerResourceManager = null;
     
     public Middleware(String p_name)
     {
