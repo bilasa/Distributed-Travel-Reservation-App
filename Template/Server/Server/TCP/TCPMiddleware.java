@@ -1,55 +1,58 @@
 package Server.TCP;
 
 import java.util.*;
+
+import javax.lang.model.util.ElementScanner6;
+
 import java.io.*;
 import java.net.*;
 import Server.Interface.*;
 import Server.Common.*;
 import Server.Actions.*;
 
-// TODO
+public class TCPMiddleware {
 
-/*
-public class TCPMiddleware extends Middleware
-{
     private static String s_serverHost = "localhost";
-    private static int s_serverPort = 1099;
-    
-    // Server name
     private static String s_serverName = "Middleware";
-    
-    // Server names for 4 different ResourceManagers
-    private static String flightServerName = "flightServer";
-    private static String carServerName = "carServer";
-    private static String roomServerName = "roomServer";
-    private static String customerServerName = "customerServer";
-    
+    private static String  s_rmiPrefix = "group32";
+    private static int s_serverPort = 1099;
+
+    private static String flightServerName = "FlightServer";
+    private static String carServerName = "CarServer";
+    private static String roomServerName = "RoomServer";
+    private static String customerServerName = "CustomerServer";
+
     public static void main(String args[])
     {
-        // Set the server host and server names based on the arguments
+        // Set the server host and server names based on arguments
         if (args.length > 0)
         {
             s_serverHost = args[0];
         }
+
         if (args.length > 1)
         {
             flightServerName = args[1];
         }
+
         if (args.length > 2)
         {
             carServerName = args[2];
         }
+
         if (args.length > 3)
         {
             roomServerName = args[3];
         }
+
         if (args.length > 4)
         {
             customerServerName = args[4];
         }
+
         if (args.length > 5)
         {
-            //System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0mUsage: java client.RMIClient [server_hostname [server_rmiobject]]");
+            System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0mUsage: java server.Middleware [server_hostname [server_rmiobject]]");
             System.exit(1);
         }
         
@@ -58,179 +61,565 @@ public class TCPMiddleware extends Middleware
         {
             System.setSecurityManager(new SecurityManager());
         }
-        
-        try {
-            ServerSocket middlewareSocket = new ServerSocket(s_serverPort);
-            
-            while(true) {
-                Socket clientSocket = middlewareSocket.accept(); // accept a new request from a client
-                RequestThread reqThread = new RequestThread(clientSocket); // create a thread to service that request
-            }
 
-        }
-        catch (Exception e) {
-            System.err.println((char)27 + "[31;1mMiddleware exception: " + (char)27 + "[0mUncaught exception");
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
+        // Initiate Middleware
+        TCPResourceManager server = new TCPResourceManager(s_serverName);
+		System.out.println("'" + s_serverName + "' resource manager server ready and bound to '" + s_rmiPrefix + s_serverName + "'");
+        
+         // Initiate server socket
+        ServerSocket ss = null;
     
-    /*
-     * Services a request from a client
-  
-    public static class RequestThread implements Runnable {
-        Socket clientSocket;
-        ObjectInputStream in; // input stream for client request
-        ObjectOutputStream out; // output stream to client
-        
-        public RequestThread(Socket clientSocket) {
-            this.clientSocket = clientSocket;
-            in = new ObjectInputStream(clientSocket.getInputStream());
-            out = new ObjectOutputStream(clientSocket.getOutputStream());
+        try {
+            ss = new ServerSocket(s_serverPort);
         }
-        
-        @Override
-        public void run() {
+        catch (IOException e) {
+            e.printStackTrace();
+        }
 
-            TravelAction travelAction = (TravelAction)in.readObject(); // Get action object from the input stream
-            TravelAction reserveAction = null, reserveAction_ = null;// extra actions for reserve actions
-            
-            Socket socket = null, socket_ = null;
-            
-            ObjectInputStream inRM, inRM_; // input stream from ResourceManager (extra one for reserve actions)
-            ObjectOutputStream outRM, outRM_; // output stream to ResourceManager (extra one for reserve actions)
-            
-            boolean flag = false; // is the action a reserve action
-                
-            // Send the action to the appropriate ResourceManager server
+        // Listen to incoming socket connections
+        while (true) 
+        {      
+            Socket s_client = null;
+            //Socket s_rm = null;
+
             try {
+                // Receive incoming client socket connection
+                s_client = ss.accept();
+                ObjectInputStream in_client = new ObjectInputStream(s_client.getInputStream());
+                ObjectOutputStream out_client = new ObjectOutputStream(s_client.getOutputStream());
                 
-                switch (travelAction.getType()) {
-                        
-                    case RESERVE_ACTION:
-                        
-                        /*switch (travelAction.getActionSubtype()) {
-                            int xid = travelAction.getXid();
-                            
-                            case RESERVE_FLIGHT:
-                                int customerID = (ReserveFlightAction)travelAction.getCustomerID();
-                                int flightNumber = (ReserveFlightAction)travelAction.getFlightNumber();
-                                
-                                // *** TO-DO ***
-                                reserveAction = new UpdateFlightAction(...);
-                                serverSocket = new Socket(flightServerName, s_serverPort); // create a socket to the flight server
-                            
-                                break;
-                                
-                            case RESERVE_CAR:
-                                int customerID = (ReserveCarAction)travelAction.getCustomerID();
-                                String location = (ReserveCarAction)travelAction.getLocation();
-                                
-                                // *** TO-DO ***
-                                reserveAction = new UpdateCarAction(...);
-                                serverSocket = new Socket(carServerName, s_serverPort); // create a socket to the car server
-                                
-                                break;
-                                
-                            case RESERVE_ROOM:
-                                int customerID = (ReserveRoomAction)travelAction.getCustomerID();
-                                String location = (ReserveRoomAction)travelAction.getLocation();
-                                
-                                // *** TO-DO ***
-                                reserveAction = new UpdateRoomAction(...);
-                                serverSocket = new Socket(carServerName, s_serverPort); // create a socket to the room server
-                                
-                                break;
-                                
-                            case RESERVE_BUNDLE:
-                                //int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room
-                                int customerID = (ReserveBundleAction)travelAction.getCustomerID();
-                                Vector<String> flightNumbers = (ReserveBundleAction)travelAction.getFlightNumbers();
-                                String location = (ReserveBundleAction)travelAction.getLocation();
-                                boolean car = (ReserveBundleAction)travelAction.getCar();
-                                boolean room = (ReserveBundleAction)travelAction.getRoom();
-                                
-                                // *** TO-DO ***
-                                
-                                break;
-                                
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            System.exit(1);
+                // Initiate client responses
+                Boolean res_client = null;
+                Integer res_client_ = null;
+
+                // Initiate thread
+                Thread t = new Thread() {
+
+                    @Override
+					public void run() {
+
+                        // Handle action
+                        try {
+                             // Incoming action
+                            TravelAction req = (TravelAction) in_client.readObject();
+
+                            switch (req.getType()) {
+
+                                case FLIGHT_ACTION:
+
+                                    Socket s_flight = new Socket(flightServerName, s_serverPort);
+                                    singleRmRequest(req, out_client, s_flight);
+                                    s_flight.close();
+                                    break;
+
+                                case CAR_ACTION:
+
+                                    Socket s_car = new Socket(carServerName, s_serverPort);
+                                    singleRmRequest(req, out_client, s_car);
+                                    s_car.close();
+                                    break;
+
+                                case ROOM_ACTION:
+
+                                    Socket s_room = new Socket(roomServerName, s_serverPort);
+                                    singleRmRequest(req, out_client, s_room);
+                                    s_room.close();
+                                    break;
+
+                                case CUSTOMER_ACTION:
+
+                                    multipleRmRequest(req, out_client);
+                                    break;
+
+                                default:
+                                    break;
+                            }
                         }
-                
-                        // Customer action/socket for all reserve actions
-                        reserveAction_ = new UpdateCustomerAction(...));
-                        serverSocket_ = new Socket(customerServerName, s_serverPort);
-                        
-                        break;
-                        
-                    case FLIGHT_ACTION:
-                        socket = new Socket(flightServerName, s_serverPort); // create a socket to the flight server
-                        break;
-                        
-                    case CAR_ACTION:
-                        socket = new Socket(carServerName, s_serverPort); // create a socket to the car server
-                        break;
-                        
-                    case ROOM_ACTION:
-                        socket = new Socket(roomServerName, s_serverPort); // create a socket to the room server
-                        break;
-                        
-                    case CUSTOMER_ACTION:
-                        socket = new Socket(customerServerName, s_serverPort); // create a socket to the customer server
-                        break;
-                        
+                        catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        catch (ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+
+                if (res_client != null) {
+                    out_client.writeObject(res_client); 
                 }
-                
-            } catch (Exception e) {
+                else if (res_client_ != null) {
+                    out_client.writeObject(res_client_);
+                }
+                else {
+                    out_client.writeObject(new String("NULL"));
+                }
+
+                out_client.flush();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            catch (Exception e) {
+                System.err.println((char)27 + "[31;1mMiddleware exception: " + (char)27 + "[0mUncaught exception");
                 e.printStackTrace();
                 System.exit(1);
             }
-            
-                // Create input stream and output stream from the server socket
-                inRM = new ObjectInputStream(socket.getInputStream());
-                outRM = new ObjectOutputStream(socket.getOutputStream());
-                
-                // Send the action to the server
-                outRM.writeObject(travelAction);
-                outRM.flush();
-                
-                // Send the response to the client
-                Object response = inRM.readObject();
-                if (response != null) {
-                    out.writeObject(response);
-                } else {
-                    out.writeObject(new String("NULL"));
-                }
-                
-                // Close the RM streams
-                try {
-                    inRM.close();
-                    outRM.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
-                
-                // Close the client streams
-                try {
-                    in.close();
-                    out.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
         }
+    }
+
+    // Function to handle request to one RM
+    public static void singleRmRequest(TravelAction req, ObjectOutputStream dest, Socket s) 
+    { 
+        try {
+            ObjectInputStream in = new ObjectInputStream(s.getInputStream()); 
+            ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
+
+            // Send request to RM
+            out.writeObject(req);
+            out.flush();
         
+            // Relay RM response to Client
+            dest.writeObject(in.readObject());
+            dest.flush();
+
+            in.close();
+            out.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Function to handle request to multiple RMs
+    public static void multipleRmRequest(TravelAction req, ObjectOutputStream dest) 
+    { 
+        try {
+            Integer price = null; 
+
+            Socket s_customerRm = null;
+            ObjectInputStream in_customerRm = null;
+            ObjectOutputStream out_customerRm = null;
+
+            switch (req.getSubtype()) {
+
+                case DELETE_CUSTOMER:
+                    // Customer RM
+                    s_customerRm = new Socket(customerServerName, s_serverPort);
+                    in_customerRm = new ObjectInputStream(s_customerRm.getInputStream());
+                    out_customerRm = new ObjectOutputStream(s_customerRm.getOutputStream());
+
+                    // Flight RM
+                    Socket sf = new Socket(flightServerName, s_serverPort);
+                    ObjectInputStream inf = new ObjectInputStream(sf.getInputStream());
+                    ObjectOutputStream outf = new ObjectOutputStream(sf.getOutputStream());
+
+                    // Car RM
+                    Socket sc = new Socket(carServerName, s_serverPort);
+                    ObjectInputStream inc = new ObjectInputStream(sc.getInputStream());
+                    ObjectOutputStream outc = new ObjectOutputStream(sc.getOutputStream());
+
+                    // Room RM
+                    Socket sr = new Socket(roomServerName, s_serverPort);
+                    ObjectInputStream inr = new ObjectInputStream(sr.getInputStream());
+                    ObjectOutputStream outr = new ObjectOutputStream(sr.getOutputStream());
+
+                    ArrayList<ReservedItem> items = new ArrayList<ReservedItem>();
+                    
+                    out_customerRm.writeObject(
+                        new DeleteCustomerAction( 
+                            ((DeleteCustomerAction) req).getXid(),
+                            ((DeleteCustomerAction) req).getCustomerID()
+                        )
+                    );
+                    out_customerRm.flush();
+
+                    items = (ArrayList<ReservedItem>) in_customerRm.readObject();
+
+                    // Update items in respective RMs
+                    for (ReservedItem item : items) {
+                        
+                        String key = item.getKey().toLowerCase();
+                        String[] parts = key.split("-");
+                        Boolean deleted = null;
+
+                        // Flight item
+                        if (parts[0].equals("flight")) 
+                        {
+                            outf.writeObject(
+                                new DeleteFlightAction(
+                                    req.getXid(),
+                                    Integer.parseInt(parts[1])
+                                )
+                            );
+                            outf.flush();
+
+                            deleted = (Boolean) inf.readObject();
+                        }
+
+                        // Car item
+                        if (parts[0].equals("car"))
+                        {
+                            outc.writeObject(
+                                new DeleteCarLocationAction(
+                                    req.getXid(),
+                                    parts[1] 
+                                )
+                            );
+                            outc.flush();
+
+                            deleted = (Boolean) inc.readObject();
+                        }
+
+                        // Room item
+                        if (parts[0].equals("room"))
+                        {
+                            outr.writeObject(
+                                new DeleteRoomLocationAction(
+                                    req.getXid(),
+                                    parts[1]
+                                )
+                            );
+                        }
+                    }
+
+                    dest.writeObject(new Boolean(true));
+                    break;
+
+                case RESERVE_FLIGHT_CUSTOMER_RM:
+
+                    Socket s_flightRm = new Socket(flightServerName, s_serverPort);
+                    ObjectInputStream in_flightRm = new ObjectInputStream(s_flightRm.getInputStream());
+                    ObjectOutputStream out_flightRm = new ObjectOutputStream(s_flightRm.getOutputStream());
+
+                    s_customerRm = new Socket(customerServerName, s_serverPort);
+                    in_customerRm = new ObjectInputStream(s_customerRm.getInputStream());
+                    out_customerRm = new ObjectOutputStream(s_customerRm.getOutputStream());
+
+                    out_flightRm.writeObject(
+                        new ReserveFlightRmAction(
+                            ((ReserveFlightCustomerRmAction) req).getXid(),
+                            ((ReserveFlightCustomerRmAction) req).getFlightNumber(),
+                            1    
+                        )
+                    );
+                    out_flightRm.flush();
+
+                    price = (Integer) in_flightRm.readObject();
+
+                    if (!price.equals(new Integer(-1))) {
+
+                        out_customerRm.writeObject(
+                            new ReserveFlightCustomerRmAction(
+                                ((ReserveFlightCustomerRmAction) req).getXid(),
+                                ((ReserveFlightCustomerRmAction) req).getCustomerID(),
+                                ((ReserveFlightCustomerRmAction) req).getFlightNumber(),
+                                (int) price
+                            )
+                        );
+
+                        dest.writeObject(in_customerRm.readObject());
+                    }
+                    else {
+                        dest.writeObject(new Boolean(false));
+                    }
+
+                    out_customerRm.flush();
+                    dest.flush();
+
+                    in_flightRm.close();
+                    out_flightRm.close();
+                    s_flightRm.close();
+
+                    break;
+                    
+                case RESERVE_CAR_CUSTOMER_RM:
+
+                    Socket s_carRm = new Socket(carServerName, s_serverPort);
+                    ObjectInputStream in_carRm = new ObjectInputStream(s_carRm.getInputStream());
+                    ObjectOutputStream out_carRm = new ObjectOutputStream(s_carRm.getOutputStream());
+
+                    s_customerRm = new Socket(customerServerName, s_serverPort);
+                    in_customerRm = new ObjectInputStream(s_customerRm.getInputStream());
+                    out_customerRm = new ObjectOutputStream(s_customerRm.getOutputStream());
+                    
+                    out_carRm.writeObject(
+                        new ReserveCarRmAction(
+                            ((ReserveCarCustomerRmAction) req).getXid(),
+                            ((ReserveCarCustomerRmAction) req).getLocation(),
+                            1    
+                        )
+                    );
+                    out_carRm.flush();
+
+                    price = (Integer) in_carRm.readObject();
+
+                    if (!price.equals(new Integer(-1))) {
+
+                        out_customerRm.writeObject(
+                            new ReserveCarCustomerRmAction(
+                                ((ReserveCarCustomerRmAction) req).getXid(),
+                                ((ReserveCarCustomerRmAction) req).getCustomerID(),
+                                ((ReserveCarCustomerRmAction) req).getLocation(),
+                                (int) price
+                            )
+                        );
+
+                        dest.writeObject(in_customerRm.readObject());
+                    }
+                    else {
+                        dest.writeObject(new Boolean(false));
+                    }
+
+                    out_customerRm.flush();
+                    dest.flush();
+
+                    in_carRm.close();
+                    out_carRm.close();
+                    s_carRm.close();
+
+                    break;
+                    
+                case RESERVE_ROOM_CUSTOMER_RM:
+
+                    Socket s_roomRm = new Socket(roomServerName, s_serverPort);
+                    ObjectInputStream in_roomRm = new ObjectInputStream(s_roomRm.getInputStream());
+                    ObjectOutputStream out_roomRm = new ObjectOutputStream(s_roomRm.getOutputStream());
+
+                    s_customerRm = new Socket(customerServerName, s_serverPort);
+                    in_customerRm = new ObjectInputStream(s_customerRm.getInputStream());
+                    out_customerRm = new ObjectOutputStream(s_customerRm.getOutputStream());
+                    
+                    out_roomRm.writeObject(
+                        new ReserveRoomRmAction(
+                            ((ReserveRoomCustomerRmAction) req).getXid(),
+                            ((ReserveRoomCustomerRmAction) req).getLocation(),
+                            1    
+                        )
+                    );
+                    out_roomRm.flush();
+
+                    price = (Integer) in_roomRm.readObject();
+
+                    if (!price.equals(new Integer(-1))) {
+
+                        out_customerRm.writeObject(
+                            new ReserveRoomCustomerRmAction(
+                                ((ReserveRoomCustomerRmAction) req).getXid(),
+                                ((ReserveRoomCustomerRmAction) req).getCustomerID(),
+                                ((ReserveRoomCustomerRmAction) req).getLocation(),
+                                (int) price
+                            )
+                        );
+
+                        dest.writeObject(in_customerRm.readObject());
+                    }
+                    else {
+                        dest.writeObject(new Boolean(false));
+                    }
+
+                    out_customerRm.flush();
+                    dest.flush();
+
+                    in_roomRm.close();
+                    out_roomRm.close();
+                    s_roomRm.close();
+                    
+                    break;
+                    
+                case RESERVE_BUNDLE_CUSTOMER_RM:
+                    
+                    int xid = ((ReserveBundleCustomerRmAction) req).getXid();
+                    int customer = ((ReserveBundleCustomerRmAction) req).getCustomerID();
+                    Vector<String> flights = ((ReserveBundleCustomerRmAction) req).getFlightNumbers();
+                    String loc = ((ReserveBundleCustomerRmAction) req).getLocation();
+                    boolean car = ((ReserveBundleCustomerRmAction) req).getCar();
+                    boolean room = ((ReserveBundleCustomerRmAction) req).getRoom();
+
+                    // Convert flight numbers from string format to integer format
+                    ArrayList<Integer> flights_ = new ArrayList<Integer>();
+                    for (String s : flights) flights_.add(Integer.parseInt(s));
+
+                    // Flights
+                    ArrayList<Integer> prices = new ArrayList<Integer>();
+                    int len = flights.size();
+
+                    if (len > 0)
+                    {   
+                        Socket s_f = new Socket(flightServerName, s_serverPort);
+                        ObjectInputStream in_f = new ObjectInputStream(s_f.getInputStream());
+                        ObjectOutputStream out_f = new ObjectOutputStream(s_f.getOutputStream());
+
+                        out_f.writeObject(
+                            new ReserveFlightsRmAction(
+                                xid, 
+                                flights_, 
+                                1
+                            ) 
+                        );
+                        out_f.flush();
+
+                        prices = (ArrayList<Integer>) in_f.readObject();
+
+                        in_f.close();
+                        out_f.close();
+                        s_f.close();
+                    }
+
+                    if (prices.size() != len) 
+                    {
+                        dest.writeObject(new Boolean(false));
+                    }
+                    else 
+                    {
+                        // Car
+                        Integer carPrice = null;
+                        if (car) 
+                        {
+                            Socket s_c = new Socket(carServerName, s_serverPort);
+                            ObjectInputStream in_c = new ObjectInputStream(s_c.getInputStream());
+                            ObjectOutputStream out_c = new ObjectOutputStream(s_c.getOutputStream());
+
+                            out_c.writeObject(
+                                new ReserveCarRmAction(
+                                    xid,
+                                    loc, 
+                                    1
+                                )
+                            );
+                            out_c.flush();
+
+                            carPrice = (Integer) in_c.readObject();
+
+                            in_c.close();
+                            out_c.close();
+                            s_c.close();
+                        }
+
+                        if (car && carPrice.equals(new Integer(-1)))
+                        {
+                            dest.writeObject(new Boolean(false));
+                        }
+                        else
+                        {
+                            // Room
+                            Integer roomPrice = null;
+                            if (room)
+                            {
+                                Socket s_r = new Socket(roomServerName, s_serverPort);
+                                ObjectInputStream in_r = new ObjectInputStream(s_r.getInputStream());
+                                ObjectOutputStream out_r = new ObjectOutputStream(s_r.getOutputStream());
+
+                                out_r.writeObject(
+                                    new ReserveRoomRmAction(
+                                        xid,
+                                        loc,
+                                        1
+                                    )
+                                );
+                                out_r.flush();
+
+                                roomPrice = (Integer) in_r.readObject();
+
+                                in_r.close();
+                                out_r.close();
+                                s_r.close();
+                            }
+
+                            if (room && roomPrice.equals(new Integer(-1)))
+                            {
+                                dest.writeObject(new Boolean(false));
+                            }
+                            else 
+                            {
+                                // No issue with other RMs
+                                // Check if customer exists
+                                out_customerRm.writeObject(
+                                    new QueryCustomerAction(xid, customer)
+                                );
+                                out_customerRm.flush();
+
+                                String bill = (String) in_customerRm.readObject();
+                        
+                                if (bill.isEmpty()) {
+                                    dest.writeObject(new Boolean(false));
+                                }
+                                else
+                                {
+                                    // Update flights
+                                    out_customerRm.writeObject(
+                                        new ReserveFlightsCustomerRmAction(
+                                            xid,
+                                            customer,
+                                            flights_,
+                                            prices
+                                        )
+                                    );
+                                    out_customerRm.flush();
+                                    
+                                    // Update car
+                                    if (car)
+                                    {
+                                        out_customerRm.writeObject(
+                                            new ReserveCarCustomerRmAction(
+                                                xid, 
+                                                customer, 
+                                                loc,
+                                                (int) carPrice
+                                            )
+                                        );
+                                        out_customerRm.flush();
+                                    }
+                                    
+                                    // Update room
+                                    if (room)
+                                    {
+                                        out_customerRm.writeObject(
+                                            new ReserveRoomCustomerRmAction(
+                                                xid, 
+                                                customer, 
+                                                loc, 
+                                                roomPrice
+                                            )
+                                        );
+                                        out_customerRm.flush();
+                                    }
+
+                                    dest.writeObject(new Boolean(true));
+                                }
+                            }
+                        }
+                    }
+                    
+                    dest.flush();
+                    break;
+
+                default:
+                    break;
+            }
+
+            in_customerRm.close();
+            out_customerRm.close();
+            s_customerRm.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public TCPMiddleware(String name)
     {
-        super(name);
+        super();
     }
-    
 }
-
-*/
-

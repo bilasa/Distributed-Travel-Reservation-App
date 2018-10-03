@@ -400,6 +400,42 @@ public class ResourceManager implements IResourceManager
 		return new Integer(curObj.getPrice());
 	}
 
+	// Function to reserve flights (multiple) in FlightResourceManager
+	public ArrayList<Integer> reserveFlights_FlightRM(int xid, ArrayList<Integer> flightNums, int toReserve) 
+	{	
+		ArrayList<Integer> prices = new ArrayList<Integer>();
+
+		for (int i = 0; i < flightNums.size(); i++)
+		{
+			Flight curObj = (Flight) readData(xid, Flight.getKey(flightNums.get(i)));
+
+			if (curObj == null) return new ArrayList<Integer>();
+
+			int nCount = curObj.getCount() - toReserve;
+			int nReserved = curObj.getReserved() + toReserve;
+
+			if (nCount < 0 || nReserved < 0) return new ArrayList<Integer>();
+		}
+
+
+		for (int i = 0; i < flightNums.size(); i++)
+		{
+			Flight curObj = (Flight) readData(xid, Flight.getKey(flightNums.get(i)));
+
+			int nCount = curObj.getCount() - toReserve;
+			int nReserved = curObj.getReserved() + toReserve;
+			
+			curObj.setCount(nCount);
+			curObj.setReserved(nReserved);
+			writeData(xid, curObj.getKey(), curObj);
+
+			int price = curObj.getPrice();
+			prices.add(price);
+		}
+
+		return prices;
+	}
+
 	// Function to reserve car in CarResourceManager (this returns an integer value as updating in the customer resource manager requires latest reserved price of item)
 	public Integer reserveCar_CarRM(int xid, String location, int toReserve)
 	{	
@@ -454,6 +490,20 @@ public class ResourceManager implements IResourceManager
 		return reserveItem_CustomerRM(xid, customerID, Flight.getKey(flightNum), String.valueOf(flightNum), price);
 	}
 
+	// Function to reserve flights (multiple) in CustomerResourceManager 
+	public boolean reserveFlights_CustomerRM(int xid, int customerID, ArrayList<Integer> flightNums, ArrayList<Integer> prices) 
+	{	
+		boolean success = true;
+
+		for (int i = 0; i < flightNums.size(); i++) {
+
+			success = reserveItem_CustomerRM(xid, customerID, Flight.getKey(flightNums.get(i)), String.valueOf(flightNums.get(i)), prices.get(i));
+			if (!success) return false;
+		}
+
+		return success;
+	}
+
 	// Function to reserve car in CustomerResourceManager
 	public boolean reserveCar_CustomerRM(int xid, int customerID, String location, int price) throws RemoteException
 	{
@@ -494,7 +544,7 @@ public class ResourceManager implements IResourceManager
 		Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
 
 		// Retrieve customer 
-		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
+		Customer customer = (Customer) readData(xid, Customer.getKey(customerID));
 
 		if (customer == null)
 		{

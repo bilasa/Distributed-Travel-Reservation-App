@@ -60,6 +60,9 @@ public class TCPResourceManager extends ResourceManager
 
 								Boolean res = null;
 								Integer res_ = null;
+								ArrayList<Integer> ress_ = null;
+								ArrayList<ReservedItem> res_items = null;
+								String res_s = null;
 
 								switch (req.getSubtype()) {
 
@@ -148,7 +151,7 @@ public class TCPResourceManager extends ResourceManager
 
 									case QUERY_CUSTOMER:
 
-										res_ = new Integer(
+										res_s = new String(
 											server.queryCustomerInfo(
 												((QueryCustomerAction) req).getXid(),
 												((QueryCustomerAction) req).getCustomerID()
@@ -218,7 +221,7 @@ public class TCPResourceManager extends ResourceManager
 
 									case DELETE_CUSTOMER:
 
-										res = new Boolean(
+										res_items = new ArrayList<ReservedItem>(
 											server.deleteCustomer_CustomerRM(
 												((DeleteCustomerAction) req).getXid(),
 												((DeleteCustomerAction) req).getCustomerID()
@@ -245,7 +248,29 @@ public class TCPResourceManager extends ResourceManager
 												((ReserveFlightCustomerRmAction) req).getCustomerID(),
 												((ReserveFlightCustomerRmAction) req).getFlightNumber(),
 												((ReserveFlightCustomerRmAction) req).getPrice()
-											
+											)
+										);
+										break;
+									
+									case RESERVE_FLIGHTS_RM:
+										
+										ress_ = new ArrayList<Integer>(
+											server.reserveFlights_FlightRM(
+												((ReserveFlightsRmAction) req).getXid(),
+												((ReserveFlightsRmAction) req).getFlightNumbers(),
+												((ReserveFlightsRmAction) req).getToReserve()
+											)
+										);
+										break;
+
+									case RESERVE_FLIGHTS_CUSTOMER_RM:
+
+										res = new Boolean(
+											server.reserveFlights_CustomerRM(
+												((ReserveFlightsCustomerRmAction) req).getXid(),
+												((ReserveFlightsCustomerRmAction) req).getCustomerID(),
+												((ReserveFlightsCustomerRmAction) req).getFlightNumbers(),
+												((ReserveFlightsCustomerRmAction) req).getPrices()
 											)
 										);
 										break;
@@ -323,6 +348,12 @@ public class TCPResourceManager extends ResourceManager
 								else if (res_ != null) {
 									out.writeObject(res_);
 								}
+								else if (res_s != null) {
+									out.writeObject(res_s);
+								}
+								else if (res_items != null) {
+									out.writeObject(res_items);
+								} 
 								else {
 									out.writeObject(new String("NULL"));
 								}

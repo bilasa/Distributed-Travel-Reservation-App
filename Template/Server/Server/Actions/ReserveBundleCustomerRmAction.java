@@ -17,7 +17,8 @@ public class ReserveBundleCustomerRmAction extends CustomerAction
 
     // Constructor
     public ReserveBundleCustomerRmAction(
-        int xid, int customerID, 
+        int xid, 
+        int customerID, 
         Vector<String> flightNumbers, 
         ArrayList<Integer> flightPrices, 
         String location, boolean car, 
@@ -25,7 +26,7 @@ public class ReserveBundleCustomerRmAction extends CustomerAction
         boolean room, 
         int roomPrice
     ) {
-        super(ACTION_TYPE.RESERVE_ACTION, ACTION_SUBTYPE.RESERVE_BUNDLE_CUSTOMER_RM, xid);
+        super(ACTION_TYPE.CUSTOMER_ACTION, ACTION_SUBTYPE.RESERVE_BUNDLE_CUSTOMER_RM, xid);
         this.customerID = customerID;
         this.flightNumbers = flightNumbers;
         this.location = location;

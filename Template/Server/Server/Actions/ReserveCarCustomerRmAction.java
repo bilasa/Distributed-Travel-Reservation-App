@@ -11,7 +11,7 @@ public class ReserveCarCustomerRmAction extends CustomerAction
     // Constructor
     public ReserveCarCustomerRmAction(int xid, int customerID, String location, int price)
 	{
-        super(ACTION_TYPE.RESERVE_ACTION, ACTION_SUBTYPE.RESERVE_CAR_CUSTOMER_RM, xid);
+        super(ACTION_TYPE.CUSTOMER_ACTION, ACTION_SUBTYPE.RESERVE_CAR_CUSTOMER_RM, xid);
         this.customerID = customerID;
         this.location = location;
         this.price = price;
