@@ -32,7 +32,7 @@ public class RMIResourceManager extends ResourceManager
 			// Create a new Server object
 			RMIResourceManager server = new RMIResourceManager(s_serverName);
 
-			if (s_serverName.equals("Flights")) s_serverPort = 2123;
+			if (s_serverName.equals("Flights")) s_serverPort = 2128;
 			else if (s_serverName.equals("Cars")) s_serverPort = 2124;
 			else if (s_serverName.equals("Rooms")) s_serverPort = 2125;
 			else if (s_serverName.equals("Customers")) s_serverPort = 2126;
