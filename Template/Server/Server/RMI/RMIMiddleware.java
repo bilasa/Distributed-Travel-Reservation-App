@@ -16,7 +16,7 @@ import java.io.*;
 public class RMIMiddleware extends Middleware
 {
     private static String s_serverHost = "localhost";
-    private static int s_serverPort = 1798;
+    private static int s_serverPort = 2123;
     
     // Server name
     private static String s_serverName = "RMIMiddleware";
