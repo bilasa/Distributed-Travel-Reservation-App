@@ -211,19 +211,19 @@ public interface IResourceManager extends Remote
     public Integer reserveFlight_FlightRM(int xid, int flightNum, int toReserve) throws RemoteException;
 
 	// Function to reserve flights (multiple) in FlightResourceManager
-	public ArrayList<Integer> reserveFlights_FlightRM(int xid, ArrayList<Integer> flightNums, int toReserve);
+	public ArrayList<Integer> reserveFlights_FlightRM(int xid, ArrayList<Integer> flightNums, int toReserve) throws RemoteException;
 
 	// Function to reserve car in CarResourceManager (this returns an integer value as updating in the customer resource manager requires latest reserved price of item)
-	public Integer reserveCar_CarRM(int xid, String location, int toReserve);
+	public Integer reserveCar_CarRM(int xid, String location, int toReserve) throws RemoteException;
 
 	// Function to reserve room in RoomResourceManager (this returns an integer value as updating in the customer resource manager requires latest reserved price of item)
-	public Integer reserveRoom_RoomRM(int xid, String location, int toReserve);
+	public Integer reserveRoom_RoomRM(int xid, String location, int toReserve) throws RemoteException;
 
 	// Function to reserve flight in CustomerResourceManager (this returns an integer value as updating in the customer resource manager requires latest reserved price of item)
 	public boolean reserveFlight_CustomerRM(int xid, int customerID, int flightNum, int price) throws RemoteException;
 
 	// Function to reserve flights (multiple) in CustomerResourceManager 
-	public boolean reserveFlights_CustomerRM(int xid, int customerID, ArrayList<Integer> flightNums, ArrayList<Integer> prices);
+	public boolean reserveFlights_CustomerRM(int xid, int customerID, ArrayList<Integer> flightNums, ArrayList<Integer> prices) throws RemoteException;
 
 	// Function to reserve car in CustomerResourceManager
 	public boolean reserveCar_CustomerRM(int xid, int customerID, String location, int price) throws RemoteException;
@@ -232,7 +232,7 @@ public interface IResourceManager extends Remote
 	public boolean reserveRoom_CustomerRM(int xid, int customerID, String location, int price) throws RemoteException;
 
 	// Function to reserve item in CustomerResourceManager
-	public boolean reserveItem_CustomerRM(int xid, int customerID, String key, String location, int price);
+	public boolean reserveItem_CustomerRM(int xid, int customerID, String key, String location, int price) throws RemoteException;
 
 	// Function to delete customer in customer database
 	public ArrayList<ReservedItem> deleteCustomer_CustomerRM(int xid, int customerID) throws RemoteException;

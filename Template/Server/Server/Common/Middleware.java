@@ -260,19 +260,19 @@ public abstract class Middleware implements IResourceManager
     }
 
 	// Function to reserve flights (multiple) in FlightResourceManager
-    public ArrayList<Integer> reserveFlights_FlightRM(int xid, ArrayList<Integer> flightNums, int toReserve)
+    public ArrayList<Integer> reserveFlights_FlightRM(int xid, ArrayList<Integer> flightNums, int toReserve) throws RemoteException
     {
         return new ArrayList<Integer>();
     }
 
 	// Function to reserve car in CarResourceManager (this returns an integer value as updating in the customer resource manager requires latest reserved price of item)
-    public Integer reserveCar_CarRM(int xid, String location, int toReserve)
+    public Integer reserveCar_CarRM(int xid, String location, int toReserve) throws RemoteException
     {
         return new Integer(-1);
     }
 
 	// Function to reserve room in RoomResourceManager (this returns an integer value as updating in the customer resource manager requires latest reserved price of item)
-    public Integer reserveRoom_RoomRM(int xid, String location, int toReserve)
+    public Integer reserveRoom_RoomRM(int xid, String location, int toReserve) throws RemoteException
     {
         return new Integer(-1);
     }
@@ -284,7 +284,7 @@ public abstract class Middleware implements IResourceManager
     }
 
 	// Function to reserve flights (multiple) in CustomerResourceManager 
-    public boolean reserveFlights_CustomerRM(int xid, int customerID, ArrayList<Integer> flightNums, ArrayList<Integer> prices)
+    public boolean reserveFlights_CustomerRM(int xid, int customerID, ArrayList<Integer> flightNums, ArrayList<Integer> prices) throws RemoteException
     {
         return false;
     }
@@ -302,7 +302,7 @@ public abstract class Middleware implements IResourceManager
     }
 
 	// Function to reserve item in CustomerResourceManager
-    public boolean reserveItem_CustomerRM(int xid, int customerID, String key, String location, int price)
+    public boolean reserveItem_CustomerRM(int xid, int customerID, String key, String location, int price) throws RemoteException
     {
         return false;
     }
