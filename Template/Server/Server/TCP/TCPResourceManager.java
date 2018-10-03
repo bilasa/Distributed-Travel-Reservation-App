@@ -12,7 +12,7 @@ public class TCPResourceManager extends ResourceManager
 {
 	private static String s_serverName = "Server";
 	private static String s_rmiPrefix = "group32";
-	private static int s_serverPort = 1798;
+	private static int s_serverPort = 2123;
 
 	public static void main(String args[])
 	{

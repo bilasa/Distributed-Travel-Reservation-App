@@ -11,7 +11,7 @@ public class TCPMiddleware {
 
     private static String s_serverName = "TCPMiddleware";
     private static String  s_rmiPrefix = "group32";
-    private static int s_serverPort = 1798;
+    private static int s_serverPort = 2123;
     private static String flightServerName = "Flights";
     private static String carServerName = "Cars";
     private static String roomServerName = "Rooms";
