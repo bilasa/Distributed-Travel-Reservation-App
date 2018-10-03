@@ -89,4 +89,3 @@ public class RMIClient extends Client
 		}
 	}
 }
-

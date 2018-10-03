@@ -16,8 +16,9 @@ import java.rmi.NotBoundException;
 
 public class RMIResourceManager extends ResourceManager 
 {
-	private static String s_serverName = "RMIMiddleware";
+	private static String s_serverName = "server";
 	private static String s_rmiPrefix = "group32";
+	private static int s_serverPort = 1798;
 
 	public static void main(String args[])
 	{
@@ -32,16 +33,16 @@ public class RMIResourceManager extends ResourceManager
 			RMIResourceManager server = new RMIResourceManager(s_serverName);
 
 			// Dynamically generate the stub (client proxy)
-			IResourceManager resourceManager = (IResourceManager) UnicastRemoteObject.exportObject(server, 0);
+			IResourceManager resourceManager = (IResourceManager) UnicastRemoteObject.exportObject(server, s_serverPort);
 
 			// Bind the remote object's stub in the registry
 			Registry l_registry;
 
 			try {
-				l_registry = LocateRegistry.createRegistry(1798);
+				l_registry = LocateRegistry.createRegistry(s_serverPort);
 			} 
 			catch (RemoteException e) {
-				l_registry = LocateRegistry.getRegistry(1798);
+				l_registry = LocateRegistry.getRegistry(s_serverPort);
 			}
 			
 			final Registry registry = l_registry;
