@@ -59,26 +59,23 @@ public class TCPMiddleware {
         // Initiate Middleware
         try {
             TCPMiddleware server = new TCPMiddleware(s_serverName);
-            server.start();
             System.out.println("'" + s_serverName + "' resource manager server ready and bound to '" + s_rmiPrefix + s_serverName + "'");
+            server.start();
+            
+        }
+        catch (IOException e) {
+            e.printStackTrace();
         }
         catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void start()
+    public void start() throws IOException
     {   
-        ServerSocket ss = null;
-
-        // Initiate server socket
-        try {
-            ss = new ServerSocket(s_serverPort);
-        }
-        catch(IOException e) {
-            e.printStackTrace();
-        }
-        
+         // Initiate server socket
+        ServerSocket ss = new ServerSocket(s_serverPort);
+ 
         while (true)
         {
             Socket s_client = null;
@@ -133,17 +130,7 @@ public class TCPMiddleware {
                             default:
                                 break;
                         }
-                        /*
-                        if (res_client != null) {
-                            out_client.writeObject(res_client); 
-                        }
-                        else if (res_client_ != null) {
-                            out_client.writeObject(res_client_);
-                        }
-                        else {
-                            out_client.writeObject(new String("NULL"));
-                        }
-                        */
+
                         out_client.flush();
                     }
                     catch (IOException e) {
@@ -159,9 +146,6 @@ public class TCPMiddleware {
                 };
 
                 t.start();
-            }
-            catch (IOException e) {
-                e.printStackTrace();
             }
             catch (Exception e) {
                 System.err.println((char)27 + "[31;1mMiddleware exception: " + (char)27 + "[0mUncaught exception");
