@@ -517,7 +517,7 @@ public class ResourceManager implements IResourceManager
 	}
 
 	// Function to reserve item in CustomerResourceManager
-	protected boolean reserveItem_CustomerRM(int xid, int customerID, String key, String location, int price)
+	public boolean reserveItem_CustomerRM(int xid, int customerID, String key, String location, int price)
 	{
 		Trace.info("RM::reserveItem(" + xid + ", customer=" + customerID + ", " + key + ", " + location + ") called" );   
 		

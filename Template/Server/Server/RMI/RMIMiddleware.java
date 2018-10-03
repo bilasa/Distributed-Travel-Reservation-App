@@ -135,19 +135,19 @@ public class RMIMiddleware extends Middleware
                     // Assign the remote interface corresponding to the server name
                     if (server.equals("Flights")) 
                     {
-                        flightResourceManager = (RMIResourceManager) registry.lookup(s_rmiPrefix + server);
+                        flightResourceManager = (IResourceManager) registry.lookup(s_rmiPrefix + server);
                     } 
                     else if (server.equals("Cars")) 
                     {
-                        carResourceManager = (RMIResourceManager) registry.lookup(s_rmiPrefix + server);
+                        carResourceManager = (IResourceManager) registry.lookup(s_rmiPrefix + server);
                     } 
                     else if (server.equals("Rooms")) 
                     {
-                        roomResourceManager = (RMIResourceManager) registry.lookup(s_rmiPrefix + server);
+                        roomResourceManager = (IResourceManager) registry.lookup(s_rmiPrefix + server);
                     } 
                     else if (server.equals("Customers")) 
                     {
-                            customerResourceManager = (RMIResourceManager) registry.lookup(s_rmiPrefix + server);
+                            customerResourceManager = (IResourceManager) registry.lookup(s_rmiPrefix + server);
                     }
                     
                     System.out.println("Connected to '" + server + "' server [" + host + ":" + port + "/" + s_rmiPrefix + server + "]");
