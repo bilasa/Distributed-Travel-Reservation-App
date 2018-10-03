@@ -118,10 +118,10 @@ public class RMIMiddleware extends Middleware
     // Connects the Middleware to all 4 ResourceManager servers
     public void connectServers()
     {   
-        connectServer("Flights", s_serverPort, flightServerName);
-        connectServer("Cars", s_serverPort, carServerName);
-        connectServer("Rooms", s_serverPort, roomServerName);
-        connectServer("Customers", s_serverPort, customerServerName);
+        connectServer("Flights", 2123, flightServerName);
+        connectServer("Cars", 2124, carServerName);
+        connectServer("Rooms", 2125, roomServerName);
+        connectServer("Customers", 2126, customerServerName);
     }
     
     public void connectServer(String server, int port, String host) // middleware name, port, RM hostname

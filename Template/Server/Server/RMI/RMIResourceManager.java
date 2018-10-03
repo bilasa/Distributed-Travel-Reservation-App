@@ -32,6 +32,11 @@ public class RMIResourceManager extends ResourceManager
 			// Create a new Server object
 			RMIResourceManager server = new RMIResourceManager(s_serverName);
 
+			if (s_serverName.equals("Flights")) s_serverPort = 2123;
+			else if (s_serverName.equals("Cars")) s_serverPort = 2124;
+			else if (s_serverName.equals("Rooms")) s_serverPort = 2125;
+			else if (s_serverName.equals("Customers")) s_serverPort = 2126;
+
 			// Dynamically generate the stub (client proxy)
 			IResourceManager resourceManager = (IResourceManager) UnicastRemoteObject.exportObject(server, s_serverPort);
 
