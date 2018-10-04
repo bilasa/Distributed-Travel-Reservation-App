@@ -284,6 +284,8 @@ public class TCPResourceManager extends ResourceManager
 
 									case RESERVE_FLIGHTS_CUSTOMER_RM:
 
+										System.out.println("MANY FLIGHTS to cust");
+
 										res = new Boolean(
 											server.reserveFlights_CustomerRM(
 												((ReserveFlightsCustomerRmAction) req).getXid(),
