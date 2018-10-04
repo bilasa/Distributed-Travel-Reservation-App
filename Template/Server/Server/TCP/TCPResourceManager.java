@@ -73,8 +73,6 @@ public class TCPResourceManager extends ResourceManager
 						public void run() {
 
 							try {
-					
-								 
 								TravelAction req = (TravelAction) in.readObject();
 
 								Boolean res = null;
@@ -383,6 +381,10 @@ public class TCPResourceManager extends ResourceManager
 								else if (res_s != null) {
 									out.writeObject(res_s);
 									System.out.println("RES STUFF3");
+								}
+								else if (ress_ != null) {
+									out.writeObject(ress_);
+									
 								}
 								else if (res_items != null) {
 									out.writeObject(res_items);

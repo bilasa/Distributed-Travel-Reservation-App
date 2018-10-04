@@ -85,7 +85,6 @@ public class TCPMiddleware {
 						
 						// Handle client request
 						try {
-							
 							TravelAction req = (TravelAction) in_client.readObject();
 							System.out.println("Request reaches to TCPMiddleware");
 							switch (req.getType()) 
@@ -313,7 +312,6 @@ public class TCPMiddleware {
 											{   
 												Socket s_fb = new Socket(s_flight_host, s_serverPort_flight);
 												ObjectOutputStream out_fb = new ObjectOutputStream(s_fb.getOutputStream());
-												out_fb.flush();
 												ObjectInputStream in_fb = new ObjectInputStream(s_fb.getInputStream());
 												
 												out_fb.writeObject(
@@ -336,7 +334,6 @@ public class TCPMiddleware {
 											{
 												Socket s_cb = new Socket(s_car_host, s_serverPort_car);
 												ObjectOutputStream out_cb = new ObjectOutputStream(s_cb.getOutputStream());
-												out_cb.flush();
 												ObjectInputStream in_cb = new ObjectInputStream(s_cb.getInputStream());
 												
 												out_cb.writeObject(
@@ -359,7 +356,6 @@ public class TCPMiddleware {
 											{
 												Socket s_rb = new Socket(s_room_host, s_serverPort_room);
 												ObjectOutputStream out_rb = new ObjectOutputStream(s_rb.getOutputStream());
-												out_rb.flush();
 												ObjectInputStream in_rb = new ObjectInputStream(s_rb.getInputStream());
 						
 												out_rb.writeObject(
@@ -390,7 +386,8 @@ public class TCPMiddleware {
 												(car && carPrice.equals(new Integer(-1))) || 
 												(room && roomPrice.equals(new Integer(-1))) ||
 												customerExists == false
-											) {
+											) {	
+												System.out.println("Invalid bundle");
 												// Invalid bundle
 												out_client.writeObject(new Boolean(false));
 												out_client.flush();
@@ -466,6 +463,7 @@ public class TCPMiddleware {
 												}
 											}
 											else {
+											System.out.println("Valid bundle");
 											// Update customer flights
 											out_cust.writeObject(
 												new ReserveFlightsCustomerRmAction(
