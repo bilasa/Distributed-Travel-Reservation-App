@@ -75,7 +75,9 @@ public class TCPClient extends Client
 			while (true) {
 
 				try {
-					
+					this.s = new Socket(server, port);
+					this.out = new ObjectOutputStream(s.getOutputStream());
+					this.in = new ObjectInputStream(s.getInputStream());
 					break;
 				}
 				catch (Exception e) {
@@ -100,10 +102,6 @@ public class TCPClient extends Client
 		TravelAction req = null;
 		Boolean res = null;
 		Integer res_ = null;
-
-		this.s = new Socket(server, port);
-		this.out = new ObjectOutputStream(s.getOutputStream());
-		this.in = new ObjectInputStream(s.getInputStream());
 
 		try {
 			switch (cmd)
