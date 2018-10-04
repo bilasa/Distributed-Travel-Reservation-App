@@ -75,7 +75,6 @@ public class TCPMiddleware {
 				ObjectOutputStream out_client = new ObjectOutputStream(s.getOutputStream());
 				ObjectInputStream in_client = new ObjectInputStream(s.getInputStream());
   
-
 				// Thread intinitalization
 				System.out.println("Thread initiated.");
 				Thread t = new Thread() {
@@ -93,8 +92,8 @@ public class TCPMiddleware {
 								case FLIGHT_ACTION:
 
 									Socket s_f = new Socket(s_flight_host, s_serverPort_flight);
-									ObjectInputStream in_f = new ObjectInputStream(s_f.getInputStream());
 									ObjectOutputStream out_f = new ObjectOutputStream(s_f.getOutputStream());
+									ObjectInputStream in_f = new ObjectInputStream(s_f.getInputStream());
 
 									out_f.writeObject(req);
 									out_f.flush();
@@ -111,8 +110,8 @@ public class TCPMiddleware {
 								case CAR_ACTION:
 
 									Socket s_c = new Socket(s_car_host, s_serverPort_car);
-									ObjectInputStream in_c = new ObjectInputStream(s_c.getInputStream());
 									ObjectOutputStream out_c = new ObjectOutputStream(s_c.getOutputStream());
+									ObjectInputStream in_c = new ObjectInputStream(s_c.getInputStream());
 
 									out_c.writeObject(req);
 									out_c.flush();
@@ -129,8 +128,8 @@ public class TCPMiddleware {
 								case ROOM_ACTION:
 
 									Socket s_r = new Socket(s_room_host, s_serverPort_room);
-									ObjectInputStream in_r = new ObjectInputStream(s_r.getInputStream());
 									ObjectOutputStream out_r = new ObjectOutputStream(s_r.getOutputStream());
+									ObjectInputStream in_r = new ObjectInputStream(s_r.getInputStream());
 
 									out_r.writeObject(req);
 									out_r.flush();
@@ -147,8 +146,8 @@ public class TCPMiddleware {
 								case CUSTOMER_ACTION:
 
 									Socket s_cust = new Socket(s_customer_host, s_serverPort_customer);
-									ObjectInputStream in_cust = new ObjectInputStream(s_cust.getInputStream());
 									ObjectOutputStream out_cust = new ObjectOutputStream(s_cust.getOutputStream());
+									ObjectInputStream in_cust = new ObjectInputStream(s_cust.getInputStream());
 									Integer price = null;
 
 									// Handle reservations
@@ -158,8 +157,8 @@ public class TCPMiddleware {
 										case RESERVE_FLIGHT_CUSTOMER_RM:
 
 											Socket s_flightRm = new Socket(s_flight_host, s_serverPort_flight);
-											ObjectInputStream in_flightRm = new ObjectInputStream(s_flightRm.getInputStream());
 											ObjectOutputStream out_flightRm = new ObjectOutputStream(s_flightRm.getOutputStream());
+											ObjectInputStream in_flightRm = new ObjectInputStream(s_flightRm.getInputStream());
 
 											out_flightRm.writeObject(
 												new ReserveFlightRmAction(
@@ -198,8 +197,8 @@ public class TCPMiddleware {
 										case RESERVE_CAR_CUSTOMER_RM:
 											
 											Socket s_carRm = new Socket(s_car_host, s_serverPort_car);
-											ObjectInputStream in_carRm = new ObjectInputStream(s_carRm.getInputStream());
 											ObjectOutputStream out_carRm = new ObjectOutputStream(s_carRm.getOutputStream());
+											ObjectInputStream in_carRm = new ObjectInputStream(s_carRm.getInputStream());
 											
 											out_carRm.writeObject(
 												new ReserveCarRmAction(
@@ -241,8 +240,8 @@ public class TCPMiddleware {
 										case RESERVE_ROOM_CUSTOMER_RM:
 
 											Socket s_roomRm = new Socket(s_room_host, s_serverPort_room);
-											ObjectInputStream in_roomRm = new ObjectInputStream(s_roomRm.getInputStream());
 											ObjectOutputStream out_roomRm = new ObjectOutputStream(s_roomRm.getOutputStream());
+											ObjectInputStream in_roomRm = new ObjectInputStream(s_roomRm.getInputStream());
 											
 											out_roomRm.writeObject(
 												new ReserveRoomRmAction(
@@ -303,9 +302,9 @@ public class TCPMiddleware {
 											if (len > 0)
 											{   
 												Socket s_fb = new Socket(s_flight_host, s_serverPort_flight);
-												ObjectInputStream in_fb = new ObjectInputStream(s_fb.getInputStream());
 												ObjectOutputStream out_fb = new ObjectOutputStream(s_fb.getOutputStream());
-						
+												ObjectInputStream in_fb = new ObjectInputStream(s_fb.getInputStream());
+												
 												out_fb.writeObject(
 													new ReserveFlightsRmAction(
 														xid, 
@@ -325,9 +324,9 @@ public class TCPMiddleware {
 											if (car) 
 											{
 												Socket s_cb = new Socket(s_car_host, s_serverPort_car);
-												ObjectInputStream in_cb = new ObjectInputStream(s_cb.getInputStream());
 												ObjectOutputStream out_cb = new ObjectOutputStream(s_cb.getOutputStream());
-						
+												ObjectInputStream in_cb = new ObjectInputStream(s_cb.getInputStream());
+												
 												out_cb.writeObject(
 													new ReserveCarRmAction(
 														xid,
@@ -347,8 +346,8 @@ public class TCPMiddleware {
 											if (room)
 											{
 												Socket s_rb = new Socket(s_room_host, s_serverPort_room);
-												ObjectInputStream in_rb = new ObjectInputStream(s_rb.getInputStream());
 												ObjectOutputStream out_rb = new ObjectOutputStream(s_rb.getOutputStream());
+												ObjectInputStream in_rb = new ObjectInputStream(s_rb.getInputStream());
 						
 												out_rb.writeObject(
 													new ReserveRoomRmAction(
@@ -387,8 +386,8 @@ public class TCPMiddleware {
 												if (prices.size() == flights_.size()) 
 												{
 													Socket s_fb = new Socket(s_flight_host, s_serverPort_flight);
-													ObjectInputStream in_fb = new ObjectInputStream(s_fb.getInputStream());
 													ObjectOutputStream out_fb = new ObjectOutputStream(s_fb.getOutputStream());
+													ObjectInputStream in_fb = new ObjectInputStream(s_fb.getInputStream());
 						
 													out_fb.writeObject(
 														new ReserveFlightsRmAction(
@@ -409,9 +408,9 @@ public class TCPMiddleware {
 												if (car && !carPrice.equals(new Integer(-1)))
 												{
 													Socket s_cb = new Socket(s_car_host, s_serverPort_car);
-													ObjectInputStream in_cb = new ObjectInputStream(s_cb.getInputStream());
 													ObjectOutputStream out_cb = new ObjectOutputStream(s_cb.getOutputStream());
-						
+													ObjectInputStream in_cb = new ObjectInputStream(s_cb.getInputStream());
+													
 													out_cb.writeObject(
 														new ReserveCarRmAction(
 															xid,
@@ -431,9 +430,9 @@ public class TCPMiddleware {
 												if (room && !roomPrice.equals(new Integer(-1)))
 												{
 													Socket s_rb = new Socket(s_room_host, s_serverPort_room);
-													ObjectInputStream in_rb = new ObjectInputStream(s_rb.getInputStream());
 													ObjectOutputStream out_rb = new ObjectOutputStream(s_rb.getOutputStream());
-						
+													ObjectInputStream in_rb = new ObjectInputStream(s_rb.getInputStream());
+												
 													out_rb.writeObject(
 														new ReserveRoomRmAction(
 															xid,
@@ -497,19 +496,19 @@ public class TCPMiddleware {
 											
 											// Flight RM
 											Socket sf = new Socket(s_flight_host, s_serverPort_flight);
-											ObjectInputStream inf = new ObjectInputStream(sf.getInputStream());
 											ObjectOutputStream outf = new ObjectOutputStream(sf.getOutputStream());
+											ObjectInputStream inf = new ObjectInputStream(sf.getInputStream());
 						
 											// Car RM
 											Socket sc = new Socket(s_car_host, s_serverPort_car);
-											ObjectInputStream inc = new ObjectInputStream(sc.getInputStream());
 											ObjectOutputStream outc = new ObjectOutputStream(sc.getOutputStream());
+											ObjectInputStream inc = new ObjectInputStream(sc.getInputStream());
 						
 											// Room RM
 											Socket sr = new Socket(s_room_host, s_serverPort_room);
-											ObjectInputStream inr = new ObjectInputStream(sr.getInputStream());
 											ObjectOutputStream outr = new ObjectOutputStream(sr.getOutputStream());
-						
+											ObjectInputStream inr = new ObjectInputStream(sr.getInputStream());
+											
 											ArrayList<ReservedItem> items = new ArrayList<ReservedItem>();
 											
 											out_cust.writeObject(

@@ -19,8 +19,8 @@ public class TCPClient extends Client
 	private static int s_serverPort = 2127;
 
 	private Socket s = null;
-	private ObjectInputStream in = null;
 	private ObjectOutputStream out = null;
+	private ObjectInputStream in = null;
 	
 	public static void main(String args[])
 	{	
