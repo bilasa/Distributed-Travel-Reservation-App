@@ -72,8 +72,6 @@ public class TCPMiddleware {
 			try {
 				// Accept client
 				s = ss.accept();
-				ObjectInputStream in_client = new ObjectInputStream(s.getInputStream());
-				ObjectOutputStream out_client = new ObjectOutputStream(s.getOutputStream());
 				
 				// Thread intinitalization
 				System.out.println("Thread initiated.");
@@ -86,6 +84,8 @@ public class TCPMiddleware {
 						try {
 							
 							TravelAction req = (TravelAction) in_client.readObject();
+							ObjectInputStream in_client = new ObjectInputStream(s.getInputStream());
+							ObjectOutputStream out_client = new ObjectOutputStream(s.getOutputStream());
 
 							switch (req.getType()) 
 							{
