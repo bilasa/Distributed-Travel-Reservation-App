@@ -94,7 +94,6 @@ public class TCPMiddleware {
 
 									Socket s_f = new Socket(s_flight_host, s_serverPort_flight);
 									ObjectOutputStream out_f = new ObjectOutputStream(s_f.getOutputStream());
-									out_f.flush();
 									ObjectInputStream in_f = new ObjectInputStream(s_f.getInputStream());
 
 									out_f.writeObject(req);

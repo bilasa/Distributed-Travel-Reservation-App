@@ -58,13 +58,14 @@ public class TCPResourceManager extends ResourceManager
 			{   
 				// Socket and stream objects to an incoming request
 				Socket s = null;
+				System.out.println("RM is waiting...");
 
 				try {
 					// Receive incoming request
 					s = ss.accept();
 					ObjectInputStream in = new ObjectInputStream(s.getInputStream());
 					ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
-					
+					System.out.println("Ready to create thread...");
 					// Initialize thread
 					Thread t = new Thread() {
 
