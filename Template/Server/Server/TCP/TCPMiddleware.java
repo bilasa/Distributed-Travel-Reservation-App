@@ -87,7 +87,7 @@ public class TCPMiddleware {
 						try {
 							
 							TravelAction req = (TravelAction) in_client.readObject();
-
+							System.out.println("Request reaches to TCPMiddleware");
 							switch (req.getType()) 
 							{
 								case FLIGHT_ACTION:
