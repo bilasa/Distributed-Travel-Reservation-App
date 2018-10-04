@@ -13,7 +13,7 @@ public class TCPMiddleware {
 
 	// TCP Middleware name and port
 	private static String s_serverName = "TCPMiddleware";  
-	private static int s_middleware_host = 3025;
+	private static int s_middleware_host = 2127;
 	// RMs (host names and ports)
 	private static String s_flight_host = "Flights";
 	private static String s_car_host = "Cars";
