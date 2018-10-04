@@ -76,8 +76,8 @@ public class TCPClient extends Client
 
 				try {
 					this.s = new Socket(server, port);
-					this.in = new ObjectInputStream(s.getInputStream());
 					this.out = new ObjectOutputStream(s.getOutputStream());
+					this.in = new ObjectInputStream(s.getInputStream());
 					break;
 				}
 				catch (Exception e) {
