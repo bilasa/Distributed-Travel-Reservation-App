@@ -405,6 +405,7 @@ public class ResourceManager implements IResourceManager
 	// Function to reserve flights (multiple) in FlightResourceManager
 	public ArrayList<Integer> reserveFlights_FlightRM(int xid, ArrayList<Integer> flightNums, int toReserve) 
 	{	
+		System.out.println("Observe here");
 		ArrayList<Integer> prices = new ArrayList<Integer>();
 
 		for (int i = 0; i < flightNums.size(); i++)
@@ -419,6 +420,7 @@ public class ResourceManager implements IResourceManager
 			if (nCount < 0 || nReserved < 0) return new ArrayList<Integer>();
 		}
 
+		System.out.println("Observe here2");
 
 		for (int i = 0; i < flightNums.size(); i++)
 		{

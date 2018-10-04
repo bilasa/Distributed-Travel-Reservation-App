@@ -460,54 +460,62 @@ public class TCPMiddleware {
 													out_rb.close();
 													s_rb.close();
 												}
+
+												out_client.writeObject(new Boolean(false));
+												out_client.flush();
 											}
 											else {
-											System.out.println("Valid bundle");
-											// Update customer flights
-											out_cust.writeObject(
-												new ReserveFlightsCustomerRmAction(
-													xid,
-													customer,
-													flights_,
-													prices
-												)
-											);
-											out_cust.flush();
-											Boolean r1 = (Boolean) in_cust.readObject();
-											// Update customer car
+												System.out.println("Valid bundle");
 
-											if (car)
-											{
-												out_cust.writeObject(
-													new ReserveCarCustomerRmAction(
-														xid, 
-														customer, 
-														loc,
-														(int) carPrice
+												Socket inv = new Socket(s_customer_host, s_serverPort_customer);
+												ObjectOutputStream out_cust2 = new ObjectOutputStream(inv.getOutputStream());
+												ObjectInputStream in_cust2 = new ObjectInputStream(inv.getInputStream());
+
+												// Update customer flights
+												out_cust2.writeObject(
+													new ReserveFlightsCustomerRmAction(
+														xid,
+														customer,
+														flights_,
+														prices
 													)
 												);
-												out_cust.flush();
-												r1 = (Boolean) in_cust.readObject();
-											}
-											
-											
-											// Update customer room
-											if (room)
-											{
-												out_cust.writeObject(
-													new ReserveRoomCustomerRmAction(
-														xid, 
-														customer, 
-														loc, 
-														roomPrice
-													)
-												);
-												out_cust.flush();
-												r1 = (Boolean) in_cust.readObject();
-											}
-						
-											out_client.writeObject(new Boolean(true));
-											out_client.flush();
+												out_cust2.flush();
+												Boolean r1 = (Boolean) in_cust2.readObject();
+												// Update customer car
+
+												if (car)
+												{
+													out_cust2.writeObject(
+														new ReserveCarCustomerRmAction(
+															xid, 
+															customer, 
+															loc,
+															(int) carPrice
+														)
+													);
+													out_cust2.flush();
+													r1 = (Boolean) in_cust2.readObject();
+												}
+												
+												
+												// Update customer room
+												if (room)
+												{
+													out_cust2.writeObject(
+														new ReserveRoomCustomerRmAction(
+															xid, 
+															customer, 
+															loc, 
+															roomPrice
+														)
+													);
+													out_cust2.flush();
+													r1 = (Boolean) in_cust2.readObject();
+												}
+							
+												out_client.writeObject(new Boolean(true));
+												out_client.flush();
 											}
 
 										case DELETE_CUSTOMER:
