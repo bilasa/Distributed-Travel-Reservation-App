@@ -96,7 +96,7 @@ public class TCPMiddleware {
 									ObjectOutputStream out_f = new ObjectOutputStream(s_f.getOutputStream());
 									ObjectInputStream in_f = new ObjectInputStream(s_f.getInputStream());
 
-									System.out.println("Sending to RM");
+									System.out.println("Sending to RM at port " + s_flight_host);
 									out_f.writeObject(req);
 									out_f.flush();
 

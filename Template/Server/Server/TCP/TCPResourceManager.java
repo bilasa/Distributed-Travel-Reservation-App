@@ -58,7 +58,7 @@ public class TCPResourceManager extends ResourceManager
 			{   
 				// Socket and stream objects to an incoming request
 				Socket s = null;
-				System.out.println("RM is waiting...");
+				System.out.println("RM is waiting from..." + s_serverPort);
 
 				try {
 					// Receive incoming request
