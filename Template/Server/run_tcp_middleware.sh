@@ -6,4 +6,4 @@ echo '  $2 - hostname of Cars'
 echo '  $3 - hostname of Rooms'
 echo '  $4 - hostname of Customers'
 
-java Server.TCP.TCPMiddleware $1 $2 $3 $4
+java -Djava.security.policy=java.policy Server.TCP.TCPMiddleware $1 $2 $3 $4
