@@ -83,7 +83,7 @@ public class TCPMiddleware {
 						// Handle client request
 						try {
 							
-							ObjectInputStream in_client = new ObjectInputStream(s.getInputStream());
+							ObjectInputStream in_client = null; //new ObjectInputStream(s.getInputStream());
 							ObjectOutputStream out_client = new ObjectOutputStream(s.getOutputStream());
 
 							TravelAction req = (TravelAction) in_client.readObject();
