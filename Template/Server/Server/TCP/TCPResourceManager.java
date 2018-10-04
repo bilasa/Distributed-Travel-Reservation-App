@@ -62,9 +62,9 @@ public class TCPResourceManager extends ResourceManager
 				try {
 					// Receive incoming request
 					s = ss.accept();
-					ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
 					ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-
+					ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
+					
 					// Initialize thread
 					Thread t = new Thread() {
 
