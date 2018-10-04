@@ -471,6 +471,23 @@ public class TCPMiddleware {
 												ObjectOutputStream out_cust2 = new ObjectOutputStream(inv.getOutputStream());
 												ObjectInputStream in_cust2 = new ObjectInputStream(inv.getInputStream());
 
+												out_cust2.writeObject(
+													new ReserveBundleCustomerRmAction(
+														xid,
+														customer,
+														flights,
+														prices,
+														car,
+														carPrice,
+														room,
+														roomPrice
+													)
+												);
+												out_cust2.flush();
+
+												Boolean bundled = (Boolean) in_cust2.readObject();
+
+												/*
 												// Update customer flights
 												out_cust2.writeObject(
 													new ReserveFlightsCustomerRmAction(
@@ -513,8 +530,12 @@ public class TCPMiddleware {
 													out_cust2.flush();
 													r1 = (Boolean) in_cust2.readObject();
 												}
+												*/
+												in_cust2.close();
+												out_cust2.close();
+												inv.close();
 							
-												out_client.writeObject(new Boolean(true));
+												out_client.writeObject(bundled);
 												out_client.flush();
 											}
 
