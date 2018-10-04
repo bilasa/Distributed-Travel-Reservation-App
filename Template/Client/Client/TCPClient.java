@@ -16,7 +16,7 @@ public class TCPClient extends Client
 	private static String s_serverHost = "server_host";
 	private static String s_serverName = "server_name";
 	private static String s_rmiPrefix = "group32";
-	private static int s_serverPort = 3127;
+	private static int s_serverPort = 4000;
 
 	private Socket s = null;
 	private ObjectOutputStream out = null;
@@ -71,6 +71,7 @@ public class TCPClient extends Client
 	{
 		try {
 			boolean first = true;
+			System.out.println("Attempting port: " + port);
 
 			while (true) {
 
@@ -82,6 +83,7 @@ public class TCPClient extends Client
 				}
 				catch (Exception e) {
 					if (first) {
+						
 						System.out.println("Waiting for '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
 						first = false;
 					}
