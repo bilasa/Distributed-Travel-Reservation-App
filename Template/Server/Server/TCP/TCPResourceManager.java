@@ -31,7 +31,7 @@ public class TCPResourceManager extends ResourceManager
 		}
 		else if (s_serverName.equals("Rooms")) 
 		{	
-			s_serverPort = 2126;
+			s_serverPort = 2130;
 		}
 		else if (s_serverName.equals("Customers")) 
 		{

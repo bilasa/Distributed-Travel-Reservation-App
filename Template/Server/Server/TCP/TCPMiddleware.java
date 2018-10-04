@@ -22,7 +22,7 @@ public class TCPMiddleware {
 	private static String s_customer_host = "Customers";
 	private static int s_serverPort_flight = 2124;
 	private static int s_serverPort_car = 2125;
-	private static int s_serverPort_room = 2126;
+	private static int s_serverPort_room = 2130;
 	private static int s_serverPort_customer = 2128;
 	// Prefix
 	private static String  s_rmiPrefix = "group32";
