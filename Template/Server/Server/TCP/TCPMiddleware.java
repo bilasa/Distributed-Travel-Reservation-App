@@ -72,8 +72,9 @@ public class TCPMiddleware {
 			try {
 				// Accept client
 				s = ss.accept();
+				ObjectOutputStream out_client = new ObjectOutputStream(s.getOutputStream());
 				ObjectInputStream in_client = new ObjectInputStream(s.getInputStream());
-                ObjectOutputStream out_client = new ObjectOutputStream(s.getOutputStream());
+  
 
 				// Thread intinitalization
 				System.out.println("Thread initiated.");
