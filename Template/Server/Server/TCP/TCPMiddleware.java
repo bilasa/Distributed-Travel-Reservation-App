@@ -100,8 +100,6 @@ public class TCPMiddleware {
 									out_f.writeObject(req);
 									out_f.flush();
 
-									sleep(500);
-
 									Object o = in_f.readObject();
 									out_client.writeObject(o);
 									out_client.flush();
