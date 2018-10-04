@@ -10,7 +10,7 @@ public class ReserveCarRmAction extends CarAction
     // Constructor
     public ReserveCarRmAction(int xid, String location, int toReserve)
 	{
-        super(ACTION_TYPE.CAR_ACTION, ACTION_SUBTYPE.RESERVE_CAR_CUSTOMER_RM, xid);
+        super(ACTION_TYPE.CAR_ACTION, ACTION_SUBTYPE.RESERVE_CAR_RM, xid);
         this.location = location;
         this.toReserve = toReserve;
     }

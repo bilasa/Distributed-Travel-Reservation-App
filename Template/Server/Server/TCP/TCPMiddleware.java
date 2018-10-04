@@ -13,16 +13,16 @@ public class TCPMiddleware {
 
 	// TCP Middleware name and port
 	private static String s_serverName = "TCPMiddleware";  
-	private static int s_middleware_host = 2130;
+	private static int s_middleware_host = 3130;
 	// RMs (host names and ports)
 	private static String s_flight_host = "Flights";
 	private static String s_car_host = "Cars";
 	private static String s_room_host = "Rooms";
 	private static String s_customer_host = "Customers";
-	private static int s_serverPort_flight = 2124;
-	private static int s_serverPort_car = 2125;
-	private static int s_serverPort_room = 2130;
-	private static int s_serverPort_customer = 2128;
+	private static int s_serverPort_flight = 3124;
+	private static int s_serverPort_car = 3125;
+	private static int s_serverPort_room = 3130;
+	private static int s_serverPort_customer = 3128;
 	// Prefix
 	private static String  s_rmiPrefix = "group32";
 
@@ -99,15 +99,14 @@ public class TCPMiddleware {
 									System.out.println("Sending to RM at port " + s_flight_host);
 									out_f.writeObject(req);
 									out_f.flush();
-
-									Object o = in_f.readObject();
-									out_client.writeObject(o);
+									
+									out_client.writeObject(in_f.readObject());
 									out_client.flush();
 
 									in_f.close();
 									out_f.close();	
 									s_f.close();
-
+									
 									break;
 
 								case CAR_ACTION:
@@ -179,6 +178,8 @@ public class TCPMiddleware {
 											price = (Integer) in_flightRm.readObject();
 
 											if (!price.equals(new Integer(-1))) {
+
+												System.out.println("Price is valid");
 
 												out_cust.writeObject(
 													new ReserveFlightCustomerRmAction(
@@ -464,7 +465,7 @@ public class TCPMiddleware {
 													s_rb.close();
 												}
 											}
-					
+											else {
 											// Update customer flights
 											out_cust.writeObject(
 												new ReserveFlightsCustomerRmAction(
@@ -475,6 +476,7 @@ public class TCPMiddleware {
 												)
 											);
 											out_cust.flush();
+											in_cust.readObject();
 											
 											// Update customer car
 											if (car)
@@ -488,7 +490,9 @@ public class TCPMiddleware {
 													)
 												);
 												out_cust.flush();
+												in_cust.readObject();
 											}
+											
 											
 											// Update customer room
 											if (room)
@@ -502,10 +506,13 @@ public class TCPMiddleware {
 													)
 												);
 												out_cust.flush();
+												in_cust.readObject();
 											}
+
 						
 											out_client.writeObject(new Boolean(true));
 											out_client.flush();
+											}
 
 										case DELETE_CUSTOMER:
 											

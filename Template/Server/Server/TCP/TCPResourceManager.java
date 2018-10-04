@@ -23,19 +23,19 @@ public class TCPResourceManager extends ResourceManager
 
 		if (s_serverName.equals("Flights")) 
 		{
-			s_serverPort = 2124;
+			s_serverPort = 3124;
 		}
 		else if (s_serverName.equals("Cars")) 
 		{
-			s_serverPort = 2125;
+			s_serverPort = 3125;
 		}
 		else if (s_serverName.equals("Rooms")) 
 		{	
-			s_serverPort = 2130;
+			s_serverPort = 3130;
 		}
 		else if (s_serverName.equals("Customers")) 
 		{
-			s_serverPort = 2128;
+			s_serverPort = 3128;
 		}
 
 		// Create and install a security manager
@@ -73,7 +73,8 @@ public class TCPResourceManager extends ResourceManager
 						public void run() {
 
 							try {
-								System.out.println("Incoming request to RM");
+					
+								 
 								TravelAction req = (TravelAction) in.readObject();
 
 								Boolean res = null;
@@ -271,6 +272,8 @@ public class TCPResourceManager extends ResourceManager
 										break;
 									
 									case RESERVE_FLIGHTS_RM:
+
+										System.out.println("flight");
 										
 										ress_ = new ArrayList<Integer>(
 											server.reserveFlights_FlightRM(
@@ -294,6 +297,8 @@ public class TCPResourceManager extends ResourceManager
 										break;
 
 									case RESERVE_CAR_RM:
+
+										System.out.println("car");
 										
 										res_ = new Integer(
 											server.reserveCar_CarRM(
@@ -317,6 +322,8 @@ public class TCPResourceManager extends ResourceManager
 										break;  
 
 									case RESERVE_ROOM_RM:
+
+										System.out.println("room");
 										
 										res_ = new Integer(
 											server.reserveRoom_RoomRM(
@@ -329,17 +336,20 @@ public class TCPResourceManager extends ResourceManager
 
 									case RESERVE_ROOM_CUSTOMER_RM:
 
+
+
 										res = new Boolean(
 											server.reserveCar_CustomerRM(
-												((ReserveCarCustomerRmAction) req).getXid(),
-												((ReserveCarCustomerRmAction) req).getCustomerID(),
-												((ReserveCarCustomerRmAction) req).getLocation(),
-												((ReserveCarCustomerRmAction) req).getPrice()
+												((ReserveRoomCustomerRmAction) req).getXid(),
+												((ReserveRoomCustomerRmAction) req).getCustomerID(),
+												((ReserveRoomCustomerRmAction) req).getLocation(),
+												((ReserveRoomCustomerRmAction) req).getPrice()
 											)
 										);
 										break;
 
 									case RESERVE_BUNDLE_CUSTOMER_RM:
+											System.out.println("bundle");
 
 										res = new Boolean(
 											server.bundle(
@@ -360,23 +370,30 @@ public class TCPResourceManager extends ResourceManager
 										break;
 								}
 
+								System.out.println("about to send back to MW");
+
 								if (res != null) {
 									out.writeObject(res); 
+									System.out.println("RES STUFF");
 								}
 								else if (res_ != null) {
 									out.writeObject(res_);
+									System.out.println("RES STUFF2");
 								}
 								else if (res_s != null) {
 									out.writeObject(res_s);
+									System.out.println("RES STUFF3");
 								}
 								else if (res_items != null) {
 									out.writeObject(res_items);
+									System.out.println("RES STUFF4");
 								} 
 								else {
+									System.out.println("RES STUFF5");
 									out.writeObject(new String("NULL"));
 								}
 
-								out.flush();
+								out.flush(); 
 							} 
 							catch (IOException e) {
 								e.printStackTrace();
@@ -384,19 +401,19 @@ public class TCPResourceManager extends ResourceManager
 							catch (ClassNotFoundException e) {
 								e.printStackTrace();
 							}
+
+							try { 
+								in.close();
+								out.close();   
+								//s.close();
+							}
+							catch(IOException e) { 
+								e.printStackTrace(); 
+							}
 						}
 					};
 
 					t.start();
-
-					try { 
-						in.close();
-						out.close();   
-						s.close();
-					}
-					catch(IOException e) { 
-						e.printStackTrace(); 
-					}
 				}
 				catch (Exception e) {
 					s.close(); 

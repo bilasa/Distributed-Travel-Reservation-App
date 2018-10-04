@@ -389,13 +389,15 @@ public class ResourceManager implements IResourceManager
 		// Count and reservations
 		int nCount = curObj.getCount() - toReserve;
 		int nReserved = curObj.getReserved() + toReserve;
-
+		System.out.println("gets to here");
 		if (nCount < 0 || nReserved < 0) return new Integer(-1);
-
+		System.out.println("counts valid");
 		// Update 
 		curObj.setCount(nCount);
 		curObj.setReserved(nReserved);
 		writeData(xid, curObj.getKey(), curObj);
+
+		System.out.println("upd f");
 
 		return new Integer(curObj.getPrice());
 	}
@@ -433,6 +435,8 @@ public class ResourceManager implements IResourceManager
 			prices.add(price);
 		}
 
+		System.out.println("upd fs");
+
 		return prices;
 	}
 
@@ -456,7 +460,7 @@ public class ResourceManager implements IResourceManager
 		curObj.setCount(nCount);
 		curObj.setReserved(nReserved);
 		writeData(xid, curObj.getKey(), curObj);
-		
+		System.out.println("upd c");
 		return new Integer(curObj.getPrice());
 	}
 
@@ -480,6 +484,7 @@ public class ResourceManager implements IResourceManager
 		curObj.setCount(nCount);
 		curObj.setReserved(nReserved);
 		writeData(xid, curObj.getKey(), curObj);
+		System.out.println("upd r");
 
 		return new Integer(curObj.getPrice());
 	}
@@ -520,12 +525,13 @@ public class ResourceManager implements IResourceManager
 	public boolean reserveItem_CustomerRM(int xid, int customerID, String key, String location, int price)
 	{
 		Trace.info("RM::reserveItem(" + xid + ", customer=" + customerID + ", " + key + ", " + location + ") called" );   
-		
+		System.out.println("About to reserve");
 		// Retrieve customer
 		Customer customer = (Customer) readData(xid, Customer.getKey(customerID));
 
 		if (customer == null)
-		{
+		{	
+			System.out.println("About to reserve..falied");
 			Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ")  failed--customer doesn't exist");
 			return false;
 		} 
@@ -533,7 +539,7 @@ public class ResourceManager implements IResourceManager
 		// Update customer
 		customer.reserve(key, location, price);        
 		writeData(xid, customer.getKey(), customer);
-
+		System.out.println("About to reserve..succ");
 		Trace.info("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ") succeeded");
 		return true;
 	}
