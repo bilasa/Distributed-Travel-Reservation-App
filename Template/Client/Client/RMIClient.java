@@ -15,7 +15,7 @@ public class RMIClient extends Client
 	private static String s_serverHost = "host";
 	private static String s_serverName = "server_name";
 	private static String s_rmiPrefix = "group32";
-	private static int s_serverPort = 2127;
+	private static int s_serverPort = 2130;
 
 	public static void main(String args[])
 	{	
