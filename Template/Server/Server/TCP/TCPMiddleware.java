@@ -477,10 +477,11 @@ public class TCPMiddleware {
 														customer,
 														flights,
 														prices,
+														loc,
 														car,
-														carPrice,
+														(int) carPrice,
 														room,
-														roomPrice
+														(int) roomPrice
 													)
 												);
 												out_cust2.flush();
