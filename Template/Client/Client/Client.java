@@ -391,8 +391,9 @@ public abstract class Client
 				{
 					System.out.println("-Flight Number: " + arguments.elementAt(3+i));
 				}
-				System.out.println("-Car Location: " + arguments.elementAt(arguments.size()-2));
-				System.out.println("-Room Location: " + arguments.elementAt(arguments.size()-1));
+				System.out.println("-Location for Car/Room: " + arguments.elementAt(arguments.size()-3));
+				System.out.println("-Book Car: " + arguments.elementAt(arguments.size()-2));
+				System.out.println("-Book Room: " + arguments.elementAt(arguments.size()-1));
 
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
