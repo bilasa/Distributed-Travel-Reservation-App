@@ -17,7 +17,7 @@ public class RMIMiddleware extends Middleware
 {
     private static String s_serverHost = "localhost";
     private static int s_serverPort = 2123;
-    private static int s_serverPort2 = 2127;
+    private static int s_serverPort2 = 2130;
     
     // Server name
     private static String s_serverName = "RMIMiddleware";
