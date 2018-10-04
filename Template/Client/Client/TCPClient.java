@@ -104,7 +104,7 @@ public class TCPClient extends Client
 		Boolean res = null;
 		Integer res_ = null;
 
-		this.s = new Socket(server, s_serverPort);
+		this.s = new Socket(s_serverHost, s_serverPort);
 		this.out = new ObjectOutputStream(s.getOutputStream());
 		this.in = new ObjectInputStream(s.getInputStream());
 
