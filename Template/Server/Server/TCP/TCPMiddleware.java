@@ -474,9 +474,9 @@ public class TCPMiddleware {
 												)
 											);
 											out_cust.flush();
-											in_cust.readObject();
-											
+											Boolean r1 = (Boolean) in_cust.readObject();
 											// Update customer car
+
 											if (car)
 											{
 												out_cust.writeObject(
@@ -488,7 +488,7 @@ public class TCPMiddleware {
 													)
 												);
 												out_cust.flush();
-												in_cust.readObject();
+												r1 = (Boolean) in_cust.readObject();
 											}
 											
 											
@@ -504,9 +504,8 @@ public class TCPMiddleware {
 													)
 												);
 												out_cust.flush();
-												in_cust.readObject();
+												r1 = (Boolean) in_cust.readObject();
 											}
-
 						
 											out_client.writeObject(new Boolean(true));
 											out_client.flush();
