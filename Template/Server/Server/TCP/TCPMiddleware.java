@@ -10,7 +10,6 @@ import Server.Actions.*;
 public class TCPMiddleware {
 
 	private static ServerSocket ss = null;
-	private static Socket s = null;
 
 	// TCP Middleware name and port
 	private static String s_serverName = "TCPMiddleware";  
@@ -68,10 +67,22 @@ public class TCPMiddleware {
 
 		// Incoming 
 		while (true)
-		{
+		{	
+			Socket s = null;
+			ObjectInputStream in_client = null;
+			ObjectOutputStream out_client = null;
+
 			try {
 				// Accept client
 				s = ss.accept();
+
+				try {
+					in_client = new ObjectInputStream(s.getInputStream());
+					out_client = new ObjectOutputStream(s.getOutputStream());
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
 				
 				// Thread intinitalization
 				System.out.println("Thread initiated.");
@@ -83,9 +94,6 @@ public class TCPMiddleware {
 						// Handle client request
 						try {
 							
-							ObjectInputStream in_client = null; //new ObjectInputStream(s.getInputStream());
-							ObjectOutputStream out_client = new ObjectOutputStream(s.getOutputStream());
-
 							TravelAction req = (TravelAction) in_client.readObject();
 
 							switch (req.getType()) 
@@ -614,14 +622,6 @@ public class TCPMiddleware {
 									System.out.println("Error: Action type not recognized.");
 									break;
 							}
-
-							try {
-								in_client.close();
-								out_client.close();
-							}
-							catch (IOException e) {
-								e.printStackTrace();	
-							}
 						}
 						catch (IOException e) {
 							System.out.println("Error: inside thread.");
@@ -629,6 +629,14 @@ public class TCPMiddleware {
 						}
 						catch (ClassNotFoundException e) {
 							e.printStackTrace();
+						}
+
+						try {
+							in_client.close();
+							out_client.close();
+						}
+						catch (IOException e) {
+							e.printStackTrace();	
 						}
 					}
 				};
