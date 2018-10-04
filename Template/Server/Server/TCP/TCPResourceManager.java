@@ -72,7 +72,7 @@ public class TCPResourceManager extends ResourceManager
 						public void run() {
 
 							try {
-
+								System.out("Incoming request to RM");
 								TravelAction req = (TravelAction) in.readObject();
 
 								Boolean res = null;
