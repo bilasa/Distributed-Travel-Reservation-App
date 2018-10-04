@@ -68,7 +68,8 @@ public class TCPClient extends Client
 	}
 	
 	public void connectServer(String server, int port, String name)
-	{
+	{	
+		/*
 		try {
 			boolean first = true;
 			System.out.println("Attempting port: " + port);
@@ -76,9 +77,7 @@ public class TCPClient extends Client
 			while (true) {
 
 				try {
-					this.s = new Socket(server, port);
-					this.out = new ObjectOutputStream(s.getOutputStream());
-					this.in = new ObjectInputStream(s.getInputStream());
+					
 					break;
 				}
 				catch (Exception e) {
@@ -95,7 +94,7 @@ public class TCPClient extends Client
 			System.err.println((char)27 + "[31;1mServer exception: " + (char)27 + "[0mUncaught exception");
 			e.printStackTrace();
 			System.exit(1);
-		}
+		} */
 	}
 
 	// NOTE: Override execute function
@@ -104,6 +103,10 @@ public class TCPClient extends Client
 		TravelAction req = null;
 		Boolean res = null;
 		Integer res_ = null;
+
+		this.s = new Socket(server, port);
+		this.out = new ObjectOutputStream(s.getOutputStream());
+		this.in = new ObjectInputStream(s.getInputStream());
 
 		try {
 			switch (cmd)
