@@ -150,7 +150,6 @@ public class TCPMiddleware {
 
 									Socket s_cust = new Socket(s_customer_host, s_serverPort_customer);
 									ObjectOutputStream out_cust = new ObjectOutputStream(s_cust.getOutputStream());
-									out_cust.flush();
 									ObjectInputStream in_cust = new ObjectInputStream(s_cust.getInputStream());
 									Integer price = null;
 
@@ -516,19 +515,16 @@ public class TCPMiddleware {
 											// Flight RM
 											Socket sf = new Socket(s_flight_host, s_serverPort_flight);
 											ObjectOutputStream outf = new ObjectOutputStream(sf.getOutputStream());
-											outf.flush();
 											ObjectInputStream inf = new ObjectInputStream(sf.getInputStream());
 						
 											// Car RM
 											Socket sc = new Socket(s_car_host, s_serverPort_car);
 											ObjectOutputStream outc = new ObjectOutputStream(sc.getOutputStream());
-											outc.flush();
 											ObjectInputStream inc = new ObjectInputStream(sc.getInputStream());
 						
 											// Room RM
 											Socket sr = new Socket(s_room_host, s_serverPort_room);
 											ObjectOutputStream outr = new ObjectOutputStream(sr.getOutputStream());
-											outr.flush();
 											ObjectInputStream inr = new ObjectInputStream(sr.getInputStream());
 											
 											ArrayList<ReservedItem> items = new ArrayList<ReservedItem>();
@@ -593,6 +589,16 @@ public class TCPMiddleware {
 													);
 												}
 											}
+
+											inf.close();
+											outf.close();
+											sf.close();
+											inc.close();
+											outc.close();
+											sc.close();
+											inr.close();
+											outr.close();
+											sr.close();
 						
 											out_client.writeObject(new Boolean(true));
 
