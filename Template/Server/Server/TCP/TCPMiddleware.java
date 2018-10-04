@@ -83,9 +83,10 @@ public class TCPMiddleware {
 						// Handle client request
 						try {
 							
-							TravelAction req = (TravelAction) in_client.readObject();
 							ObjectInputStream in_client = new ObjectInputStream(s.getInputStream());
 							ObjectOutputStream out_client = new ObjectOutputStream(s.getOutputStream());
+
+							TravelAction req = (TravelAction) in_client.readObject();
 
 							switch (req.getType()) 
 							{
@@ -613,6 +614,14 @@ public class TCPMiddleware {
 									System.out.println("Error: Action type not recognized.");
 									break;
 							}
+
+							try {
+								in_client.close();
+								out_client.close();
+							}
+							catch (IOException e) {
+								e.printStackTrace();	
+							}
 						}
 						catch (IOException e) {
 							System.out.println("Error: inside thread.");
@@ -620,14 +629,6 @@ public class TCPMiddleware {
 						}
 						catch (ClassNotFoundException e) {
 							e.printStackTrace();
-						}
-
-						try {
-							in_client.close();
-							out_client.close();
-						}
-						catch (IOException e) {
-							e.printStackTrace();	
 						}
 					}
 				};
