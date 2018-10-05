@@ -296,7 +296,8 @@ public class TCPMiddleware {
 											String loc = ((ReserveBundleCustomerRmAction) req).getLocation();
 											boolean car = ((ReserveBundleCustomerRmAction) req).getCar();
 											boolean room = ((ReserveBundleCustomerRmAction) req).getRoom();
-						
+											
+											System.out.println("middelware says..." + (car? "true" : "false"));
 											// Convert flight numbers from string format to integer format
 											ArrayList<Integer> flights_ = new ArrayList<Integer>();
 											for (String s : flights) flights_.add(Integer.parseInt(s));

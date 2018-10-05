@@ -607,6 +607,8 @@ public class ResourceManager implements IResourceManager
 			reserveFlight_CustomerRM(xid, customerID, Integer.parseInt(flightNumbers.get(i)), flightPrices.get(i));
 		}
 		System.out.println("flights reserved");
+
+		System.out.println((car? "car is true" : "car is false"));
 		// Reserve car
 		if (car) 
 		{	
