@@ -347,7 +347,7 @@ public class TCPResourceManager extends ResourceManager
 										break;
 
 									case RESERVE_BUNDLE_CUSTOMER_RM:
-											System.out.println("bundle");
+										System.out.println("bundling...");
 
 										res = new Boolean(
 											server.bundle(

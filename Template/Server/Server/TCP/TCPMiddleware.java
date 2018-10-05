@@ -440,6 +440,7 @@ public class TCPMiddleware {
 						
 												if (room && !roomPrice.equals(new Integer(-1)))
 												{
+													System.out.println("shouldn't be in room..");
 													Socket s_rb = new Socket(s_room_host, s_serverPort_room);
 													ObjectOutputStream out_rb = new ObjectOutputStream(s_rb.getOutputStream());
 													out_rb.flush();

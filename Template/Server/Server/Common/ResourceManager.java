@@ -592,28 +592,32 @@ public class ResourceManager implements IResourceManager
 		boolean room, 
 		Integer roomPrice) throws RemoteException
 	{	
+		System.out.println("in bundling function...");
 		Customer customer = (Customer) readData(xid, Customer.getKey(customerID));
 
 		if (customer == null)
-		{
+		{	
+			System.out.println("cust does not exist");
 			Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ")  failed--customer doesn't exist");
 			return false;
 		} 
-		
+		System.out.println("cust does exist");
 		// Reserve flights
 		for (int i = 0; i < flightNumbers.size() ; i++) {
 			reserveFlight_CustomerRM(xid, customerID, Integer.parseInt(flightNumbers.get(i)), flightPrices.get(i));
 		}
-
+		System.out.println("flights reserved");
 		// Reserve car
 		if (car) 
-		{
+		{	
+			System.out.println("reserve car");
 			reserveCar_CustomerRM(xid, customerID, location, carPrice);
 		}
 
 		// Reserve room 
 		if (room) 
-		{
+		{	
+			System.out.println("reserve room");
 			reserveRoom_CustomerRM(xid, customerID, location, roomPrice);
 		}
 
