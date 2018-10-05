@@ -625,6 +625,20 @@ public class ResourceManager implements IResourceManager
 
 		return true;
 	}
+    
+    // Function to get a summary of all customers' item purchases
+    public ArrayList<String> getSummary() {
+        // List to store bills in
+        ArrayList<String> bills = new ArrayList<String>();
+        
+        // Add bill for each customer in hashmap
+        for (RMItem item : m_data.values()) {
+            Customer customer = (Customer) item;
+            bills.add(customer.getBill());
+        }
+        
+        return bills;
+    }
 
 	// Function to get resource manager's name
 	public String getName() throws RemoteException

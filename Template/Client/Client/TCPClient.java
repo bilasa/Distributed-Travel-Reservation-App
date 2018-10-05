@@ -16,7 +16,7 @@ public class TCPClient extends Client
 	private static String s_serverHost = "server_host";
 	private static String s_serverName = "server_name";
 	private static String s_rmiPrefix = "group32";
-	private static int s_serverPort = 3131;
+	private static int s_serverPort = 3334;
 
 	private Socket s = null;
 	private ObjectOutputStream out = null;
@@ -610,6 +610,25 @@ public class TCPClient extends Client
 					}
 					break;
 				}
+                case GetSummary: {
+                    checkArgumentsCount(2, arguments.size());
+                    System.out.println("Getting overall resource/customer summary [xid=" + arguments.elementAt(1) + "]");
+                    int id = toInt(arguments.elementAt(1));
+                    ArrayList<String> bills = null;
+                    // Send request
+                    req = new GetSummaryAction(id);
+                    this.out.writeObject(req);
+                    this.out.flush();
+                    // Await response
+                    bills = (ArrayList<String>) this.in.readObject();
+                    
+                    System.out.println();
+                    for(String bill : bills) {
+                        System.out.println(bill + "\n");
+                    }
+                    
+                    break;
+                }
 				case Quit:
 					checkArgumentsCount(1, arguments.size());
 
