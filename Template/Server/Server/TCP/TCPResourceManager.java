@@ -79,6 +79,7 @@ public class TCPResourceManager extends ResourceManager
 								Integer res_ = null;
 								ArrayList<Integer> ress_ = null;
 								ArrayList<ReservedItem> res_items = null;
+                                ArrayList<String> res_a = null;
 								String res_s = null;
 
 								switch (req.getSubtype()) {
@@ -363,6 +364,16 @@ public class TCPResourceManager extends ResourceManager
 											)	
 										);
 										break;
+                                        
+                                    case GET_SUMMARY:
+										System.out.println("summary");
+ 										res_a = new ArrayList<String>(
+											server.getSummary(
+												((GetSummaryAction) req).getXid()
+											)
+										);
+										break;
+    
 
 									default: 
 										break;
@@ -389,6 +400,10 @@ public class TCPResourceManager extends ResourceManager
 								else if (res_items != null) {
 									out.writeObject(res_items);
 									System.out.println("RES STUFF4");
+								} 
+								else if (res_a != null) {
+									out.writeObject(res_a);
+									System.out.println("RES STUFF5");
 								} 
 								else {
 									System.out.println("RES STUFF5");
