@@ -22,9 +22,9 @@ public class ReserveBundleCustomerRmAction extends CustomerAction
         Vector<String> flightNumbers, 
         ArrayList<Integer> flightPrices, 
         String location, boolean car, 
-        int carPrice, 
+        Integer carPrice, 
         boolean room, 
-        int roomPrice
+        Integer roomPrice
     ) {
         super(ACTION_TYPE.CUSTOMER_ACTION, ACTION_SUBTYPE.RESERVE_BUNDLE_CUSTOMER_RM, xid);
         this.customerID = customerID;
@@ -63,7 +63,7 @@ public class ReserveBundleCustomerRmAction extends CustomerAction
         return this.car;
     }
 
-    public int getCarPrice()
+    public Integer getCarPrice()
     {
         return this.carPrice;
     }
@@ -73,7 +73,7 @@ public class ReserveBundleCustomerRmAction extends CustomerAction
         return this.room;
     }
 
-    public int getRoomPrice()
+    public Integer getRoomPrice()
     {
         return this.roomPrice;
     }
