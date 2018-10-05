@@ -16,7 +16,7 @@ public class TCPClient extends Client
 	private static String s_serverHost = "server_host";
 	private static String s_serverName = "server_name";
 	private static String s_rmiPrefix = "group32";
-	private static int s_serverPort = 3131;
+	private static int s_serverPort = 3334;
 
 	private Socket s = null;
 	private ObjectOutputStream out = null;
