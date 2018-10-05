@@ -336,8 +336,6 @@ public class TCPResourceManager extends ResourceManager
 
 									case RESERVE_ROOM_CUSTOMER_RM:
 
-
-
 										res = new Boolean(
 											server.reserveCar_CustomerRM(
 												((ReserveRoomCustomerRmAction) req).getXid(),
