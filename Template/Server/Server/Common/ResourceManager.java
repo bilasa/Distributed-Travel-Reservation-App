@@ -627,7 +627,10 @@ public class ResourceManager implements IResourceManager
 	}
     
     // Function to get a summary of all customers' item purchases
-    public ArrayList<String> getSummary() {
+    public ArrayList<String> getSummary(int xid) {
+    
+    	Trace.info("RM::getSummary(" + xid + ") called");
+	
         // List to store bills in
         ArrayList<String> bills = new ArrayList<String>();
         
