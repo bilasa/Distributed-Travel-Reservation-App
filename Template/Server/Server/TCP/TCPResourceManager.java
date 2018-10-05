@@ -23,19 +23,19 @@ public class TCPResourceManager extends ResourceManager
 
 		if (s_serverName.equals("Flights")) 
 		{
-			s_serverPort = 3124;
+			s_serverPort = 3125;
 		}
 		else if (s_serverName.equals("Cars")) 
 		{
-			s_serverPort = 3125;
+			s_serverPort = 3126;
 		}
 		else if (s_serverName.equals("Rooms")) 
 		{	
-			s_serverPort = 3130;
+			s_serverPort = 3131;
 		}
 		else if (s_serverName.equals("Customers")) 
 		{
-			s_serverPort = 3128;
+			s_serverPort = 3129;
 		}
 
 		// Create and install a security manager

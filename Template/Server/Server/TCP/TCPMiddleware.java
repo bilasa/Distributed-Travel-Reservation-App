@@ -13,16 +13,16 @@ public class TCPMiddleware {
 
 	// TCP Middleware name and port
 	private static String s_serverName = "TCPMiddleware";  
-	private static int s_middleware_host = 3130;
+	private static int s_middleware_host = 3131;
 	// RMs (host names and ports)
 	private static String s_flight_host = "Flights";
 	private static String s_car_host = "Cars";
 	private static String s_room_host = "Rooms";
 	private static String s_customer_host = "Customers";
-	private static int s_serverPort_flight = 3124;
-	private static int s_serverPort_car = 3125;
-	private static int s_serverPort_room = 3130;
-	private static int s_serverPort_customer = 3128;
+	private static int s_serverPort_flight = 3125;
+	private static int s_serverPort_car = 3126;
+	private static int s_serverPort_room = 3131;
+	private static int s_serverPort_customer = 3129;
 	// Prefix
 	private static String  s_rmiPrefix = "group32";
 
