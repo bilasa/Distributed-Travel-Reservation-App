@@ -12,7 +12,7 @@ public class TCPResourceManager extends ResourceManager
 {
 	private static String s_serverName = "Server";
 	private static String s_rmiPrefix = "group32";
-	private static int s_serverPort = 2123;
+	private static int s_serverPort = 2876;
 
 	public static void main(String args[])
 	{
@@ -23,19 +23,19 @@ public class TCPResourceManager extends ResourceManager
 
 		if (s_serverName.equals("Flights")) 
 		{
-			s_serverPort = 3125;
+			s_serverPort = 2607;
 		}
 		else if (s_serverName.equals("Cars")) 
 		{
-			s_serverPort = 3126;
+			s_serverPort = 2708;
 		}
 		else if (s_serverName.equals("Rooms")) 
 		{	
-			s_serverPort = 3131;
+			s_serverPort = 2609;
 		}
 		else if (s_serverName.equals("Customers")) 
 		{
-			s_serverPort = 3129;
+			s_serverPort = 2610;
 		}
 
 		// Create and install a security manager
