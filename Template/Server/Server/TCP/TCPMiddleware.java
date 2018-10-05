@@ -479,9 +479,9 @@ public class TCPMiddleware {
 														prices,
 														loc,
 														car,
-														carPrice,
+														(car? carPrice : new Integer(-1)),
 														room,
-														roomPrice
+														(room? roomPrice : new Integer(-1))
 													)
 												);
 												out_cust2.flush();
