@@ -389,23 +389,19 @@ public class ResourceManager implements IResourceManager
 		// Count and reservations
 		int nCount = curObj.getCount() - toReserve;
 		int nReserved = curObj.getReserved() + toReserve;
-		System.out.println("gets to here");
+	
 		if (nCount < 0 || nReserved < 0) return new Integer(-1);
-		System.out.println("counts valid");
 		// Update 
 		curObj.setCount(nCount);
 		curObj.setReserved(nReserved);
 		writeData(xid, curObj.getKey(), curObj);
-
-		System.out.println("upd f");
 
 		return new Integer(curObj.getPrice());
 	}
 
 	// Function to reserve flights (multiple) in FlightResourceManager
 	public ArrayList<Integer> reserveFlights_FlightRM(int xid, ArrayList<Integer> flightNums, int toReserve) 
-	{	
-		System.out.println("Observe here");
+	{
 		ArrayList<Integer> prices = new ArrayList<Integer>();
 
 		for (int i = 0; i < flightNums.size(); i++)
@@ -419,8 +415,6 @@ public class ResourceManager implements IResourceManager
 
 			if (nCount < 0 || nReserved < 0) return new ArrayList<Integer>();
 		}
-
-		System.out.println("Observe here2");
 
 		for (int i = 0; i < flightNums.size(); i++)
 		{
@@ -436,8 +430,6 @@ public class ResourceManager implements IResourceManager
 			int price = curObj.getPrice();
 			prices.add(price);
 		}
-
-		System.out.println("upd fs");
 
 		return prices;
 	}
@@ -462,7 +454,7 @@ public class ResourceManager implements IResourceManager
 		curObj.setCount(nCount);
 		curObj.setReserved(nReserved);
 		writeData(xid, curObj.getKey(), curObj);
-		System.out.println("upd c");
+
 		return new Integer(curObj.getPrice());
 	}
 
@@ -486,7 +478,6 @@ public class ResourceManager implements IResourceManager
 		curObj.setCount(nCount);
 		curObj.setReserved(nReserved);
 		writeData(xid, curObj.getKey(), curObj);
-		System.out.println("upd r");
 
 		return new Integer(curObj.getPrice());
 	}
@@ -527,13 +518,11 @@ public class ResourceManager implements IResourceManager
 	public boolean reserveItem_CustomerRM(int xid, int customerID, String key, String location, int price)
 	{
 		Trace.info("RM::reserveItem(" + xid + ", customer=" + customerID + ", " + key + ", " + location + ") called" );   
-		System.out.println("About to reserve");
 		// Retrieve customer
 		Customer customer = (Customer) readData(xid, Customer.getKey(customerID));
 
 		if (customer == null)
 		{	
-			System.out.println("About to reserve..falied");
 			Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ")  failed--customer doesn't exist");
 			return false;
 		} 
@@ -541,8 +530,8 @@ public class ResourceManager implements IResourceManager
 		// Update customer
 		customer.reserve(key, location, price);        
 		writeData(xid, customer.getKey(), customer);
-		System.out.println("About to reserve..succ");
 		Trace.info("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ") succeeded");
+		
 		return true;
 	}
 
@@ -592,34 +581,28 @@ public class ResourceManager implements IResourceManager
 		boolean room, 
 		Integer roomPrice) throws RemoteException
 	{	
-		System.out.println("in bundling function...");
 		Customer customer = (Customer) readData(xid, Customer.getKey(customerID));
 
 		if (customer == null)
 		{	
-			System.out.println("cust does not exist");
 			Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ")  failed--customer doesn't exist");
 			return false;
 		} 
-		System.out.println("cust does exist");
+
 		// Reserve flights
 		for (int i = 0; i < flightNumbers.size() ; i++) {
 			reserveFlight_CustomerRM(xid, customerID, Integer.parseInt(flightNumbers.get(i)), flightPrices.get(i));
 		}
-		System.out.println("flights reserved");
 
-		System.out.println((car? "car is true" : "car is false"));
 		// Reserve car
 		if (car) 
 		{	
-			System.out.println("reserve car");
 			reserveCar_CustomerRM(xid, customerID, location, carPrice);
 		}
 
 		// Reserve room 
 		if (room) 
 		{	
-			System.out.println("reserve room");
 			reserveRoom_CustomerRM(xid, customerID, location, roomPrice);
 		}
 

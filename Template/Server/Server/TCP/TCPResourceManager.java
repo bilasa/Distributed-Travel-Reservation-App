@@ -48,7 +48,6 @@ public class TCPResourceManager extends ResourceManager
 		try {
 			// Create a new Server object
 			TCPResourceManager server = new TCPResourceManager(s_serverName);
-			System.out.println("'" + s_serverName + "' resource manager server ready and bound to '" + s_rmiPrefix + s_serverName + "'");
 
 			// Initialize server socket
 			ServerSocket ss = new ServerSocket(s_serverPort);
@@ -58,14 +57,12 @@ public class TCPResourceManager extends ResourceManager
 			{   
 				// Socket and stream objects to an incoming request
 				Socket s = null;
-				System.out.println("RM is waiting from..." + s_serverPort);
 
 				try {
 					// Receive incoming request
 					s = ss.accept();
 					ObjectInputStream in = new ObjectInputStream(s.getInputStream());
 					ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
-					System.out.println("Ready to create thread...");
 					// Initialize thread
 					Thread t = new Thread() {
 
@@ -271,8 +268,6 @@ public class TCPResourceManager extends ResourceManager
 										break;
 									
 									case RESERVE_FLIGHTS_RM:
-
-										System.out.println("flight");
 										
 										ress_ = new ArrayList<Integer>(
 											server.reserveFlights_FlightRM(
@@ -284,8 +279,6 @@ public class TCPResourceManager extends ResourceManager
 										break;
 
 									case RESERVE_FLIGHTS_CUSTOMER_RM:
-										
-										System.out.println("MANY FLIGHTS to cust");
 
 										res = new Boolean(
 											server.reserveFlights_CustomerRM(
@@ -298,8 +291,6 @@ public class TCPResourceManager extends ResourceManager
 										break;
 
 									case RESERVE_CAR_RM:
-
-										System.out.println("car");
 										
 										res_ = new Integer(
 											server.reserveCar_CarRM(
@@ -323,8 +314,6 @@ public class TCPResourceManager extends ResourceManager
 										break;  
 
 									case RESERVE_ROOM_RM:
-
-										System.out.println("room");
 										
 										res_ = new Integer(
 											server.reserveRoom_RoomRM(
@@ -348,7 +337,6 @@ public class TCPResourceManager extends ResourceManager
 										break;
 
 									case RESERVE_BUNDLE_CUSTOMER_RM:
-										System.out.println("bundling...");
 
 										res = new Boolean(
 											server.bundle(
@@ -366,7 +354,7 @@ public class TCPResourceManager extends ResourceManager
 										break;
                                         
                                     case GET_SUMMARY:
-										System.out.println("summary");
+
  										res_a = new ArrayList<String>(
 											server.getSummary(
 												((GetSummaryAction) req).getXid()
@@ -379,34 +367,25 @@ public class TCPResourceManager extends ResourceManager
 										break;
 								}
 
-								System.out.println("about to send back to MW");
-
 								if (res != null) {
 									out.writeObject(res); 
-									System.out.println("RES STUFF");
 								}
 								else if (res_ != null) {
 									out.writeObject(res_);
-									System.out.println("RES STUFF2");
 								}
 								else if (res_s != null) {
 									out.writeObject(res_s);
-									System.out.println("RES STUFF3");
 								}
 								else if (ress_ != null) {
 									out.writeObject(ress_);
-									
 								}
 								else if (res_items != null) {
 									out.writeObject(res_items);
-									System.out.println("RES STUFF4");
 								} 
 								else if (res_a != null) {
 									out.writeObject(res_a);
-									System.out.println("RES STUFF5");
 								} 
 								else {
-									System.out.println("RES STUFF5");
 									out.writeObject(new String("NULL"));
 								}
 

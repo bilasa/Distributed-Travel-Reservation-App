@@ -61,7 +61,6 @@ public class TCPMiddleware {
 			ss = new ServerSocket(s_middleware_host);
 		}
 		catch (IOException e) {
-			System.out.println("Error: ServerSocket initialization.");
 			e.printStackTrace();
 		}
 
@@ -77,7 +76,6 @@ public class TCPMiddleware {
 				ObjectOutputStream out_client = new ObjectOutputStream(s.getOutputStream());
 				
 				// Thread intinitalization
-				System.out.println("Thread initiated.");
 				Thread t = new Thread() {
 					
 					@Override
@@ -86,7 +84,7 @@ public class TCPMiddleware {
 						// Handle client request
 						try {
 							TravelAction req = (TravelAction) in_client.readObject();
-							System.out.println("Request reaches to TCPMiddleware");
+	
 							switch (req.getType()) 
 							{
 								case FLIGHT_ACTION:
@@ -95,7 +93,6 @@ public class TCPMiddleware {
 									ObjectOutputStream out_f = new ObjectOutputStream(s_f.getOutputStream());
 									ObjectInputStream in_f = new ObjectInputStream(s_f.getInputStream());
 
-									System.out.println("Sending to RM at port " + s_flight_host);
 									out_f.writeObject(req);
 									out_f.flush();
 									
@@ -176,8 +173,6 @@ public class TCPMiddleware {
 											price = (Integer) in_flightRm.readObject();
 
 											if (!price.equals(new Integer(-1))) {
-
-												System.out.println("Price is valid");
 
 												out_cust.writeObject(
 													new ReserveFlightCustomerRmAction(
@@ -297,8 +292,6 @@ public class TCPMiddleware {
 											boolean car = ((ReserveBundleCustomerRmAction) req).getCar();
 											boolean room = ((ReserveBundleCustomerRmAction) req).getRoom();
 											
-											System.out.println("middelware says..." + (car? "true" : "false"));
-											// Convert flight numbers from string format to integer format
 											ArrayList<Integer> flights_ = new ArrayList<Integer>();
 											for (String s : flights) flights_.add(Integer.parseInt(s));
 										
@@ -387,7 +380,6 @@ public class TCPMiddleware {
 												(room && roomPrice.equals(new Integer(-1))) ||
 												customerExists == false
 											) {	
-												System.out.println("Invalid bundle");
 												// Invalid bundle
 												out_client.writeObject(new Boolean(false));
 												out_client.flush();
@@ -441,7 +433,6 @@ public class TCPMiddleware {
 						
 												if (room && !roomPrice.equals(new Integer(-1)))
 												{
-													System.out.println("shouldn't be in room..");
 													Socket s_rb = new Socket(s_room_host, s_serverPort_room);
 													ObjectOutputStream out_rb = new ObjectOutputStream(s_rb.getOutputStream());
 													out_rb.flush();
@@ -467,8 +458,6 @@ public class TCPMiddleware {
 												out_client.flush();
 											}
 											else {
-												System.out.println("Valid bundle");
-
 												Socket inv = new Socket(s_customer_host, s_serverPort_customer);
 												ObjectOutputStream out_cust2 = new ObjectOutputStream(inv.getOutputStream());
 												ObjectInputStream in_cust2 = new ObjectInputStream(inv.getInputStream());
@@ -659,7 +648,6 @@ public class TCPMiddleware {
 							}
 						}
 						catch (IOException e) {
-							System.out.println("Error: inside thread.");
 							e.printStackTrace();
 						}
 						catch (ClassNotFoundException e) {
@@ -676,12 +664,9 @@ public class TCPMiddleware {
 					}
 				};
 
-				System.out.println("Thread starts");
 				t.start();
-				System.out.println("Thread ends");
 			}
 			catch (IOException e) {
-				System.out.println("Error: Client socket initialization.");
 				e.printStackTrace();
 			}
 		}
