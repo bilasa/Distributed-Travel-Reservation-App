@@ -63,12 +63,11 @@ public class LockManager
 						}
 
 						if (bConvert.get(0) == true) {
-							//TODO: Lock conversion
-                            this.lockTable.remove(xLockObject)
-                            this.lockTable.remove(dataLockObject)
+							// Lock conversion
+                            ( (TransactionLockObject)(this.lockTable.get(xLockObject)) ).setLockType(TransactionLockObject.LockType.LOCK_WRITE)
+                            ( (DataLockObject)(this.lockTable.get(dataLockObject)) ).setLockType(TransactionLockObject.LockType.LOCK_WRITE)
                             
-                            
-							// Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") converted");
+                            Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") converted");
 						} else {
 							// Lock request that is not lock conversion
 							this.lockTable.add(xLockObject);
