@@ -1,0 +1,3 @@
+grant codebase "file:/Users/bijansadeghi/Desktop/COMP512/Project/Milestone2/template/Template/Server/" {
+permission java.security.AllPermission;
+};

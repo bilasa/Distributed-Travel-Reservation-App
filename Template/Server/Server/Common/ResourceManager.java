@@ -6,15 +6,19 @@
 package Server.Common;
 
 import Server.Interface.*;
+import Server.LockManager.*;
 
 import java.util.*;
 import java.rmi.RemoteException;
 import java.io.*;
 
-public class ResourceManager implements IResourceManager
+public class ResourceManager extends LockManager implements IResourceManager
 {
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
+    
+    // Hashmap indexed by xid to store the local histories of each transaction
+    protected Map<Integer, RMHashMap> local = new HashMap<Integer, RMHashMap>();
 
 	public ResourceManager(String p_name)
 	{
@@ -22,23 +26,94 @@ public class ResourceManager implements IResourceManager
 	}
 
 	// Reads a data item
-	protected RMItem readData(int xid, String key)
+	protected RMItem readData(int xid, String key) throws DeadlockException
 	{
-		synchronized(m_data) {
-			RMItem item = m_data.get(key);
-			if (item != null) {
-				return (RMItem)item.clone();
-			}
-			return null;
-		}
+        try {
+            Lock(xid, key, TransactionLockObject.LockType.LOCK_READ);
+        }
+        catch (DeadlockException deadlock) {
+            throw deadlock;
+        }
+        
+        // Get the local history for the transaction
+        synchronized(local) {
+            RMHashMap local_data = local.get(xid);
+            if (local_data == null)
+            {
+                // if the local history has not been created yet, read from main memory
+                local_data = new RMHashMap();
+                
+                RMItem item;
+                synchronized(m_data) {
+                    item = m_data.get(key);
+                }
+                if (item != null) {
+                    // add item to local store
+                    local_data.put(key, item);
+                    
+                    // add the local history to the hashmap of local histories
+                    local.put(xid, local_data);
+                    
+                    return (RMItem)item.clone();
+                }
+                return null;
+            }
+            else
+            {
+                // Check if local history already contains the item
+                RMItem local_item = local_data.get(key);
+                if (local_item != null)
+                {
+                    // Return the item found in the local history
+                    return (RMItem)local_item.clone();
+                }
+                
+                else
+                {
+                    // otherwise, check the main memory
+                    RMItem item;
+                    synchronized(m_data) {
+                        item = m_data.get(key);
+                    }
+                    if (item != null) {
+                        // add item to local history
+                        local_data.put(key, item);
+                        
+                        // update the hashmap of local histories
+                        local.put(xid, local_data);
+                        
+                        return (RMItem)item.clone();
+                    }
+                    return null;
+                }
+            }
+        }
 	}
 
 	// Writes a data item
-	protected void writeData(int xid, String key, RMItem value)
+	protected void writeData(int xid, String key, RMItem value) throws DeadlockException
 	{
-		synchronized(m_data) {
-			m_data.put(key, value);
-		}
+        try {
+            Lock(xid, key, TransactionLockObject.LockType.LOCK_WRITE);
+        }
+        catch (DeadlockException deadlock) {
+            throw deadlock;
+        }
+        
+        // Get the local history for the transaction
+        synchronized(local) {
+            RMHashMap local_data = local.get(xid);
+            if (local_data == null)
+            {
+                // if the local history has not been created yet, create it
+                local_data = new RMHashMap();
+            }
+            
+            local_data.put(key, value);
+            
+            // update the hashmap of local histories
+            local.put(xid, local_data);
+        }
 	}
 
 	// Remove the item out of storage
