@@ -1,8 +1,9 @@
 package Client;
 
 import Server.Interface.*;
-
+import Server.Common.*;
 import java.util.*;
+
 import java.io.*;
 import java.rmi.RemoteException;
 import java.rmi.ConnectException;
@@ -71,8 +72,8 @@ public abstract class Client
 	{
 		switch (cmd)
 		{
-			case Help:
-			{
+			case Help: {
+
 				if (arguments.size() == 1) {
 					System.out.println(Command.description());
 				} else if (arguments.size() == 2) {
@@ -83,7 +84,116 @@ public abstract class Client
 				}
 				break;
 			}
+			// Transaction commands
+			case Start: {
+
+				checkArgumentsCount(0, arguments.size());
+				System.out.println("Starting Transaction");
+				
+				int new_xid = m_resourceManager.startTransaction();
+
+				if (new_xid != -1) 
+				{
+					System.out.println("Transaction [xid=" + id + "] added");
+				}
+				else 
+				{
+					System.out.println("Transaction [xid=" + id + "] already exists");
+				}
+				
+				break;
+			}
+			case Commit: {
+
+				checkArgumentsCount(1, arguments.size());
+				System.out.println("Commiting Transaction [xid=" + arguments.elementAt(1) + "]");
+
+				try {
+					if (m_resourceManager.commitTransaction(id))
+					{
+						System.out.println("Transaction [xid=" + id + "] committed");
+					}	
+					else 
+					{
+						System.out.println("Transaction [xid=" + id + "] commit failed");
+					}
+				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
+				break;
+			}
+			case Abort: {
+
+				checkArgumentsCount(1, arguments.size());
+				System.out.println("Aborting Transaction [xid=" + arguments.elementAt(1) + "]");
+
+				try {
+					if (m_resourceManager.commitTransaction(id))
+					{
+						System.out.println("Transaction [xid=" + id + "] aborted");
+					}
+					else 
+					{
+						System.out.println("Transaction [xid=" + id + "] abort failed");
+					}
+				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
+				break;
+			}
+			case Shutdown: {
+
+				checkArgumentsCount(0, arguments.size());
+				System.out.println("Shutdown servers");
+				
+				try {
+					if (m_resourceManager.shutdown()) 
+					{
+						System.out.println("Succesful Shutdown");
+					}
+					else
+					{
+						System.out.println("Failed Shutdown due to active transactions");
+					}
+				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+			}
+			// Operation commands
 			case AddFlight: {
+
 				checkArgumentsCount(5, arguments.size());
 
 				System.out.println("Adding a new flight [xid=" + arguments.elementAt(1) + "]");
@@ -96,14 +206,30 @@ public abstract class Client
 				int flightSeats = toInt(arguments.elementAt(3));
 				int flightPrice = toInt(arguments.elementAt(4));
 
-				if (m_resourceManager.addFlight(id, flightNum, flightSeats, flightPrice)) {
-					System.out.println("Flight added");
-				} else {
-					System.out.println("Flight could not be added");
+				try {
+					if (m_resourceManager.addFlight(id, flightNum, flightSeats, flightPrice)) {
+						System.out.println("Flight added");
+					} else {
+						System.out.println("Flight could not be added");
+					}
 				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case AddCars: {
+
 				checkArgumentsCount(5, arguments.size());
 
 				System.out.println("Adding new cars [xid=" + arguments.elementAt(1) + "]");
@@ -116,14 +242,30 @@ public abstract class Client
 				int numCars = toInt(arguments.elementAt(3));
 				int price = toInt(arguments.elementAt(4));
 
-				if (m_resourceManager.addCars(id, location, numCars, price)) {
-					System.out.println("Cars added");
-				} else {
-					System.out.println("Cars could not be added");
+				try {
+					if (m_resourceManager.addCars(id, location, numCars, price)) {
+						System.out.println("Cars added");
+					} else {
+						System.out.println("Cars could not be added");
+					} 
 				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case AddRooms: {
+
 				checkArgumentsCount(5, arguments.size());
 
 				System.out.println("Adding new rooms [xid=" + arguments.elementAt(1) + "]");
@@ -136,25 +278,57 @@ public abstract class Client
 				int numRooms = toInt(arguments.elementAt(3));
 				int price = toInt(arguments.elementAt(4));
 
-				if (m_resourceManager.addRooms(id, location, numRooms, price)) {
-					System.out.println("Rooms added");
-				} else {
-					System.out.println("Rooms could not be added");
+				try {
+					if (m_resourceManager.addRooms(id, location, numRooms, price)) {
+						System.out.println("Rooms added");
+					} else {
+						System.out.println("Rooms could not be added");
+					}
 				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case AddCustomer: {
+
 				checkArgumentsCount(2, arguments.size());
 
 				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
 
 				int id = toInt(arguments.elementAt(1));
-				int customer = m_resourceManager.newCustomer(id);
 
-				System.out.println("Add customer ID: " + customer);
+				try {
+					int customer = m_resourceManager.newCustomer(id);
+					System.out.println("Add customer ID: " + customer);
+				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case AddCustomerID: {
+
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
@@ -163,14 +337,30 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 
-				if (m_resourceManager.newCustomer(id, customerID)) {
-					System.out.println("Add customer ID: " + customerID);
-				} else {
-					System.out.println("Customer could not be added");
+				try {
+					if (m_resourceManager.newCustomer(id, customerID)) {
+						System.out.println("Add customer ID: " + customerID);
+					} else {
+						System.out.println("Customer could not be added");
+					}
 				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case DeleteFlight: {
+
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Deleting a flight [xid=" + arguments.elementAt(1) + "]");
@@ -179,14 +369,30 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
 
-				if (m_resourceManager.deleteFlight(id, flightNum)) {
-					System.out.println("Flight Deleted");
-				} else {
-					System.out.println("Flight could not be deleted");
+				try {
+					if (m_resourceManager.deleteFlight(id, flightNum)) {
+						System.out.println("Flight Deleted");
+					} else {
+						System.out.println("Flight could not be deleted");
+					}
 				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case DeleteCars: {
+
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Deleting all cars at a particular location [xid=" + arguments.elementAt(1) + "]");
@@ -195,14 +401,30 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				if (m_resourceManager.deleteCars(id, location)) {
-					System.out.println("Cars Deleted");
-				} else {
-					System.out.println("Cars could not be deleted");
+				try {
+					if (m_resourceManager.deleteCars(id, location)) {
+						System.out.println("Cars Deleted");
+					} else {
+						System.out.println("Cars could not be deleted");
+					}
 				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case DeleteRooms: {
+
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Deleting all rooms at a particular location [xid=" + arguments.elementAt(1) + "]");
@@ -211,14 +433,30 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				if (m_resourceManager.deleteRooms(id, location)) {
-					System.out.println("Rooms Deleted");
-				} else {
-					System.out.println("Rooms could not be deleted");
+				try {
+					if (m_resourceManager.deleteRooms(id, location)) {
+						System.out.println("Rooms Deleted");
+					} else {
+						System.out.println("Rooms could not be deleted");
+					}
 				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case DeleteCustomer: {
+
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Deleting a customer from the database [xid=" + arguments.elementAt(1) + "]");
@@ -227,11 +465,26 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 
-				if (m_resourceManager.deleteCustomer(id, customerID)) {
-					System.out.println("Customer Deleted");
-				} else {
-					System.out.println("Customer could not be deleted");
+				try {
+					if (m_resourceManager.deleteCustomer(id, customerID)) {
+						System.out.println("Customer Deleted");
+					} else {
+						System.out.println("Customer could not be deleted");
+					}
 				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case QueryFlight: {
@@ -243,11 +496,27 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
 
-				int seats = m_resourceManager.queryFlight(id, flightNum);
-				System.out.println("Number of seats available: " + seats);
+				try {
+					int seats = m_resourceManager.queryFlight(id, flightNum);
+					System.out.println("Number of seats available: " + seats);
+				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case QueryCars: {
+
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
@@ -256,11 +525,27 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				int numCars = m_resourceManager.queryCars(id, location);
-				System.out.println("Number of cars at this location: " + numCars);
+				try {
+					int numCars = m_resourceManager.queryCars(id, location);
+					System.out.println("Number of cars at this location: " + numCars);
+				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case QueryRooms: {
+
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying rooms location [xid=" + arguments.elementAt(1) + "]");
@@ -269,11 +554,27 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				int numRoom = m_resourceManager.queryRooms(id, location);
-				System.out.println("Number of rooms at this location: " + numRoom);
+				try {
+					int numRoom = m_resourceManager.queryRooms(id, location);
+					System.out.println("Number of rooms at this location: " + numRoom);
+				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case QueryCustomer: {
+
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying customer information [xid=" + arguments.elementAt(1) + "]");
@@ -282,11 +583,27 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 
-				String bill = m_resourceManager.queryCustomerInfo(id, customerID);
-				System.out.print(bill);
+				try {
+					String bill = m_resourceManager.queryCustomerInfo(id, customerID);
+					System.out.print(bill);
+				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;               
 			}
 			case QueryFlightPrice: {
+
 				checkArgumentsCount(3, arguments.size());
 				
 				System.out.println("Querying a flight price [xid=" + arguments.elementAt(1) + "]");
@@ -295,11 +612,27 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
 
-				int price = m_resourceManager.queryFlightPrice(id, flightNum);
-				System.out.println("Price of a seat: " + price);
+				try {
+					int price = m_resourceManager.queryFlightPrice(id, flightNum);
+					System.out.println("Price of a seat: " + price);
+				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case QueryCarsPrice: {
+
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying cars price [xid=" + arguments.elementAt(1) + "]");
@@ -308,11 +641,27 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				int price = m_resourceManager.queryCarsPrice(id, location);
-				System.out.println("Price of cars at this location: " + price);
+				try {
+					int price = m_resourceManager.queryCarsPrice(id, location);
+					System.out.println("Price of cars at this location: " + price);
+				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case QueryRoomsPrice: {
+
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying rooms price [xid=" + arguments.elementAt(1) + "]");
@@ -321,11 +670,27 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				int price = m_resourceManager.queryRoomsPrice(id, location);
-				System.out.println("Price of rooms at this location: " + price);
+				try {
+					int price = m_resourceManager.queryRoomsPrice(id, location);
+					System.out.println("Price of rooms at this location: " + price);
+				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case ReserveFlight: {
+
 				checkArgumentsCount(4, arguments.size());
 
 				System.out.println("Reserving seat in a flight [xid=" + arguments.elementAt(1) + "]");
@@ -336,14 +701,30 @@ public abstract class Client
 				int customerID = toInt(arguments.elementAt(2));
 				int flightNum = toInt(arguments.elementAt(3));
 
-				if (m_resourceManager.reserveFlight(id, customerID, flightNum)) {
-					System.out.println("Flight Reserved");
-				} else {
-					System.out.println("Flight could not be reserved");
+				try {
+					if (m_resourceManager.reserveFlight(id, customerID, flightNum)) {
+						System.out.println("Flight Reserved");
+					} else {
+						System.out.println("Flight could not be reserved");
+					}
 				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case ReserveCar: {
+
 				checkArgumentsCount(4, arguments.size());
 
 				System.out.println("Reserving a car at a location [xid=" + arguments.elementAt(1) + "]");
@@ -354,14 +735,30 @@ public abstract class Client
 				int customerID = toInt(arguments.elementAt(2));
 				String location = arguments.elementAt(3);
 
-				if (m_resourceManager.reserveCar(id, customerID, location)) {
-					System.out.println("Car Reserved");
-				} else {
-					System.out.println("Car could not be reserved");
+				try {
+					if (m_resourceManager.reserveCar(id, customerID, location)) {
+						System.out.println("Car Reserved");
+					} else {
+						System.out.println("Car could not be reserved");
+					}
 				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case ReserveRoom: {
+
 				checkArgumentsCount(4, arguments.size());
 
 				System.out.println("Reserving a room at a location [xid=" + arguments.elementAt(1) + "]");
@@ -372,14 +769,30 @@ public abstract class Client
 				int customerID = toInt(arguments.elementAt(2));
 				String location = arguments.elementAt(3);
 
-				if (m_resourceManager.reserveRoom(id, customerID, location)) {
-					System.out.println("Room Reserved");
-				} else {
-					System.out.println("Room could not be reserved");
+				try {
+					if (m_resourceManager.reserveRoom(id, customerID, location)) {
+						System.out.println("Room Reserved");
+					} else {
+						System.out.println("Room could not be reserved");
+					}
 				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
 				break;
 			}
 			case Bundle: {
+
 				if (arguments.size() < 7) {
 					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mBundle command expects at least 7 arguments. Location \"help\" or \"help,<CommandName>\"");
 					break;
@@ -406,11 +819,26 @@ public abstract class Client
 				boolean car = toBoolean(arguments.elementAt(arguments.size()-2));
 				boolean room = toBoolean(arguments.elementAt(arguments.size()-1));
 
-				if (m_resourceManager.bundle(id, customerID, flightNumbers, location, car, room)) {
-					System.out.println("Bundle Reserved");
-				} else {
-					System.out.println("Bundle could not be reserved");
+				try {
+					if (m_resourceManager.bundle(id, customerID, flightNumbers, location, car, room)) {
+						System.out.println("Bundle Reserved");
+					} else {
+						System.out.println("Bundle could not be reserved");
+					}
 				}
+				catch (InvalidTransactionException e)
+				{
+					e.printStackTrace();
+				}
+				catch (TransactionAbortedException e)
+				{
+					e.printStackTrace();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+				
 				break;
 			}
 			case Quit:
@@ -448,7 +876,7 @@ public abstract class Client
 		return (new Integer(string)).intValue();
 	}
 
-	public static boolean toBoolean(String string)// throws Exception
+	public static boolean toBoolean(String string)
 	{
 		return (new Boolean(string)).booleanValue();
 	}

@@ -1,15 +1,13 @@
 package Server.RMI;
 
 import Server.Interface.*;
+import Server.Common.*;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
 import java.rmi.server.UnicastRemoteObject;
-
-import Server.Common.*;
-
 import java.util.*;
 import java.io.*;
 
