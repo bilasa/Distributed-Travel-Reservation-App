@@ -5,6 +5,7 @@ import java.rmi.RemoteException;
 
 import java.util.*;
 import Server.Common.*;
+import Server.LockManager.*;
 
 /** 
  * Simplified version from CSE 593 Univ. of Washington
@@ -35,7 +36,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean addFlight(int id, int flightNum, int flightSeats, int flightPrice) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
     
     /**
      * Add car at a location.
@@ -46,7 +47,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean addCars(int id, String location, int numCars, int price) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
    
     /**
      * Add room at a location.
@@ -57,7 +58,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean addRooms(int id, String location, int numRooms, int price) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 			    
+	throws RemoteException, DeadlockException;
 			    
     /**
      * Add customer.
@@ -65,7 +66,7 @@ public interface IResourceManager extends Remote
      * @return Unique customer identifier
      */
     public int newCustomer(int id) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
     
     /**
      * Add customer with id.
@@ -73,7 +74,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean newCustomer(int id, int cid)
-        throws RemoteException,TransactionAbortedException,InvalidTransactionException;
+        throws RemoteException, DeadlockException;
 
     /**
      * Delete the flight.
@@ -84,7 +85,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */   
     public boolean deleteFlight(int id, int flightNum) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
     
     /**
      * Delete all cars at a location.
@@ -94,7 +95,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */		    
     public boolean deleteCars(int id, String location) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
 
     /**
      * Delete all rooms at a location.
@@ -104,7 +105,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean deleteRooms(int id, String location) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
     
     /**
      * Delete a customer and associated reservations.
@@ -112,7 +113,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean deleteCustomer(int id, int customerID) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
 
     /**
      * Query the status of a flight.
@@ -120,7 +121,7 @@ public interface IResourceManager extends Remote
      * @return Number of empty seats
      */
     public int queryFlight(int id, int flightNumber) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
 
     /**
      * Query the status of a car location.
@@ -128,7 +129,7 @@ public interface IResourceManager extends Remote
      * @return Number of available cars at this location
      */
     public int queryCars(int id, String location) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
 
     /**
      * Query the status of a room location.
@@ -136,7 +137,7 @@ public interface IResourceManager extends Remote
      * @return Number of available rooms at this location
      */
     public int queryRooms(int id, String location) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
 
     /**
      * Query the customer reservations.
@@ -144,7 +145,7 @@ public interface IResourceManager extends Remote
      * @return A formatted bill for the customer
      */
     public String queryCustomerInfo(int id, int customerID) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
     
     /**
      * Query the status of a flight.
@@ -152,7 +153,7 @@ public interface IResourceManager extends Remote
      * @return Price of a seat in this flight
      */
     public int queryFlightPrice(int id, int flightNumber) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
 
     /**
      * Query the status of a car location.
@@ -160,7 +161,7 @@ public interface IResourceManager extends Remote
      * @return Price of car
      */
     public int queryCarsPrice(int id, String location) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
 
     /**
      * Query the status of a room location.
@@ -168,7 +169,7 @@ public interface IResourceManager extends Remote
      * @return Price of a room
      */
     public int queryRoomsPrice(int id, String location) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
 
     /**
      * Reserve a seat on this flight.
@@ -176,7 +177,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean reserveFlight(int id, int customerID, int flightNumber) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
 
     /**
      * Reserve a car at this location.
@@ -184,7 +185,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean reserveCar(int id, int customerID, String location) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
 
     /**
      * Reserve a room at this location.
@@ -192,7 +193,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean reserveRoom(int id, int customerID, String location) 
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
 
     /**
      * Reserve a bundle for the trip.
@@ -200,7 +201,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room)
-	throws RemoteException,TransactionAbortedException,InvalidTransactionException; 
+	throws RemoteException, DeadlockException;
 
     /**
      * Convenience for probing the resource manager.
@@ -208,34 +209,34 @@ public interface IResourceManager extends Remote
      * @return Name
      */
 
-    public Integer reserveFlight_FlightRM(int xid, int flightNum, int toReserve) throws RemoteException;
+    public Integer reserveFlight_FlightRM(int xid, int flightNum, int toReserve) throws RemoteException, DeadlockException;
 
 	// Function to reserve flights (multiple) in FlightResourceManager
-	public ArrayList<Integer> reserveFlights_FlightRM(int xid, ArrayList<Integer> flightNums, int toReserve) throws RemoteException;
+	public ArrayList<Integer> reserveFlights_FlightRM(int xid, ArrayList<Integer> flightNums, int toReserve) throws RemoteException, DeadlockException;
 
 	// Function to reserve car in CarResourceManager (this returns an integer value as updating in the customer resource manager requires latest reserved price of item)
-	public Integer reserveCar_CarRM(int xid, String location, int toReserve) throws RemoteException;
+	public Integer reserveCar_CarRM(int xid, String location, int toReserve) throws RemoteException, DeadlockException;
 
 	// Function to reserve room in RoomResourceManager (this returns an integer value as updating in the customer resource manager requires latest reserved price of item)
-	public Integer reserveRoom_RoomRM(int xid, String location, int toReserve) throws RemoteException;
+	public Integer reserveRoom_RoomRM(int xid, String location, int toReserve) throws RemoteException, DeadlockException;
 
 	// Function to reserve flight in CustomerResourceManager (this returns an integer value as updating in the customer resource manager requires latest reserved price of item)
-	public boolean reserveFlight_CustomerRM(int xid, int customerID, int flightNum, int price) throws RemoteException;
+	public boolean reserveFlight_CustomerRM(int xid, int customerID, int flightNum, int price) throws RemoteException, DeadlockException;
 
 	// Function to reserve flights (multiple) in CustomerResourceManager 
-	public boolean reserveFlights_CustomerRM(int xid, int customerID, ArrayList<Integer> flightNums, ArrayList<Integer> prices) throws RemoteException;
+	public boolean reserveFlights_CustomerRM(int xid, int customerID, ArrayList<Integer> flightNums, ArrayList<Integer> prices) throws RemoteException, DeadlockException;
 
 	// Function to reserve car in CustomerResourceManager
-	public boolean reserveCar_CustomerRM(int xid, int customerID, String location, int price) throws RemoteException;
+	public boolean reserveCar_CustomerRM(int xid, int customerID, String location, int price) throws RemoteException, DeadlockException;
 
 	// Function to reserve room in CustomerResourceManager
-	public boolean reserveRoom_CustomerRM(int xid, int customerID, String location, int price) throws RemoteException;
+	public boolean reserveRoom_CustomerRM(int xid, int customerID, String location, int price) throws RemoteException, DeadlockException;
 
 	// Function to reserve item in CustomerResourceManager
-	public boolean reserveItem_CustomerRM(int xid, int customerID, String key, String location, int price) throws RemoteException;
+	public boolean reserveItem_CustomerRM(int xid, int customerID, String key, String location, int price) throws RemoteException, DeadlockException;
 
 	// Function to delete customer in customer database
-	public ArrayList<ReservedItem> deleteCustomer_CustomerRM(int xid, int customerID) throws RemoteException;
+	public ArrayList<ReservedItem> deleteCustomer_CustomerRM(int xid, int customerID) throws RemoteException, DeadlockException;
 
 	// Function to reserve bundle (TCP)
 	public boolean bundle(
@@ -246,16 +247,8 @@ public interface IResourceManager extends Remote
 		String location, boolean car, 
 		Integer carPrice, 
 		boolean room, 
-        Integer roomPrice) throws RemoteException;
+        Integer roomPrice) throws RemoteException, DeadlockException;
     
     public String getName()
         throws RemoteException;
-
-    // ==================================================================================
-    public int startTransaction() throws RemoteException;
-    public boolean commitTransaction(int xid) throws RemoteException,TransactionAbortedException,InvalidTransactionException;
-    public boolean abortTransaction(int xid) throws RemoteException,InvalidTransactionException;
-    public boolean shutdown() throws Exception;
-    public boolean initiateAbort(int xid);
-    public void updateTransaction(int xid, ArrayList<RESOURCE_MANAGER_TYPE> rms) throws InvalidTransactionException;
 }
