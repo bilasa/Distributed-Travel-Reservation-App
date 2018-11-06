@@ -47,7 +47,8 @@ public class ResourceManager extends LockManager implements IResourceManager
                 synchronized(m_data) {
                     item = m_data.get(key);
                 }
-                if (item != null) {
+                if (item != null)
+                {
                     // add item to local store
                     local_data.put(key, item);
                     
@@ -75,7 +76,8 @@ public class ResourceManager extends LockManager implements IResourceManager
                     synchronized(m_data) {
                         item = m_data.get(key);
                     }
-                    if (item != null) {
+                    if (item != null)
+                    {
                         // add item to local history
                         local_data.put(key, item);
                         
@@ -115,6 +117,51 @@ public class ResourceManager extends LockManager implements IResourceManager
             local.put(xid, local_data);
         }
 	}
+    
+    // Commits a transaction
+    protected boolean commit(int xid) throws RemoteException
+    {
+        synchronized(local) {
+            RMHashMap local_data = local.get(xid);
+            if (local_data == null)
+            {
+                Trace.warn("RM::commit(" + xid + ") failed--the local history does not exist");
+                return false;
+            }
+            else
+            {
+                synchronized(m_data) {
+                    // Put all items in local history into main memory
+                    for (String key : local_data.keySet())
+                    {
+                        RMItem item = local_data.get(key);
+                        m_data.put(key, item);
+                    }
+                }
+                
+                // Unlock all locks owned by transaction
+                UnlockAll(xid);
+                Trace.info("RM::commit(" + xid + ") succeeded");
+                return true;
+            }
+        }
+    }
+    
+    // Aborts a transaction
+    protected void abort(int xid) throws RemoteException
+    {
+        if (local.get(xid) != null)
+        {
+            // Remove the local history
+            local.remove(xid);
+        }
+    }
+    
+    // Exits the server
+    public boolean shutdown() throws RemoteException
+    {
+        
+    }
 
 	// Remove the item out of storage
 	protected void removeData(int xid, String key)
