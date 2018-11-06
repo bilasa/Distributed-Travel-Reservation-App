@@ -32,7 +32,7 @@ compile-server-rmi: Server/RMI/*.java Server/Interface/IResourceManager.java Ser
 	javac Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java Server/Actions/*.java
 
 clean:
-	rm -f Server/Interface/*.class Server/Actions/*.class Server/Common/*.class Server/RMI/*.class Server/TCP/*.class
+	rm -f Server/Interface/*.class Server/Actions/*.class Server/Common/*.class Server/RMI/*.class Server/TCP/*.class Server/LockManager/*.class
 	rm -f RMIInterface.jar
 	rm -f Actions.jar
 	rm -f java.policy 
