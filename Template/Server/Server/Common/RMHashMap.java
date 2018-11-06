@@ -13,7 +13,7 @@ public class RMHashMap extends HashMap<String, RMItem>
 	public RMHashMap() {
 		super();
 	}
-
+	
 	public String toString()
 	{
 		String s = "--- BEGIN RMHashMap ---\n";

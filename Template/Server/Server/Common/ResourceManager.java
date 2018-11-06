@@ -783,5 +783,35 @@ public class ResourceManager extends LockManager implements IResourceManager
 	{
 		return m_name;
 	}
+
+	public int startTransaction() throws RemoteException
+	{
+		return -1;
+	}
+
+	public boolean commitTransaction(int xid) throws RemoteException,TransactionAbortedException,InvalidTransactionException
+	{
+		return false;
+	}
+
+	public boolean abortTransaction(int xid) throws RemoteException,InvalidTransactionException
+	{
+		return false;
+	}
+
+	public boolean shutdown() throws Exception
+	{
+		return false;
+	}
+
+	public boolean initiateAbort(int xid)
+	{
+		return false;
+	}
+
+	public void updateTransaction(int xid, ArrayList<RESOURCE_MANAGER_TYPE> rms) throws InvalidTransactionException
+	{
+		return;
+	}
 }
  
