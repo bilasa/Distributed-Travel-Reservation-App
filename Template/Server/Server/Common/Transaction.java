@@ -1,7 +1,6 @@
 package Server.Common;
 
 import java.util.*;
-import Server.TransactionManager.*;
 
 public class Transaction 
 {
@@ -36,7 +35,7 @@ public class Transaction
         this.operations.add(op);
     }
 
-    public removeOperation(int index)
+    public void removeOperation(int index)
     {
         this.operations.remove(index);
     }

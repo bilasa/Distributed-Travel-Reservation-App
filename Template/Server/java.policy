@@ -1,0 +1,3 @@
+grant codebase "file:/Users/henryzhao/Documents/Projects/template/Template/Server/" {
+permission java.security.AllPermission;
+};

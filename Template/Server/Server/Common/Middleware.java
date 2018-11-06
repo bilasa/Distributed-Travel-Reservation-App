@@ -6,13 +6,10 @@
 package Server.Common;
 
 import Server.Interface.*;
+import Server.LockManager.DeadlockException;
 import Server.RMI.*;
 import Server.Common.*;
-
 import java.util.*;
-
-import javax.transaction.InvalidTransactionException;
-
 import java.rmi.RemoteException;
 import java.rmi.ConnectException;
 import java.rmi.ServerException;
@@ -41,278 +38,445 @@ public abstract class Middleware implements IResourceManager
     // NOTE: if flightPrice <= 0 and the flight already exists, it maintains its current price
     public boolean addFlight(int xid, int flightNum, int flightSeats, int flightPrice) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
-        updateTransaction(xid, rms);
-        return flightResourceManager.addFlight(xid, flightNum, flightSeats, flightPrice);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
+            updateTransaction(xid, rms);
+            return flightResourceManager.addFlight(xid, flightNum, flightSeats, flightPrice);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     // Create a new car location or add cars to an existing location
     // NOTE: if price <= 0 and the location already exists, it maintains its current price
     public boolean addCars(int xid, String location, int count, int price) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.CAR);
-        updateTransaction(xid, rms);
-        return carResourceManager.addCars(xid, location, count, price);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.CAR);
+            updateTransaction(xid, rms);
+            return carResourceManager.addCars(xid, location, count, price);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
+        
     }
     
     // Create a new room location or add rooms to an existing location
     // NOTE: if price <= 0 and the room location already exists, it maintains its current price
     public boolean addRooms(int xid, String location, int count, int price) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.ROOM);
-        updateTransaction(xid, rms);
-        return roomResourceManager.addRooms(xid, location, count, price);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.ROOM);
+            updateTransaction(xid, rms);
+            return roomResourceManager.addRooms(xid, location, count, price);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     // Deletes flight
     public boolean deleteFlight(int xid, int flightNum) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
-        updateTransaction(xid, rms);
-        return flightResourceManager.deleteFlight(xid, flightNum);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
+            updateTransaction(xid, rms);
+            return flightResourceManager.deleteFlight(xid, flightNum);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     // Delete cars at a location
     public boolean deleteCars(int xid, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
-    {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.CARS);
-        updateTransaction(xid, rms);
-        return carResourceManager.deleteCars(xid, location);
+    {      
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.CAR);
+            updateTransaction(xid, rms);
+            return carResourceManager.deleteCars(xid, location);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     // Delete rooms at a location
     public boolean deleteRooms(int xid, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.ROOM);
-        updateTransaction(xid, rms);
-        return roomResourceManager.deleteRooms(xid, location);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.ROOM);
+            updateTransaction(xid, rms);
+            return roomResourceManager.deleteRooms(xid, location);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     // Returns the number of empty seats in this flight
     public int queryFlight(int xid, int flightNum) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
-        updateTransaction(xid, rms);
-        return flightResourceManager.queryFlight(xid, flightNum);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
+            updateTransaction(xid, rms);
+            return flightResourceManager.queryFlight(xid, flightNum);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     // Returns the number of cars available at a location
     public int queryCars(int xid, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.CAR);
-        updateTransaction(xid, rms);
-        return carResourceManager.queryCars(xid, location);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.CAR);
+            updateTransaction(xid, rms);
+            return carResourceManager.queryCars(xid, location);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     // Returns the amount of rooms available at a location
     public int queryRooms(int xid, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
-    {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.ROOM);
-        updateTransaction(xid, rms);
-        return roomResourceManager.queryRooms(xid, location);
+    {      
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.ROOM);
+            updateTransaction(xid, rms);
+            return roomResourceManager.queryRooms(xid, location);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     // Returns price of a seat in this flight
     public int queryFlightPrice(int xid, int flightNum) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
-        updateTransaction(xid, rms);
-        return flightResourceManager.queryFlightPrice(xid, flightNum);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
+            updateTransaction(xid, rms);
+            return flightResourceManager.queryFlightPrice(xid, flightNum);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     // Returns price of cars at this location
     public int queryCarsPrice(int xid, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.CAR);
-        updateTransaction(xid, rms);
-        return carResourceManager.queryCarsPrice(xid, location);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.CAR);
+            updateTransaction(xid, rms);
+            return carResourceManager.queryCarsPrice(xid, location);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     // Returns room price at this location
     public int queryRoomsPrice(int xid, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.ROOM);
-        updateTransaction(xid, rms);
-        return roomResourceManager.queryRoomsPrice(xid, location);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.ROOM);
+            updateTransaction(xid, rms);
+            return roomResourceManager.queryRoomsPrice(xid, location);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     public String queryCustomerInfo(int xid, int customerID) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
-        updateTransaction(xid, rms);
-        return customerResourceManager.queryCustomerInfo(xid, customerID);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
+            updateTransaction(xid, rms);
+            return customerResourceManager.queryCustomerInfo(xid, customerID);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     public int newCustomer(int xid) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
-        updateTransaction(xid, rms);
-        return customerResourceManager.newCustomer(xid);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
+            updateTransaction(xid, rms);
+            return customerResourceManager.newCustomer(xid);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     public boolean newCustomer(int xid, int customerID) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
-        updateTransaction(xid, rms);
-        return customerResourceManager.newCustomer(xid, customerID);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
+            updateTransaction(xid, rms);
+            return customerResourceManager.newCustomer(xid, customerID);
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     public boolean deleteCustomer(int xid, int customerID) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
-        rms.add(RESOURCE_MANAGER_TYPE.ROOM);
-        rms.add(RESOURCE_MANAGER_TYPE.CAR);
-        rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
-        updateTransaction(xid, rms);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
 
-        ArrayList<ReservedItem> items = customerResourceManager.deleteCustomer_CustomerRM(xid, customerID);
+            ArrayList<ReservedItem> items = customerResourceManager.deleteCustomer_CustomerRM(xid, customerID);
 
-        for (ReservedItem item : items) 
-        {
-            String key = item.getKey();
-            String[] parts = key.split("-");
-            int count = item.getCount();
+            for (ReservedItem item : items) 
+            {
+                String key = item.getKey();
+                String[] parts = key.split("-");
+                int count = item.getCount();
 
-            if (parts[0].equals("flight"))
-            {   
-                flightResourceManager.reserveFlight_FlightRM(xid, Integer.parseInt(parts[1]), -count);
+                if (parts[0].equals("flight"))
+                {   
+                    rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
+                    flightResourceManager.reserveFlight_FlightRM(xid, Integer.parseInt(parts[1]), -count);
+                }
+
+                if (parts[0].equals("car"))
+                {   
+                    rms.add(RESOURCE_MANAGER_TYPE.CAR);
+                    carResourceManager.reserveCar_CarRM(xid, parts[1], -count);
+                }
+
+                if (parts[0].equals("room"))
+                {   
+                    rms.add(RESOURCE_MANAGER_TYPE.ROOM);
+                    roomResourceManager.reserveRoom_RoomRM(xid, parts[1], -count);
+                }
             }
 
-            if (parts[0].equals("car"))
-            {   
-                carResourceManager.reserveCar_CarRM(xid, parts[1], -count);
-            }
-
-            if (parts[0].equals("room"))
-            {   
-                roomResourceManager.reserveRoom_RoomRM(xid, parts[1], -count);
-            }
+            updateTransaction(xid, rms);
+            return true;
         }
-
-        return true;
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
     
     // Adds flight reservation to this customer
     public boolean reserveFlight(int xid, int customerID, int flightNum) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
-        rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
-        updateTransaction(xid, rms);
+        try { 
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
+            
+            // Reserve a seat in the flight and get the price for the flight
+            Integer flightPrice = flightResourceManager.reserveFlight_FlightRM(xid, flightNum, 1).intValue();
         
-        // Reserve a seat in the flight and get the price for the flight
-        Integer flightPrice = flightResourceManager.reserveFlight_FlightRM(xid, flightNum, 1).intValue();
-    
-        if ((int) flightPrice == -1) 
-        {
-            return false; // flight reservation failed
-        } 
-        else {
-            return customerResourceManager.reserveFlight_CustomerRM(xid, customerID, flightNum, flightPrice);
+            if ((int) flightPrice == -1) 
+            {
+                return false; // flight reservation failed
+            } 
+            else {
+                rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
+                updateTransaction(xid, rms);
+                return customerResourceManager.reserveFlight_CustomerRM(xid, customerID, flightNum, flightPrice);
+            }
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
         }
     }
     
     // Adds car reservation to this customer
     public boolean reserveCar(int xid, int customerID, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.CAR);
-        rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
-        updateTransaction(xid, rms);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
 
-        // Reserve a car and get its price
-        Integer carPrice = carResourceManager.reserveCar_CarRM(xid, location, 1).intValue();
-        
-        if ((int) carPrice == -1) 
-        {
-            return false; // car reservation failed
-        } 
-        else {
-            return customerResourceManager.reserveCar_CustomerRM(xid, customerID, location, carPrice);
+            // Reserve a car and get its price
+            Integer carPrice = carResourceManager.reserveCar_CarRM(xid, location, 1).intValue();
+            
+            if ((int) carPrice == -1) 
+            {
+                return false; // car reservation failed
+            } 
+            else {
+                rms.add(RESOURCE_MANAGER_TYPE.CAR);
+                updateTransaction(xid, rms);
+                return customerResourceManager.reserveCar_CustomerRM(xid, customerID, location, carPrice);
+            }
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
         }
     }
     
     // Adds room reservation to this customer
     public boolean reserveRoom(int xid, int customerID, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.ROOM);
-        rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
-        updateTransaction(xid, rms);
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
 
-        // Reserve a room and get its price
-        Integer roomPrice = roomResourceManager.reserveRoom_RoomRM(xid, location, 1).intValue();
-        
-        if ((int) roomPrice == -1) 
-        {
-            return false; // room reservation failed
-        } 
-        else {
-            return customerResourceManager.reserveRoom_CustomerRM(xid, customerID, location, roomPrice);
+            // Reserve a room and get its price
+            Integer roomPrice = roomResourceManager.reserveRoom_RoomRM(xid, location, 1).intValue();
+            
+            if ((int) roomPrice == -1) 
+            {
+                return false; // room reservation failed
+            } 
+            else {
+                rms.add(RESOURCE_MANAGER_TYPE.ROOM);
+                updateTransaction(xid, rms);
+                return customerResourceManager.reserveRoom_CustomerRM(xid, customerID, location, roomPrice);
+            }
+        }
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
         }
     }
 
     // Reserve bundle
     public boolean bundle(int xid, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
-        rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
-        rms.add(RESOURCE_MANAGER_TYPE.ROOM);
-        rms.add(RESOURCE_MANAGER_TYPE.CAR);
-        rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
-        updateTransaction(xid, rms);
-        
-        ArrayList<Integer> prices = new ArrayList<Integer>();
-        int carPrice = -1;
-        int roomPrice = -1;
-        boolean customer = true;
+        try {
+            ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
+            rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
+            
+            ArrayList<Integer> prices = new ArrayList<Integer>();
+            int carPrice = -1;
+            int roomPrice = -1;
+            boolean customer = true;
 
-        // Convert flight numbers from string format to integer format
-        ArrayList<Integer> flights  = new ArrayList<Integer>();
-        for (String f : flightNumbers) flights.add(Integer.parseInt(f));
+            // Convert flight numbers from string format to integer format
+            ArrayList<Integer> flights  = new ArrayList<Integer>();
+            for (String f : flightNumbers) flights.add(Integer.parseInt(f));
 
-        // Validate 
-        prices = flightResourceManager.reserveFlights_FlightRM(xid, flights, 1);
-        if (car) carPrice = carResourceManager.reserveCar_CarRM(xid, location, 1);
-        if (room) roomPrice = roomResourceManager.reserveRoom_RoomRM(xid, location, 1);
-        customer = !(customerResourceManager.queryCustomerInfo(xid, customerID).isEmpty());
+            // Validate 
+            prices = flightResourceManager.reserveFlights_FlightRM(xid, flights, 1);
+            if (car) carPrice = carResourceManager.reserveCar_CarRM(xid, location, 1);
+            if (room) roomPrice = roomResourceManager.reserveRoom_RoomRM(xid, location, 1);
+            customer = !(customerResourceManager.queryCustomerInfo(xid, customerID).isEmpty());
 
-        // Invalid cases
-        if (
-            (prices.size() != flightNumbers.size()) ||
-            (car && carPrice == -1) || 
-            (room && roomPrice == -1) || 
-            (customer == false)
-        ) { 
-            if (prices.size() == flightNumbers.size()) flightResourceManager.reserveFlights_FlightRM(xid, flights, -1);
-            if (car && carPrice != -1) carResourceManager.reserveCar_CarRM(xid, location, -1);
-            if (room && roomPrice != -1) roomResourceManager.reserveRoom_RoomRM(xid, location, -1);
+            // Invalid cases
+            if (
+                (prices.size() != flightNumbers.size()) ||
+                (car && carPrice == -1) || 
+                (room && roomPrice == -1) || 
+                (customer == false)
+            ) { 
+                if (prices.size() == flightNumbers.size()) flightResourceManager.reserveFlights_FlightRM(xid, flights, -1);
+                if (car && carPrice != -1) carResourceManager.reserveCar_CarRM(xid, location, -1);
+                if (room && roomPrice != -1) roomResourceManager.reserveRoom_RoomRM(xid, location, -1);
 
-            return false;
+                return false;
+            }
+            
+            // Reserve items for customer
+            rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
+            customerResourceManager.reserveFlights_CustomerRM(xid, customerID, flights, prices);
+            if (car) 
+            {   
+                rms.add(RESOURCE_MANAGER_TYPE.CAR);
+                customerResourceManager.reserveCar_CustomerRM(xid, customerID, location, carPrice);
+            }
+            if (room) 
+            {
+                rms.add(RESOURCE_MANAGER_TYPE.ROOM);
+                customerResourceManager.reserveRoom_CustomerRM(xid, customerID, location, roomPrice);
+            }
+            
+            updateTransaction(xid, rms);
+            return true; 
         }
-        
-        // Reserve items for customer
-        customerResourceManager.reserveFlights_CustomerRM(xid, customerID, flights, prices);
-        if (car) customerResourceManager.reserveCar_CustomerRM(xid, customerID, location, carPrice);
-        if (room) customerResourceManager.reserveRoom_CustomerRM(xid, customerID, location, roomPrice);
-
-        return true; 
+        catch (DeadlockException e)
+        {   
+            this.transactions.remove(e.getXId());
+            this.timers.remove(e.getXId());
+            e.printStackTrace();
+        }
     }
 
     //====================================================================================================
@@ -338,7 +502,7 @@ public abstract class Middleware implements IResourceManager
             int xid = (int) new Date().getTime();
             this.transactions.put(xid, new Transaction(xid));
 
-            Timer t = new Timer(new String(xid));
+            Timer t = new Timer();
             this.timers.put(xid, t);
             t.schedule(new TimerTask(){
             
@@ -347,6 +511,11 @@ public abstract class Middleware implements IResourceManager
                     initiateAbort(xid);
                 }
             }, this.TRANSACTION_TIME_LIMIT);
+
+            flightResourceManager.start(xid);
+            carResourceManager.start(xid);
+            roomResourceManager.start(xid);
+            customerResourceManager.start(xid);
 
             return xid;
         }
@@ -364,6 +533,7 @@ public abstract class Middleware implements IResourceManager
 
             Transaction ts = this.transactions.get(xid);
             ArrayList<Operation> ops = ts.getOperations();
+            HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
 
             for (Operation op : ops)
             {
@@ -371,23 +541,28 @@ public abstract class Middleware implements IResourceManager
 
                 for (RESOURCE_MANAGER_TYPE rm : rms)
                 {
-                    switch (rm)
-                    {
-                        case FLIGHT:
-                            flightResourceManager.commit(xid);
-                            break;
-                        case CAR:
-                            carResourceManager.commit(xid);
-                            break;
-                        case ROOM:
-                            roomResourceManager.commit(xid);
-                            break;
-                        case CUSTOMER:
-                            customerResourceManager.commit(xid);
-                            break;
-                        default:
-                            break;
-                    }
+                    if (!set.contains(rm)) set.add(rm);
+                }
+            }
+
+            for (RESOURCE_MANAGER_TYPE rm : set) 
+            {
+                switch (rm)
+                {
+                    case FLIGHT:
+                        flightResourceManager.commit(xid);
+                        break;
+                    case CAR:
+                        carResourceManager.commit(xid);
+                        break;
+                    case ROOM:
+                        roomResourceManager.commit(xid);
+                        break;
+                    case CUSTOMER:
+                        customerResourceManager.commit(xid);
+                        break;
+                    default:
+                        break;
                 }
             }
 
@@ -434,6 +609,7 @@ public abstract class Middleware implements IResourceManager
     {
         Transaction ts = this.transactions.get(xid);
         ArrayList<Operation> ops = ts.getOperations();
+        HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
 
         for (Operation op : ops)
         {
@@ -441,7 +617,13 @@ public abstract class Middleware implements IResourceManager
 
             for (RESOURCE_MANAGER_TYPE rm : rms)
             {
-                switch (rm)
+                if (!set.contains(rm)) set.add(rm);
+            }
+        }
+
+        for (RESOURCE_MANAGER_TYPE rm : set)
+        {
+            switch (rm)
                 {
                     case FLIGHT:
                         flightResourceManager.abort(xid);
@@ -458,7 +640,6 @@ public abstract class Middleware implements IResourceManager
                     default:
                         break;
                 }
-            }
         }
 
         this.transactions.remove(xid);
