@@ -119,14 +119,13 @@ public class ResourceManager extends LockManager implements IResourceManager
 	}
     
     // Commits a transaction
-    protected boolean commit(int xid) throws RemoteException
+    protected boolean commit(int xid) throws RemoteException, InvalidTransactionException
     {
         synchronized(local) {
             RMHashMap local_data = local.get(xid);
             if (local_data == null)
             {
-                Trace.warn("RM::commit(" + xid + ") failed--the local history does not exist");
-                return false;
+                throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid");
             }
             else
             {
@@ -148,12 +147,16 @@ public class ResourceManager extends LockManager implements IResourceManager
     }
     
     // Aborts a transaction
-    protected void abort(int xid) throws RemoteException
+    protected void abort(int xid) throws RemoteException, InvalidTransactionException
     {
         if (local.get(xid) != null)
         {
             // Remove the local history
             local.remove(xid);
+        }
+        else
+        {
+            throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid");
         }
     }
     
@@ -161,6 +164,16 @@ public class ResourceManager extends LockManager implements IResourceManager
     public boolean shutdown() throws RemoteException
     {
         
+    }
+    
+    // Start a transaction, add the a local history for the transaction in the hashmap of local histories
+    protected boolean start(int xid) throws RemoteException {
+        synchronized(local) {
+            RMHashMap local_data = new RMHashMap();
+            
+            // update the hashmap of local histories
+            local.put(xid, local_data);
+        }
     }
 
 	// Remove the item out of storage
