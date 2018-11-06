@@ -18,8 +18,18 @@ Actions.jar: Server/Actions/*.java
 	javac Server/Actions/*.java
 	jar cvf Actions.jar Server/Actions/*.class
 
-compile-server-rmi: Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java Server/Actions/*.java Server/TCP/*.java
-	javac Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java Server/Actions/*.java Server/TCP/*.java
+Common.jar: Server/Common/*.java
+	@echo "Compiling Common"
+	javac Server/Common/*.java
+	jar cvf Common.jar Server/Common/*.class
+
+LockManager.jar: Server/LockManager/*.java
+	@echo "Compiling LockManager"
+	javac Server/LockManager/*.java
+	jar cvf LockManager.jar Server/LockManager/*.class
+
+compile-server-rmi: Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java Server/Actions/*.java
+	javac Server/RMI/*.java Server/Interface/IResourceManager.java Server/Common/*.java Server/Actions/*.java
 
 clean:
 	rm -f Server/Interface/*.class Server/Actions/*.class Server/Common/*.class Server/RMI/*.class Server/TCP/*.class

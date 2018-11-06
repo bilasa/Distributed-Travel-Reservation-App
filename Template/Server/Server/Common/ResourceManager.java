@@ -101,7 +101,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 	}
     
     // Commits a transaction
-    protected boolean commit(int xid) throws RemoteException, InvalidTransactionException
+    public  boolean commit(int xid) throws RemoteException, InvalidTransactionException
     {
         synchronized(local) {
             RMHashMap local_data = local.get(xid);
@@ -129,7 +129,7 @@ public class ResourceManager extends LockManager implements IResourceManager
     }
     
     // Aborts a transaction
-    protected void abort(int xid) throws RemoteException, InvalidTransactionException
+    public  void abort(int xid) throws RemoteException, InvalidTransactionException
     {
         if (local.get(xid) != null)
         {
@@ -150,13 +150,16 @@ public class ResourceManager extends LockManager implements IResourceManager
     }
     
     // Start a transaction, add the a local history for the transaction in the hashmap of local histories
-    protected boolean start(int xid) throws RemoteException {
+    public boolean start(int xid) throws RemoteException 
+    {
         synchronized(local) {
             RMHashMap local_data = new RMHashMap();
             
             // update the hashmap of local histories
             local.put(xid, local_data);
         }
+
+        return true;
     }
 
 	// Remove the item out of storage
@@ -799,19 +802,19 @@ public class ResourceManager extends LockManager implements IResourceManager
 		return false;
 	}
 
-	public boolean shutdown() throws Exception
+	public boolean initiateAbort(int xid) throws InvalidTransactionException, TransactionAbortedException
 	{
 		return false;
 	}
 
-	public boolean initiateAbort(int xid)
-	{
-		return false;
-	}
-
-	public void updateTransaction(int xid, ArrayList<RESOURCE_MANAGER_TYPE> rms) throws InvalidTransactionException
+	public void updateTransaction(int xid, ArrayList<RESOURCE_MANAGER_TYPE> rms) throws InvalidTransactionException, TransactionAbortedException
 	{
 		return;
 	}
+
+    public boolean shutdownServers() throws RemoteException
+    {
+        return false;
+    }
 }
  

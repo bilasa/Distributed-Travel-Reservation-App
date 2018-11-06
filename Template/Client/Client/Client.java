@@ -146,7 +146,7 @@ public abstract class Client
 					checkArgumentsCount(0, arguments.size());
 					System.out.println("Shutdown servers");
 					
-					if (m_resourceManager.shutdown()) 
+					if (m_resourceManager.shutdownServers()) 
 					{
 						System.out.println("Succesful Shutdown");
 					}

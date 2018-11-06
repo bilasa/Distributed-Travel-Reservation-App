@@ -50,6 +50,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return false;
     }
     
     // Create a new car location or add cars to an existing location
@@ -69,6 +71,7 @@ public abstract class Middleware implements IResourceManager
             e.printStackTrace();
         }
         
+        return false;
     }
     
     // Create a new room location or add rooms to an existing location
@@ -87,6 +90,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return false;
     }
     
     // Deletes flight
@@ -104,6 +109,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return false;
     }
     
     // Delete cars at a location
@@ -121,6 +128,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return false;
     }
     
     // Delete rooms at a location
@@ -138,6 +147,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return false;
     }
     
     // Returns the number of empty seats in this flight
@@ -155,6 +166,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return -1;
     }
     
     // Returns the number of cars available at a location
@@ -172,6 +185,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return -1;
     }
     
     // Returns the amount of rooms available at a location
@@ -189,6 +204,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return -1;
     }
     
     // Returns price of a seat in this flight
@@ -206,6 +223,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return -1;
     }
     
     // Returns price of cars at this location
@@ -223,6 +242,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return -1;
     }
     
     // Returns room price at this location
@@ -240,6 +261,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return -1;
     }
     
     public String queryCustomerInfo(int xid, int customerID) throws RemoteException,TransactionAbortedException,InvalidTransactionException
@@ -256,6 +279,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return null;
     }
     
     public int newCustomer(int xid) throws RemoteException,TransactionAbortedException,InvalidTransactionException
@@ -272,6 +297,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return -1;
     }
     
     public boolean newCustomer(int xid, int customerID) throws RemoteException,TransactionAbortedException,InvalidTransactionException
@@ -288,6 +315,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+        return false;
     }
     
     public boolean deleteCustomer(int xid, int customerID) throws RemoteException,TransactionAbortedException,InvalidTransactionException
@@ -332,6 +361,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+         return false;
     }
     
     // Adds flight reservation to this customer
@@ -360,6 +391,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+         return false;
     }
     
     // Adds car reservation to this customer
@@ -388,6 +421,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+         return false;
     }
     
     // Adds room reservation to this customer
@@ -416,6 +451,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+         return false;
     }
 
     // Reserve bundle
@@ -477,6 +514,8 @@ public abstract class Middleware implements IResourceManager
             this.timers.remove(e.getXId());
             e.printStackTrace();
         }
+
+         return false;
     }
 
     //====================================================================================================
@@ -508,7 +547,22 @@ public abstract class Middleware implements IResourceManager
             
                 @Override
                 public void run() {
-                    initiateAbort(xid);
+                    try {
+                        initiateAbort(xid);
+                    }
+                    catch (InvalidTransactionException e) 
+                    {
+                        e.printStackTrace();
+                    }
+                    catch (TransactionAbortedException e)
+                    {
+                        e.printStackTrace();
+                    }
+                    catch (RemoteException e)
+                    {
+                        e.printStackTrace();
+                    }
+                    
                 }
             }, this.TRANSACTION_TIME_LIMIT);
 
@@ -574,22 +628,20 @@ public abstract class Middleware implements IResourceManager
     }
 
     // Function to abort transaction
-    public boolean abortTransaction(int xid) throws RemoteException,InvalidTransactionException
+    public boolean abortTransaction(int xid) throws RemoteException,InvalidTransactionException,TransactionAbortedException
     {   
         synchronized(this.transactions)
-        {
+        {   
             if (!transactions.containsKey(xid)) {
                 throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid");
             }
             
             return initiateAbort(xid);
         }
-
-        return false;
     }
 
     // Function to shutdown
-    public boolean shutdown() throws Exception
+    public boolean shutdownServers() throws RemoteException
     {   
         synchronized(this.transactions)
         {   
@@ -605,7 +657,7 @@ public abstract class Middleware implements IResourceManager
     }
 
     // Function to initiate abort
-    public boolean initiateAbort(int xid) 
+    public boolean initiateAbort(int xid) throws RemoteException, InvalidTransactionException, TransactionAbortedException
     {
         Transaction ts = this.transactions.get(xid);
         ArrayList<Operation> ops = ts.getOperations();
@@ -649,7 +701,7 @@ public abstract class Middleware implements IResourceManager
     }
 
     // Function to add operation and to update timer for a transaction
-    public void updateTransaction(int xid, ArrayList<RESOURCE_MANAGER_TYPE> rms) throws InvalidTransactionException
+    public void updateTransaction(int xid, ArrayList<RESOURCE_MANAGER_TYPE> rms) throws RemoteException, InvalidTransactionException, TransactionAbortedException
     {   
         if (!this.transactions.containsKey(xid) || !this.timers.containsKey(xid)) 
         {
@@ -664,7 +716,21 @@ public abstract class Middleware implements IResourceManager
         
             @Override
             public void run() {
-                initiateAbort(xid);
+                try {
+                    initiateAbort(xid);
+                }
+                catch (InvalidTransactionException e) 
+                {
+                    e.printStackTrace();
+                }
+                catch (TransactionAbortedException e)
+                {
+                    e.printStackTrace();
+                }
+                catch (RemoteException e)
+                {
+                    e.printStackTrace();
+                }
             }
         }, this.TRANSACTION_TIME_LIMIT);
     }
@@ -751,6 +817,30 @@ public abstract class Middleware implements IResourceManager
     public String getName() throws RemoteException
     {
         return m_name;
+    }
+
+    // Commits a transaction
+    public boolean commit(int xid) throws RemoteException, InvalidTransactionException
+    {
+        return false;
+    }
+
+    // Aborts a transaction
+    public void abort(int xid) throws RemoteException, InvalidTransactionException
+    {
+        return;
+    }
+
+    // Exits the server
+    public boolean shutdown() throws RemoteException
+    {
+        return false;
+    }
+
+    // Start a transaction, add the a local history for the transaction in the hashmap of local histories
+    public boolean start(int xid) throws RemoteException
+    {
+        return false;
     }
 }
 
