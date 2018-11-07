@@ -794,7 +794,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 		return m_name;
 	}
 
-	public int startTransaction() throws RemoteException
+	public int startTransaction(String client_id) throws RemoteException
 	{
 		return -1;
 	}
@@ -819,7 +819,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 		return;
 	}
 
-    public boolean shutdownServers() throws RemoteException
+    public boolean shutdownClient(String client_id) throws RemoteException
     {
         return false;
     }

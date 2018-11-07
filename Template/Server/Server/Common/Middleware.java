@@ -536,14 +536,14 @@ public abstract class Middleware implements IResourceManager
     private int count = 0;
 
     // Function to start transaction
-    public int startTransaction() throws RemoteException
+    public int startTransaction(String client_id) throws RemoteException
     {   
         synchronized(this.transactions)
         {
             int id = this.count++; //(int) new Date().getTime();
             int xid = id < 0? -id : id;
             System.out.println("Starting: " + xid);
-            this.transactions.put(xid, new Transaction(xid));
+            this.transactions.put(xid, new Transaction(xid,client_id));
 
             for (Integer x : this.transactions.keySet())
             {
@@ -635,7 +635,13 @@ public abstract class Middleware implements IResourceManager
             }
 
             this.transactions.remove(xid);
-            this.timers.remove(xid);
+            
+            synchronized (this.timers) 
+            {
+                this.timers.remove(xid);
+            }
+
+
         }   
 
         return true;
@@ -656,18 +662,17 @@ public abstract class Middleware implements IResourceManager
     }
 
     // Function to shutdown
-    public boolean shutdownServers() throws RemoteException
+    public boolean shutdownClient(String client_id) throws RemoteException
     {   
         synchronized(this.transactions)
         {   
-            if (!this.transactions.isEmpty()) return false;
-
-            //flightResourceManager.shutdown();
-            //carResourceManager.shutdown();
-            //roomResourceManager.shutdown();
-            //customerResourceManager.shutdown();
-
-            //System.exit(0);
+            for (Integer xid : transactions.keySet())
+            {
+                if (this.transactions.get(xid).getClientId().equals(client_id)) 
+                {
+                    return false;
+                }
+            }
         }
 
         return true;

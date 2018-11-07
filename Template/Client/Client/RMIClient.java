@@ -70,6 +70,7 @@ public class RMIClient extends Client
 				try {
 					Registry registry = LocateRegistry.getRegistry(server, port);
 					m_resourceManager = (IResourceManager) registry.lookup(s_rmiPrefix + name);
+					client_id = UUID.randomUUID().toString();
 					System.out.println("Connected to '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
 					break;
 				}

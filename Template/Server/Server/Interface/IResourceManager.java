@@ -264,8 +264,8 @@ public interface IResourceManager extends Remote
     // Start a transaction, add the a local history for the transaction in the hashmap of local histories
     public boolean start(int xid) throws RemoteException;
 
-    public int startTransaction() throws RemoteException;
+    public int startTransaction(String client_id) throws RemoteException;
     public boolean commitTransaction(int xid) throws RemoteException,TransactionAbortedException,InvalidTransactionException;
     public boolean abortTransaction(int xid) throws RemoteException,InvalidTransactionException,TransactionAbortedException;
-    public boolean shutdownServers() throws RemoteException;
+    public boolean shutdownClient(String client_id) throws RemoteException;
 }
