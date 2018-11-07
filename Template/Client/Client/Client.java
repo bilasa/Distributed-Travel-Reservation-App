@@ -538,11 +538,11 @@ public abstract class Client
 		}
 		catch (InvalidTransactionException e)
 		{
-			e.printStackTrace();
+			System.out.println("Exception caught: client catches invalid transaction exception"); //e.printStackTrace();
 		}
 		catch (TransactionAbortedException e)
 		{
-			e.printStackTrace();
+			System.out.println("Exception caught: client catches transaction aborted exception"); //e.printStackTrace();
 		}
 		catch (Exception e)
 		{

@@ -278,13 +278,12 @@ public class ResourceManager extends LockManager implements IResourceManager
     {
             Trace.info("RM::addFlight(" + xid + ", " + flightNum + ", " + flightSeats + ", $" + flightPrice + ") called");
             Flight curObj = (Flight)readData(xid, Flight.getKey(flightNum));
-            System.out.println("Read key: " + Flight.getKey(flightNum));
+           
             if (curObj == null)
             {
-                System.out.println("Flight read is null");
                 // Doesn't exist yet, add it
                 Flight newObj = new Flight(flightNum, flightSeats, flightPrice);
-                System.out.println("Read key: " + newObj.getKey());
+    
                 writeData(xid, newObj.getKey(), newObj);
                 Trace.info("RM::addFlight(" + xid + ") created new flight " + flightNum + ", seats=" + flightSeats + ", price=$" + flightPrice);
             }

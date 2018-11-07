@@ -48,8 +48,8 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
-            System.out.println("Deadlock Exception");
+            //e.printStackTrace();
+            System.out.println("Exception caught: Middleware addflight catches deadlock Exception");
         }
 
         return false;
@@ -69,7 +69,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware addcars catches deadlock Exception"); //e.printStackTrace();
         }
         
         return false;
@@ -89,7 +89,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware addrooms catches deadlock Exception"); //e.printStackTrace();
         }
 
         return false;
@@ -108,7 +108,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware deleteflight catches deadlock Exception"); //e.printStackTrace();
         }
 
         return false;
@@ -127,7 +127,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware deletecars catches deadlock Exception"); //e.printStackTrace();
         }
 
         return false;
@@ -146,7 +146,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware deleterooms catches deadlock Exception"); //e.printStackTrace();
         }
 
         return false;
@@ -165,7 +165,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware queryflight catches deadlock Exception"); //e.printStackTrace();
         }
 
         return -1;
@@ -184,7 +184,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware querycars catches deadlock Exception"); //e.printStackTrace();
         }
 
         return -1;
@@ -203,7 +203,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware queryrooms catches deadlock Exception"); //e.printStackTrace();
         }
 
         return -1;
@@ -222,7 +222,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware queryflightprice catches deadlock Exception"); //e.printStackTrace();
         }
 
         return -1;
@@ -241,7 +241,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware querycarsprice catches deadlock Exception"); //e.printStackTrace();
         }
 
         return -1;
@@ -260,7 +260,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware queryroomsprice catches deadlock Exception"); //e.printStackTrace();
         }
 
         return -1;
@@ -278,7 +278,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware querycustomerinfo catches deadlock Exception"); //e.printStackTrace();
         }
 
         return null;
@@ -296,7 +296,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware newcustomer catches deadlock Exception"); //e.printStackTrace();
         }
 
         return -1;
@@ -314,7 +314,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware newcustomer with id catches deadlock Exception"); //e.printStackTrace();
         }
 
         return false;
@@ -360,7 +360,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware deletecustomer catches deadlock Exception"); //e.printStackTrace();
         }
 
          return false;
@@ -390,7 +390,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware reserveflight catches deadlock Exception"); //e.printStackTrace();
         }
 
          return false;
@@ -420,7 +420,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware reservecar catches deadlock Exception");//e.printStackTrace();
         }
 
          return false;
@@ -450,7 +450,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware reserveroom catches deadlock Exception"); //e.printStackTrace();
         }
 
          return false;
@@ -513,7 +513,7 @@ public abstract class Middleware implements IResourceManager
         {   
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
-            e.printStackTrace();
+            System.out.println("Exception caught: Middleware bundle catches deadlock Exception"); //e.printStackTrace();
         }
 
          return false;
@@ -532,7 +532,7 @@ public abstract class Middleware implements IResourceManager
 
     private HashMap<Integer,Transaction> transactions = new HashMap<Integer,Transaction>();
     private HashMap<Integer,Timer> timers = new HashMap<Integer,Timer>();
-    private long TRANSACTION_TIME_LIMIT = 10000;
+    private long TRANSACTION_TIME_LIMIT = 120000;
     private int count = 0;
 
     // Function to start transaction
@@ -542,19 +542,11 @@ public abstract class Middleware implements IResourceManager
         {
             int id = this.count++; //(int) new Date().getTime();
             int xid = id < 0? -id : id;
-            System.out.println("Starting: " + xid);
             this.transactions.put(xid, new Transaction(xid,client_id));
-
-            for (Integer x : this.transactions.keySet())
-            {
-                System.out.println("Start -> " + x);
-            }
-
-            System.out.println(this.transactions.size());
 
             Timer t = new Timer();
             this.timers.put(xid, t);
-            /*t.schedule(new TimerTask(){
+            t.schedule(new TimerTask(){
             
                 @Override
                 public void run() {
@@ -563,19 +555,19 @@ public abstract class Middleware implements IResourceManager
                     }
                     catch (InvalidTransactionException e) 
                     {
-                        e.printStackTrace();
+                        System.out.println("Exception caught: Middleware-InvalidTransacton"); //e.printStackTrace();
                     }
                     catch (TransactionAbortedException e)
                     {
-                        e.printStackTrace();
+                        System.out.println("Exception caught: Middleware-TransactionAbortedTransacton"); //e.printStackTrace();
                     }
                     catch (RemoteException e)
                     {
-                        e.printStackTrace();
+                        System.out.println("Exception caught: Middleware-Remote"); //e.printStackTrace();
                     }
                     
                 }
-            }, this.TRANSACTION_TIME_LIMIT);*/
+            }, this.TRANSACTION_TIME_LIMIT);
 
             flightResourceManager.start(xid);
             carResourceManager.start(xid);
@@ -591,9 +583,6 @@ public abstract class Middleware implements IResourceManager
     {   
         synchronized(this.transactions)
         {   
-            System.out.println("Checking hashtable");
-            for (Integer n : this.transactions.keySet()) System.out.println(n);
-
             if (!this.transactions.containsKey(xid)) 
             {
                 throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid from middleware)");
@@ -653,7 +642,6 @@ public abstract class Middleware implements IResourceManager
         synchronized(this.transactions)
         {   
             if (!this.transactions.containsKey(xid)) {
-                System.out.println("Aborting: " + xid);
                 throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid (from middleware)");
             }
             
@@ -734,7 +722,7 @@ public abstract class Middleware implements IResourceManager
         Timer t = this.timers.get(xid);
 
         ts.addOperation(new Operation(rms));
-        /*t.schedule(new TimerTask(){
+        t.schedule(new TimerTask(){
         
             @Override
             public void run() {
@@ -743,18 +731,18 @@ public abstract class Middleware implements IResourceManager
                 }
                 catch (InvalidTransactionException e) 
                 {
-                    e.printStackTrace();
+                    System.out.println("Exception caught: Middleware-updateTransaction-InvalidTransacton");//e.printStackTrace();
                 }
                 catch (TransactionAbortedException e)
                 {
-                    e.printStackTrace();
+                    System.out.println("Exception caught: Middleware-updateTransaction-TransactonAborted"); //e.printStackTrace();
                 }
                 catch (RemoteException e)
                 {
-                    e.printStackTrace();
+                    System.out.println("Exception caught: Middleware-updateTransaction-Remote"); //e.printStackTrace();
                 }
             }
-        }, this.TRANSACTION_TIME_LIMIT);*/
+        }, this.TRANSACTION_TIME_LIMIT);
     }
 
     //====================================================================================================
