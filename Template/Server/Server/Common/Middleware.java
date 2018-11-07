@@ -583,54 +583,51 @@ public abstract class Middleware implements IResourceManager
     {   
         synchronized(this.transactions)
         {   
-            if (!this.transactions.containsKey(xid)) 
-            {
-                throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid from middleware)");
-            }
-
-            Transaction ts = this.transactions.get(xid);
-            ArrayList<Operation> ops = ts.getOperations();
-            HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
-
-            for (Operation op : ops)
-            {
-                ArrayList<RESOURCE_MANAGER_TYPE> rms = op.getResourceManagers();
-
-                for (RESOURCE_MANAGER_TYPE rm : rms)
-                {
-                    if (!set.contains(rm)) set.add(rm);
-                }
-            }
-
-            for (RESOURCE_MANAGER_TYPE rm : set) 
-            {
-                switch (rm)
-                {
-                    case FLIGHT:
-                        flightResourceManager.commit(xid);
-                        break;
-                    case CAR:
-                        carResourceManager.commit(xid);
-                        break;
-                    case ROOM:
-                        roomResourceManager.commit(xid);
-                        break;
-                    case CUSTOMER:
-                        customerResourceManager.commit(xid);
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            this.transactions.remove(xid);
-            
             synchronized (this.timers) 
             {
+                if (!this.transactions.containsKey(xid)) 
+                {
+                    throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid from middleware)");
+                }
+
+                Transaction ts = this.transactions.get(xid);
+                ArrayList<Operation> ops = ts.getOperations();
+                HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
+
+                for (Operation op : ops)
+                {
+                    ArrayList<RESOURCE_MANAGER_TYPE> rms = op.getResourceManagers();
+
+                    for (RESOURCE_MANAGER_TYPE rm : rms)
+                    {
+                        if (!set.contains(rm)) set.add(rm);
+                    }
+                }
+
+                for (RESOURCE_MANAGER_TYPE rm : set) 
+                {
+                    switch (rm)
+                    {
+                        case FLIGHT:
+                            flightResourceManager.commit(xid);
+                            break;
+                        case CAR:
+                            carResourceManager.commit(xid);
+                            break;
+                        case ROOM:
+                            roomResourceManager.commit(xid);
+                            break;
+                        case CUSTOMER:
+                            customerResourceManager.commit(xid);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                this.transactions.remove(xid);
                 this.timers.remove(xid);
             }
-
-
         }   
 
         return true;
@@ -669,80 +666,94 @@ public abstract class Middleware implements IResourceManager
     // Function to initiate abort
     public boolean initiateAbort(int xid) throws RemoteException, InvalidTransactionException, TransactionAbortedException
     {
-        Transaction ts = this.transactions.get(xid);
-        ArrayList<Operation> ops = ts.getOperations();
-        HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
-
-        for (Operation op : ops)
+        synchronized (this.transactions)
         {
-            ArrayList<RESOURCE_MANAGER_TYPE> rms = op.getResourceManagers();
-
-            for (RESOURCE_MANAGER_TYPE rm : rms)
+            synchronized (this.timers)
             {
-                if (!set.contains(rm)) set.add(rm);
+                Transaction ts = this.transactions.get(xid);
+                ArrayList<Operation> ops = ts.getOperations();
+                HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
+
+                for (Operation op : ops)
+                {
+                    ArrayList<RESOURCE_MANAGER_TYPE> rms = op.getResourceManagers();
+
+                    for (RESOURCE_MANAGER_TYPE rm : rms)
+                    {
+                        if (!set.contains(rm)) set.add(rm);
+                    }
+                }
+
+                for (RESOURCE_MANAGER_TYPE rm : set)
+                {
+                    switch (rm)
+                        {
+                            case FLIGHT:
+                                flightResourceManager.abort(xid);
+                                break;
+                            case CAR:
+                                carResourceManager.abort(xid);
+                                break;
+                            case ROOM:
+                                roomResourceManager.abort(xid);
+                                break;
+                            case CUSTOMER:
+                                customerResourceManager.abort(xid);
+                                break;
+                            default:
+                                break;
+                        }
+                }
+
+                this.transactions.remove(xid);
+                this.timers.remove(xid);
+
+                System.out.println(this.transactions.containsKey(xid)? "Transaction-" + xid + " removed");
+                System.out.println(this.timers.containsKey(xid)? "Timer-" + xid + " removed");
             }
         }
-
-        for (RESOURCE_MANAGER_TYPE rm : set)
-        {
-            switch (rm)
-                {
-                    case FLIGHT:
-                        flightResourceManager.abort(xid);
-                        break;
-                    case CAR:
-                        carResourceManager.abort(xid);
-                        break;
-                    case ROOM:
-                        roomResourceManager.abort(xid);
-                        break;
-                    case CUSTOMER:
-                        customerResourceManager.abort(xid);
-                        break;
-                    default:
-                        break;
-                }
-        }
-
-        this.transactions.remove(xid);
-        this.timers.remove(xid);
-
         return true;
     }
 
     // Function to add operation and to update timer for a transaction
     public void updateTransaction(int xid, ArrayList<RESOURCE_MANAGER_TYPE> rms) throws RemoteException, InvalidTransactionException, TransactionAbortedException
     {   
-        if (!this.transactions.containsKey(xid) || !this.timers.containsKey(xid)) 
+        synchronized (this.transactions) 
         {
-            throw new InvalidTransactionException(xid,"Cannot identify the transaction xid by transaction manager");
-        }
+            synchronized (this.timers) 
+            {
+                if (!this.transactions.containsKey(xid) || !this.timers.containsKey(xid)) 
+                {
+                    throw new InvalidTransactionException(xid,"Cannot identify the transaction xid by transaction manager");
+                }
 
-        Transaction ts = this.transactions.get(xid);
-        Timer t = this.timers.get(xid);
+                Transaction ts = this.transactions.get(xid);
+                Timer t = this.timers.get(xid);
 
-        ts.addOperation(new Operation(rms));
-        t.schedule(new TimerTask(){
-        
-            @Override
-            public void run() {
-                try {
-                    initiateAbort(xid);
-                }
-                catch (InvalidTransactionException e) 
-                {
-                    System.out.println("Exception caught: Middleware-updateTransaction-InvalidTransacton");//e.printStackTrace();
-                }
-                catch (TransactionAbortedException e)
-                {
-                    System.out.println("Exception caught: Middleware-updateTransaction-TransactonAborted"); //e.printStackTrace();
-                }
-                catch (RemoteException e)
-                {
-                    System.out.println("Exception caught: Middleware-updateTransaction-Remote"); //e.printStackTrace();
-                }
+                ts.addOperation(new Operation(rms));
+                t.schedule(new TimerTask(){
+                
+                    @Override
+                    public void run() {
+                        try {
+                            initiateAbort(xid);
+                        }
+                        catch (InvalidTransactionException e) 
+                        {
+                            System.out.println("Exception caught: Middleware-updateTransaction-InvalidTransacton");//e.printStackTrace();
+                        }
+                        catch (TransactionAbortedException e)
+                        {
+                            System.out.println("Exception caught: Middleware-updateTransaction-TransactonAborted"); //e.printStackTrace();
+                        }
+                        catch (RemoteException e)
+                        {
+                            System.out.println("Exception caught: Middleware-updateTransaction-Remote"); //e.printStackTrace();
+                        }
+                    }
+                }, this.TRANSACTION_TIME_LIMIT);
             }
-        }, this.TRANSACTION_TIME_LIMIT);
+        }
     }
 
     //====================================================================================================
