@@ -93,7 +93,7 @@ public abstract class Client
 					checkArgumentsCount(1, arguments.size());
 					System.out.println("Starting Transaction");
 					
-					int new_xid = m_resourceManager.startTransaction();
+					int new_xid = m_resourceManager.startTransaction(this.client_id);
 
 					if (new_xid != -1) 
 					{
@@ -147,7 +147,7 @@ public abstract class Client
 					checkArgumentsCount(1, arguments.size());
 					System.out.println("Shutdown servers");
 					
-					if (m_resourceManager.shutdownServers()) 
+					if (m_resourceManager.shutdownClient(this.client_id)) 
 					{
 						System.out.println("Succesful Shutdown");
 						System.exit(0);
