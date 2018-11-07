@@ -64,14 +64,29 @@ public class LockManager
 
 						if (bConvert.get(0) == true) {
 							// Lock conversion
-                            ( (TransactionLockObject)(this.lockTable.get(xLockObject)) ).setLockType(TransactionLockObject.LockType.LOCK_WRITE);
-                            ( (DataLockObject)(this.lockTable.get(dataLockObject)) ).setLockType(TransactionLockObject.LockType.LOCK_WRITE);
-                            
+							System.out.println("First write....");
+
+							//TransactionLockObject obj = (TransactionLockObject) this.lockTable.get(xLockObject);
+
+							//if (obj == null) System.out.println("fuck");
+							//else System.out.println("ill be..");
+							TransactionLockObject tempXLockObject = new TransactionLockObject(xid, data, TransactionLockObject.LockType.LOCK_READ);
+							DataLockObject tempDataLockObject = new DataLockObject(xid, data, TransactionLockObject.LockType.LOCK_READ);
+
+							( (TransactionLockObject)(this.lockTable.get(tempXLockObject)) ).setLockType(TransactionLockObject.LockType.LOCK_WRITE);
+                            ( (DataLockObject)(this.lockTable.get(tempDataLockObject)) ).setLockType(TransactionLockObject.LockType.LOCK_WRITE);
+					
                             Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") converted");
 						} else {
 							// Lock request that is not lock conversion
+							System.out.println("First read....");
 							this.lockTable.add(xLockObject);
 							this.lockTable.add(dataLockObject);
+
+							//TransactionLockObject obj = (TransactionLockObject) this.lockTable.get(xLockObject);
+
+							//if (obj == null) System.out.println("fuck 2");
+							//else System.out.println("ill be 2..");
 
 							Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") granted");
 						}
@@ -205,6 +220,13 @@ public class LockManager
 	private boolean LockConflict(DataLockObject dataLockObject, BitSet bitset) throws DeadlockException, RedundantLockRequestException
 	{
 		Vector vect = this.lockTable.elements(dataLockObject);
+		System.out.println("Size of vect -> " + vect.size());
+		for(Object o : vect) {
+
+			String s = ((TransactionLockObject) o).toString();
+
+			System.out.println(s);
+		}
 		int size = vect.size();
 
 		// As soon as a lock that conflicts with the current lock request is found, return true
@@ -248,7 +270,8 @@ public class LockManager
                         }
                         
                         // No one else has a READ lock, set the bitset to 1 for conversion
-                        bitset.set(0);
+						System.out.println("Bit was set");
+                        bitset.set(0, true);
                     }
                     // (2) transaction already had a WRITE lock
                     else if (l_dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_WRITE)

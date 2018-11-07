@@ -49,6 +49,7 @@ public abstract class Middleware implements IResourceManager
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
             e.printStackTrace();
+            System.out.println("Deadlock Exception");
         }
 
         return false;
@@ -532,18 +533,28 @@ public abstract class Middleware implements IResourceManager
     private HashMap<Integer,Transaction> transactions = new HashMap<Integer,Transaction>();
     private HashMap<Integer,Timer> timers = new HashMap<Integer,Timer>();
     private long TRANSACTION_TIME_LIMIT = 10000;
+    private int count = 0;
 
     // Function to start transaction
     public int startTransaction() throws RemoteException
     {   
         synchronized(this.transactions)
         {
-            int xid = (int) new Date().getTime();
+            int id = this.count++; //(int) new Date().getTime();
+            int xid = id < 0? -id : id;
+            System.out.println("Starting: " + xid);
             this.transactions.put(xid, new Transaction(xid));
+
+            for (Integer x : this.transactions.keySet())
+            {
+                System.out.println("Start -> " + x);
+            }
+
+            System.out.println(this.transactions.size());
 
             Timer t = new Timer();
             this.timers.put(xid, t);
-            t.schedule(new TimerTask(){
+            /*t.schedule(new TimerTask(){
             
                 @Override
                 public void run() {
@@ -564,7 +575,7 @@ public abstract class Middleware implements IResourceManager
                     }
                     
                 }
-            }, this.TRANSACTION_TIME_LIMIT);
+            }, this.TRANSACTION_TIME_LIMIT);*/
 
             flightResourceManager.start(xid);
             carResourceManager.start(xid);
@@ -579,10 +590,13 @@ public abstract class Middleware implements IResourceManager
     public boolean commitTransaction(int xid) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         synchronized(this.transactions)
-        {
-            if (!transactions.containsKey(xid)) 
+        {   
+            System.out.println("Checking hashtable");
+            for (Integer n : this.transactions.keySet()) System.out.println(n);
+
+            if (!this.transactions.containsKey(xid)) 
             {
-                throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid");
+                throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid from middleware)");
             }
 
             Transaction ts = this.transactions.get(xid);
@@ -632,8 +646,9 @@ public abstract class Middleware implements IResourceManager
     {   
         synchronized(this.transactions)
         {   
-            if (!transactions.containsKey(xid)) {
-                throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid");
+            if (!this.transactions.containsKey(xid)) {
+                System.out.println("Aborting: " + xid);
+                throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid (from middleware)");
             }
             
             return initiateAbort(xid);
@@ -712,7 +727,7 @@ public abstract class Middleware implements IResourceManager
         Timer t = this.timers.get(xid);
 
         ts.addOperation(new Operation(rms));
-        t.schedule(new TimerTask(){
+        /*t.schedule(new TimerTask(){
         
             @Override
             public void run() {
@@ -732,7 +747,7 @@ public abstract class Middleware implements IResourceManager
                     e.printStackTrace();
                 }
             }
-        }, this.TRANSACTION_TIME_LIMIT);
+        }, this.TRANSACTION_TIME_LIMIT);*/
     }
 
     //====================================================================================================

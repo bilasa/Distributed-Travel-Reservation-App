@@ -89,7 +89,7 @@ public abstract class Client
 				// Transaction commands
 				case Start: {
 
-					checkArgumentsCount(0, arguments.size());
+					checkArgumentsCount(1, arguments.size());
 					System.out.println("Starting Transaction");
 					
 					int new_xid = m_resourceManager.startTransaction();
@@ -107,7 +107,7 @@ public abstract class Client
 				}
 				case Commit: {
 
-					checkArgumentsCount(1, arguments.size());
+					checkArgumentsCount(2, arguments.size());
 					System.out.println("Commiting Transaction [xid=" + arguments.elementAt(1) + "]");
 
 					int xid = toInt(arguments.elementAt(1));
@@ -125,7 +125,7 @@ public abstract class Client
 				}
 				case Abort: {
 
-					checkArgumentsCount(1, arguments.size());
+					checkArgumentsCount(2, arguments.size());
 					System.out.println("Aborting Transaction [xid=" + arguments.elementAt(1) + "]");
 
 					int xid = toInt(arguments.elementAt(1));
@@ -143,7 +143,7 @@ public abstract class Client
 				}
 				case Shutdown: {
 
-					checkArgumentsCount(0, arguments.size());
+					checkArgumentsCount(1, arguments.size());
 					System.out.println("Shutdown servers");
 					
 					if (m_resourceManager.shutdownServers()) 
@@ -154,6 +154,8 @@ public abstract class Client
 					{
 						System.out.println("Failed Shutdown due to active transactions");
 					}
+
+					break;
 				}
 				// Operation commands
 				case AddFlight: {
