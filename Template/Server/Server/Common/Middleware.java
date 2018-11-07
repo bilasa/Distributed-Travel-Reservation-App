@@ -546,7 +546,7 @@ public abstract class Middleware implements IResourceManager
 
             Timer t = new Timer();
             this.timers.put(xid, t);
-            t.schedule(new TimerTask(){
+            /*t.schedule(new TimerTask(){
             
                 @Override
                 public void run() {
@@ -567,7 +567,7 @@ public abstract class Middleware implements IResourceManager
                     }
                     
                 }
-            }, this.TRANSACTION_TIME_LIMIT);
+            }, this.TRANSACTION_TIME_LIMIT);*/
 
             flightResourceManager.start(xid);
             carResourceManager.start(xid);
@@ -708,8 +708,8 @@ public abstract class Middleware implements IResourceManager
                 this.transactions.remove(xid);
                 this.timers.remove(xid);
 
-                System.out.println(this.transactions.containsKey(xid)? "Transaction-" + xid + " removed");
-                System.out.println(this.timers.containsKey(xid)? "Timer-" + xid + " removed");
+                System.out.println(this.transactions.containsKey(xid)? "Transaction-" + xid + " removed" : "Transaction-" + xid + " not removed");
+                System.out.println(this.timers.containsKey(xid)? "Timer-" + xid + " removed" : "Timer-" + xid + " not removed");
             }
         }
         return true;
@@ -731,7 +731,7 @@ public abstract class Middleware implements IResourceManager
                 Timer t = this.timers.get(xid);
 
                 ts.addOperation(new Operation(rms));
-                t.schedule(new TimerTask(){
+                /*t.schedule(new TimerTask(){
                 
                     @Override
                     public void run() {
@@ -751,7 +751,7 @@ public abstract class Middleware implements IResourceManager
                             System.out.println("Exception caught: Middleware-updateTransaction-Remote"); //e.printStackTrace();
                         }
                     }
-                }, this.TRANSACTION_TIME_LIMIT);
+                }, this.TRANSACTION_TIME_LIMIT);*/
             }
         }
     }
