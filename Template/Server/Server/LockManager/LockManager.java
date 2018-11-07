@@ -66,34 +66,33 @@ public class LockManager
 							// Lock conversion
 							System.out.println("First write....");
 
-							//TransactionLockObject obj = (TransactionLockObject) this.lockTable.get(xLockObject);
-
-							//if (obj == null) System.out.println("fuck");
-							//else System.out.println("ill be..");
 							TransactionLockObject tempXLockObject = new TransactionLockObject(xid, data, TransactionLockObject.LockType.LOCK_READ);
 							DataLockObject tempDataLockObject = new DataLockObject(xid, data, TransactionLockObject.LockType.LOCK_READ);
-
+							
+							String lt = dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ? "READ_LOCK" : "WRITE_LOCK";
+							System.out.println("LOCK STATUS for " + xid + ": LOCK_TYPE=" + lt + " [a lock conversion]");
+							
 							( (TransactionLockObject)(this.lockTable.get(tempXLockObject)) ).setLockType(TransactionLockObject.LockType.LOCK_WRITE);
                             ( (DataLockObject)(this.lockTable.get(tempDataLockObject)) ).setLockType(TransactionLockObject.LockType.LOCK_WRITE);
 					
                             Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") converted");
 						} else {
 							// Lock request that is not lock conversion
-							System.out.println("First read....");
 							this.lockTable.add(xLockObject);
 							this.lockTable.add(dataLockObject);
 
-							//TransactionLockObject obj = (TransactionLockObject) this.lockTable.get(xLockObject);
-
-							//if (obj == null) System.out.println("fuck 2");
-							//else System.out.println("ill be 2..");
-
+							String lt = dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ? "READ_LOCK" : "WRITE_LOCK";
+							System.out.println("LOCK STATUS for " + xid + ": LOCK_TYPE=" + lt + " [not a lock conversion]");
+							
 							Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") granted");
 						}
 					}
 				}
 				if (bConflict) {
 					// Lock conflict exists, wait
+					String lt = dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ? "READ_LOCK" : "WRITE_LOCK";
+					System.out.println("LOCK STATUS for " + xid + ": LOCK_TYPE=" + lt + " [PUT TO WAILIST]");
+					
 					WaitLock(dataLockObject);
 				}
 			}
@@ -127,11 +126,13 @@ public class LockManager
 			Vector waitVector;
 			WaitLockObject waitLockObject;
 			int size = vect.size();
-
+			System.out.println("UNLOCKING...");
 			for (int i = (size - 1); i >= 0; i--)
 			{
 				xLockObject = (TransactionLockObject)vect.elementAt(i);
 				this.lockTable.remove(xLockObject);
+
+				System.out.print("FOR " + xid + "- DATA: " + xLockObject.getDataName());
 
 				Trace.info("LM::unlock(" + xid + ", " + xLockObject.getDataName() + ", " + xLockObject.getLockType() + ") unlocked");
 
