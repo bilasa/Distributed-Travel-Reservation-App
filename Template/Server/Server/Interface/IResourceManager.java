@@ -259,7 +259,7 @@ public interface IResourceManager extends Remote
     public void abort(int xid) throws RemoteException, InvalidTransactionException;
 
     // Exits the server
-    public boolean shutdown() throws RemoteException;
+    public void shutdown() throws RemoteException;
 
     // Start a transaction, add the a local history for the transaction in the hashmap of local histories
     public boolean start(int xid) throws RemoteException;

@@ -147,10 +147,10 @@ public class ResourceManager extends LockManager implements IResourceManager
     }
     
     // Exits the server
-    public boolean shutdown() throws RemoteException
-    {
-        // TO-DO
-        return true;
+    public void shutdown() throws RemoteException
+    {   
+        System.out.println("Server is shutdown");
+        System.exit(0);
     }
     
     // Start a transaction, add the a local history for the transaction in the hashmap of local histories

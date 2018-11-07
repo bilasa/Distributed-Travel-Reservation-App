@@ -666,6 +666,8 @@ public abstract class Middleware implements IResourceManager
             carResourceManager.shutdown();
             roomResourceManager.shutdown();
             customerResourceManager.shutdown();
+
+            System.exit(0);
         }
 
         return true;
@@ -847,9 +849,9 @@ public abstract class Middleware implements IResourceManager
     }
 
     // Exits the server
-    public boolean shutdown() throws RemoteException
+    public void shutdown() throws RemoteException
     {
-        return false;
+        return;
     }
 
     // Start a transaction, add the a local history for the transaction in the hashmap of local histories
