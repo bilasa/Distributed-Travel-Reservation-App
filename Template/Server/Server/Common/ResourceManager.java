@@ -35,6 +35,7 @@ public class ResourceManager extends LockManager implements IResourceManager
             throw deadlock;
         }
         
+        
         // Get the local history for the transaction
         synchronized(local) {
             RMHashMap local_data = local.get(xid);
@@ -116,7 +117,16 @@ public class ResourceManager extends LockManager implements IResourceManager
                     for (String key : local_data.keySet())
                     {
                         RMItem item = local_data.get(key);
-                        m_data.put(key, item);
+
+                        if (item == null) // for removing an item
+                        {
+                            m_data.remove(key);
+                        }
+                        else
+                        {
+                            m_data.put(key, item); // for writing an item
+                        }
+                        
                     }
                 }
                 
@@ -169,11 +179,29 @@ public class ResourceManager extends LockManager implements IResourceManager
     }
 
 	// Remove the item out of storage
-	protected void removeData(int xid, String key)
+	protected void removeData(int xid, String key) throws DeadlockException, InvalidTransactionException, TransactionAbortedException
 	{
-		synchronized(m_data) {
-			m_data.remove(key);
-		}
+
+        try {
+            Lock(xid, key, TransactionLockObject.LockType.LOCK_WRITE);
+        }
+        catch (DeadlockException deadlock) {
+            throw deadlock;
+        }
+        
+        // Get the local history for the transaction
+        synchronized(local) {
+            RMHashMap local_data = local.get(xid);
+            if (local_data == null)
+            {
+                throw new InvalidTransactionException(xid,"Cannot write data for a non-existent transaction xid");
+            }
+            
+            local_data.put(key, null);
+            
+            // update the hashmap of local histories
+            local.put(xid, local_data);
+        }
 	}
 
 	// Deletes the encar item
