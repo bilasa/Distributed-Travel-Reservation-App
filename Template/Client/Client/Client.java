@@ -149,6 +149,7 @@ public abstract class Client
 					if (m_resourceManager.shutdownServers()) 
 					{
 						System.out.println("Succesful Shutdown");
+						System.exit(0);
 					}
 					else
 					{

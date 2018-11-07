@@ -662,12 +662,12 @@ public abstract class Middleware implements IResourceManager
         {   
             if (!this.transactions.isEmpty()) return false;
 
-            flightResourceManager.shutdown();
-            carResourceManager.shutdown();
-            roomResourceManager.shutdown();
-            customerResourceManager.shutdown();
+            //flightResourceManager.shutdown();
+            //carResourceManager.shutdown();
+            //roomResourceManager.shutdown();
+            //customerResourceManager.shutdown();
 
-            System.exit(0);
+            //System.exit(0);
         }
 
         return true;
