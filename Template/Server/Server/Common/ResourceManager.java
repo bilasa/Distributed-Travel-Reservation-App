@@ -122,6 +122,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                 
                 // Unlock all locks owned by transaction
                 UnlockAll(xid);
+                System.out.println("Commited transaction " + xid);
                 
                 // Remove the local history
                 local.remove(xid);
@@ -138,6 +139,7 @@ public class ResourceManager extends LockManager implements IResourceManager
         if (local.get(xid) != null)
         {
             // Remove the local history
+            System.out.println("Aborted transaction " + xid);
             local.remove(xid);
         }
         else
