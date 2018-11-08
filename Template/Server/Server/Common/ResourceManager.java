@@ -22,7 +22,6 @@ public class ResourceManager extends LockManager implements IResourceManager
     
     // To store time spent in RM. Every time a method in RM is called from Middleware, the time spent is stored in RM.txt
     protected Map<Integer, Long> startTimes = new HashMap<Integer, Long>();
-    protected File timeFile = new File("RM.txt");
     
     public ResourceManager(String p_name)
     {
@@ -1198,11 +1197,12 @@ public class ResourceManager extends LockManager implements IResourceManager
     }
     
     // Function to store the total time spent in the RM in a text file
-    protected static void storeTime(double time) throws IOException
+    protected void storeTime(double time) throws IOException
     {
-        FileWriter fileWriter = new FileWriter(timeFile, true);
-        fileWriter.write(time + "\r\n");
-        fileWriter.close();
+        BufferedWriter bw = new BufferedWriter(new FileWriter("RM.csv", true));
+		bw.write(time + ",");
+	    bw.newLine();
+		bw.flush();
     }
 }
 

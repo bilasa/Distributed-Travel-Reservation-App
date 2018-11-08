@@ -21,6 +21,7 @@ public abstract class Client_Analysis
 	int rmid = 0;
 	int n1 = 10;
 	int n2 = 10;
+	int sleepTime = 10000;
 
 	public Client_Analysis()
 	{
@@ -39,37 +40,65 @@ public abstract class Client_Analysis
 		transaction.add("start");
 		transaction.add("addflight,0,0,5,5");
 		transaction.add("addflight,0,1,5,5");
-		transaction.add("deleteflight,0,0,5,5");
+		transaction.add("deleteflight,0,0");
 		transaction.add("commit,0");
 
-		for (int i = 0; i < (int) this.iterations; i++)
+		for (int i = 0; i < (int) this.iterations; i++) 
 		{	
-			for (int j = 0; j < transaction.size(); j++)
-			{
-				try {
-					String command = transaction.get(j);
-					Vector<String> arguments = parse(command);
-					Command cmd = Command.fromString((String) arguments.elementAt(0));
-					
-					try {
-						execute(cmd, arguments);
+			try {
+				Thread t = new Thread() { 
+			
+					@Override 
+					public void run()
+					{
+						for (int j = 0; j < 10; j++)
+						{
+							for (int k = 0; k < transaction.size(); k++)
+							{
+								try {
+									String command = transaction.get(j);
+									Vector<String> arguments = parse(command);
+									Command cmd = Command.fromString((String) arguments.elementAt(0));
+									
+									try {
+										execute(cmd, arguments);
+									}
+									catch (ConnectException e) {
+										connectServer();
+										execute(cmd, arguments);
+									}
+								}
+								catch (IllegalArgumentException|ServerException e) {
+									System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
+								}
+								catch (ConnectException|UnmarshalException e) {
+									System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mConnection to server lost");
+								}
+								catch (Exception e) {
+									System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mUncaught exception");
+									e.printStackTrace();
+								}	
+							}
+						}
+
+						try { this.sleep(sleepTime); }
+						catch(InterruptedException e) { }
+						
 					}
-					catch (ConnectException e) {
-						connectServer();
-						execute(cmd, arguments);
-					}
-				}
-				catch (IllegalArgumentException|ServerException e) {
-					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
-				}
-				catch (ConnectException|UnmarshalException e) {
-					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mConnection to server lost");
-				}
-				catch (Exception e) {
-					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mUncaught exception");
-					e.printStackTrace();
-				}	
+				};
+				t.start();
 			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+
+
+			
+			
+			
+			
+			
 		}
 	}
 
@@ -102,7 +131,7 @@ public abstract class Client_Analysis
 					int new_xid = m_resourceManager.startTransaction(this.client_id);
 					xid_ = new_xid;
 
-					Long stampA = System.currentTimeMillis();
+					Long stampA = System.nanoTime();
 					
 					synchronized (this.stamps) {
 						this.stamps.put(xid_,stampA);
@@ -131,12 +160,12 @@ public abstract class Client_Analysis
 						synchronized (this.stamps) 
 						{
 							Long stamp_A = this.stamps.get(xid);
-							Long stampB = System.currentTimeMillis();
+							Long stampB = System.nanoTime();
 							Long diff = stampB - stamp_A;
 							
 							try {
-								bw = new BufferedWriter(new FileWriter("response_time.csv", true));
-								bw.write(Long.toString(diff) + ",");
+								bw = new BufferedWriter(new FileWriter("response_time" + sleepTime + ".csv", true));
+								bw.write(((double)(diff / 1e6)) + ",");
 								bw.newLine();
 								bw.flush();
 							} 
@@ -174,7 +203,7 @@ public abstract class Client_Analysis
 						synchronized (this.stamps) 
 						{
 							Long stamp_A = this.stamps.get(xid);
-							Long stampB = System.currentTimeMillis();
+							Long stampB = System.nanoTime();
 							Long diff = stampB - stamp_A;
 							
 							try {

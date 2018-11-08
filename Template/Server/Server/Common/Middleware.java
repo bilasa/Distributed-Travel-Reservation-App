@@ -28,6 +28,9 @@ public abstract class Middleware implements IResourceManager
     public IResourceManager carResourceManager = null;
     public IResourceManager roomResourceManager = null;
     public IResourceManager customerResourceManager = null;
+
+    // To store time spent in RM. Every time a method in RM is called from Middleware, the time spent is stored in RM.txt
+    protected Map<Integer, Long> startTimes = new HashMap<Integer, Long>();
     
     public Middleware(String p_name)
     {
@@ -39,10 +42,19 @@ public abstract class Middleware implements IResourceManager
     public boolean addFlight(int xid, int flightNum, int flightSeats, int flightPrice) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
             updateTransaction(xid, rms);
-            return flightResourceManager.addFlight(xid, flightNum, flightSeats, flightPrice);
+            long t1 = System.nanoTime();
+            boolean res = flightResourceManager.addFlight(xid, flightNum, flightSeats, flightPrice);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -61,10 +73,19 @@ public abstract class Middleware implements IResourceManager
     public boolean addCars(int xid, String location, int count, int price) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.CAR);
             updateTransaction(xid, rms);
-            return carResourceManager.addCars(xid, location, count, price);
+            long t1 = System.nanoTime();
+            boolean res = carResourceManager.addCars(xid, location, count, price);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -82,10 +103,19 @@ public abstract class Middleware implements IResourceManager
     public boolean addRooms(int xid, String location, int count, int price) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.ROOM);
             updateTransaction(xid, rms);
-            return roomResourceManager.addRooms(xid, location, count, price);
+            long t1 = System.nanoTime();
+            boolean res = roomResourceManager.addRooms(xid, location, count, price);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -102,10 +132,19 @@ public abstract class Middleware implements IResourceManager
     public boolean deleteFlight(int xid, int flightNum) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
             updateTransaction(xid, rms);
-            return flightResourceManager.deleteFlight(xid, flightNum);
+            long t1 = System.nanoTime();
+            boolean res = flightResourceManager.deleteFlight(xid, flightNum);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -122,10 +161,19 @@ public abstract class Middleware implements IResourceManager
     public boolean deleteCars(int xid, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {      
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.CAR);
             updateTransaction(xid, rms);
-            return carResourceManager.deleteCars(xid, location);
+            long t1 = System.nanoTime();
+            boolean res = carResourceManager.deleteCars(xid, location);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -142,10 +190,19 @@ public abstract class Middleware implements IResourceManager
     public boolean deleteRooms(int xid, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.ROOM);
             updateTransaction(xid, rms);
-            return roomResourceManager.deleteRooms(xid, location);
+            long t1 = System.nanoTime();
+            boolean res = roomResourceManager.deleteRooms(xid, location);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -162,10 +219,19 @@ public abstract class Middleware implements IResourceManager
     public int queryFlight(int xid, int flightNum) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
             updateTransaction(xid, rms);
-            return flightResourceManager.queryFlight(xid, flightNum);
+            long t1 = System.nanoTime();
+            int res = flightResourceManager.queryFlight(xid, flightNum);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -182,10 +248,19 @@ public abstract class Middleware implements IResourceManager
     public int queryCars(int xid, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.CAR);
             updateTransaction(xid, rms);
-            return carResourceManager.queryCars(xid, location);
+            long t1 = System.nanoTime();
+            int res = carResourceManager.queryCars(xid, location);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -202,10 +277,19 @@ public abstract class Middleware implements IResourceManager
     public int queryRooms(int xid, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {      
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.ROOM);
             updateTransaction(xid, rms);
-            return roomResourceManager.queryRooms(xid, location);
+            long t1 = System.nanoTime();
+            int res = roomResourceManager.queryRooms(xid, location);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -222,10 +306,19 @@ public abstract class Middleware implements IResourceManager
     public int queryFlightPrice(int xid, int flightNum) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
             updateTransaction(xid, rms);
-            return flightResourceManager.queryFlightPrice(xid, flightNum);
+            long t1 = System.nanoTime();
+            int res = flightResourceManager.queryFlightPrice(xid, flightNum);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -242,10 +335,19 @@ public abstract class Middleware implements IResourceManager
     public int queryCarsPrice(int xid, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.CAR);
             updateTransaction(xid, rms);
-            return carResourceManager.queryCarsPrice(xid, location);
+            long t1 = System.nanoTime();
+            int res = carResourceManager.queryCarsPrice(xid, location);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -262,10 +364,19 @@ public abstract class Middleware implements IResourceManager
     public int queryRoomsPrice(int xid, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.ROOM);
             updateTransaction(xid, rms);
-            return roomResourceManager.queryRoomsPrice(xid, location);
+            long t1 = System.nanoTime();
+            int res = roomResourceManager.queryRoomsPrice(xid, location);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -281,10 +392,19 @@ public abstract class Middleware implements IResourceManager
     public String queryCustomerInfo(int xid, int customerID) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
             updateTransaction(xid, rms);
-            return customerResourceManager.queryCustomerInfo(xid, customerID);
+            long t1 = System.nanoTime();
+            String res = customerResourceManager.queryCustomerInfo(xid, customerID);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -300,10 +420,19 @@ public abstract class Middleware implements IResourceManager
     public int newCustomer(int xid) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
             updateTransaction(xid, rms);
-            return customerResourceManager.newCustomer(xid);
+            long t1 = System.nanoTime();
+            int res = customerResourceManager.newCustomer(xid);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -319,10 +448,19 @@ public abstract class Middleware implements IResourceManager
     public boolean newCustomer(int xid, int customerID) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
             updateTransaction(xid, rms);
-            return customerResourceManager.newCustomer(xid, customerID);
+            long t1 = System.nanoTime();
+            boolean res = customerResourceManager.newCustomer(xid, customerID);
+            try {
+                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
         }
         catch (DeadlockException e)
         {   
@@ -338,6 +476,7 @@ public abstract class Middleware implements IResourceManager
     public boolean deleteCustomer(int xid, int customerID) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
 
@@ -386,11 +525,14 @@ public abstract class Middleware implements IResourceManager
     public boolean reserveFlight(int xid, int customerID, int flightNum) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try { 
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
             
             // Reserve a seat in the flight and get the price for the flight
+            long t1 = System.nanoTime();
             Integer flightPrice = flightResourceManager.reserveFlight_FlightRM(xid, flightNum, 1).intValue();
+            long t2 = System.nanoTime();
         
             if ((int) flightPrice == -1) 
             {
@@ -399,7 +541,15 @@ public abstract class Middleware implements IResourceManager
             else {
                 rms.add(RESOURCE_MANAGER_TYPE.FLIGHT);
                 updateTransaction(xid, rms);
-                return customerResourceManager.reserveFlight_CustomerRM(xid, customerID, flightNum, flightPrice);
+                long t3 = System.nanoTime();
+                boolean res =  customerResourceManager.reserveFlight_CustomerRM(xid, customerID, flightNum, flightPrice);
+                try {
+                storeTime( ((t3 - t2) + (t1 - startTimes.get(xid))) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
+            return res;
             }
         }
         catch (DeadlockException e)
@@ -409,7 +559,7 @@ public abstract class Middleware implements IResourceManager
             flightResourceManager.abort(e.getXId());
             System.out.println("Exception caught: Middleware reserveflight catches deadlock Exception"); //e.printStackTrace();
         }
-
+        
          return false;
     }
     
@@ -417,11 +567,14 @@ public abstract class Middleware implements IResourceManager
     public boolean reserveCar(int xid, int customerID, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
 
             // Reserve a car and get its price
+            long t1 = System.nanoTime();
             Integer carPrice = carResourceManager.reserveCar_CarRM(xid, location, 1).intValue();
+            long t2 = System.nanoTime();
             
             if ((int) carPrice == -1) 
             {
@@ -430,8 +583,16 @@ public abstract class Middleware implements IResourceManager
             else {
                 rms.add(RESOURCE_MANAGER_TYPE.CAR);
                 updateTransaction(xid, rms);
-                return customerResourceManager.reserveCar_CustomerRM(xid, customerID, location, carPrice);
-            }
+                long t3 = System.nanoTime();
+                boolean res = customerResourceManager.reserveCar_CustomerRM(xid, customerID, location, carPrice);
+                try {
+                    storeTime( ((t3 - t2) + (t1 - startTimes.get(xid))) / 1e6 );
+                }
+                catch (IOException e) {
+                    System.err.println("Caught IOException: " + e.getMessage());
+                }
+                    return res;
+                }
         }
         catch (DeadlockException e)
         {   
@@ -448,11 +609,14 @@ public abstract class Middleware implements IResourceManager
     public boolean reserveRoom(int xid, int customerID, String location) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
 
             // Reserve a room and get its price
+            long t1 = System.nanoTime();
             Integer roomPrice = roomResourceManager.reserveRoom_RoomRM(xid, location, 1).intValue();
+            long t2 = System.nanoTime();
             
             if ((int) roomPrice == -1) 
             {
@@ -461,8 +625,16 @@ public abstract class Middleware implements IResourceManager
             else {
                 rms.add(RESOURCE_MANAGER_TYPE.ROOM);
                 updateTransaction(xid, rms);
-                return customerResourceManager.reserveRoom_CustomerRM(xid, customerID, location, roomPrice);
-            }
+                long t3 = System.nanoTime();
+                boolean res =  customerResourceManager.reserveRoom_CustomerRM(xid, customerID, location, roomPrice);
+                try {
+                storeTime( ((t3 - t2) + (t1 - startTimes.get(xid))) / 1e6 );
+                }
+                catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+                }
+                return res;
+                }
         }
         catch (DeadlockException e)
         {   
@@ -479,6 +651,7 @@ public abstract class Middleware implements IResourceManager
     public boolean bundle(int xid, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
         try {
+            startTimes.put(xid, System.nanoTime());
             ArrayList<RESOURCE_MANAGER_TYPE> rms = new ArrayList<RESOURCE_MANAGER_TYPE>();
             rms.add(RESOURCE_MANAGER_TYPE.CUSTOMER);
             
@@ -493,8 +666,13 @@ public abstract class Middleware implements IResourceManager
 
             // Validate 
             prices = flightResourceManager.reserveFlights_FlightRM(xid, flights, 1);
-            if (car) carPrice = carResourceManager.reserveCar_CarRM(xid, location, 1);
-            if (room) roomPrice = roomResourceManager.reserveRoom_RoomRM(xid, location, 1);
+            if (car) 
+            {
+                carPrice = carResourceManager.reserveCar_CarRM(xid, location, 1);
+            }
+            if (room) {
+                roomPrice = roomResourceManager.reserveRoom_RoomRM(xid, location, 1);
+            }
             customer = !(customerResourceManager.queryCustomerInfo(xid, customerID).isEmpty());
 
             // Invalid cases
@@ -561,6 +739,7 @@ public abstract class Middleware implements IResourceManager
     // Function to start transaction
     public int startTransaction(String client_id) throws RemoteException
     {   
+        long startTime = System.nanoTime();
         synchronized(this.transactions)
         {
             int id = this.count++; //(int) new Date().getTime();
@@ -592,10 +771,18 @@ public abstract class Middleware implements IResourceManager
                 }
             }, this.TRANSACTION_TIME_LIMIT);
 
+            long t1 = System.nanoTime();
             flightResourceManager.start(xid);
             carResourceManager.start(xid);
             roomResourceManager.start(xid);
             customerResourceManager.start(xid);
+
+            try {
+                storeTime( (t1 - startTime) / 1e6 );
+            }
+            catch (IOException e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
 
             return xid;
         }
@@ -604,6 +791,8 @@ public abstract class Middleware implements IResourceManager
     // Function to commit transaction
     public boolean commitTransaction(int xid) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
+        startTimes.put(xid, System.nanoTime());
+        long t1 = 0, t2 = 0, t3 = 0;
         synchronized(this.transactions)
         {   
             synchronized (this.timers) 
@@ -632,16 +821,44 @@ public abstract class Middleware implements IResourceManager
                     switch (rm)
                     {
                         case FLIGHT:
+                            t1 = System.nanoTime();
                             flightResourceManager.commit(xid);
+                            try {
+                                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+                            }
+                            catch (IOException e) {
+                                System.err.println("Caught IOException: " + e.getMessage());
+                            }
                             break;
                         case CAR:
+                            t1 = System.nanoTime();
                             carResourceManager.commit(xid);
+                            try {
+                                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+                            }
+                            catch (IOException e) {
+                                System.err.println("Caught IOException: " + e.getMessage());
+                            }
                             break;
                         case ROOM:
+                            t1 = System.nanoTime();
                             roomResourceManager.commit(xid);
+                            try {
+                                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+                            }
+                            catch (IOException e) {
+                                System.err.println("Caught IOException: " + e.getMessage());
+                            }
                             break;
                         case CUSTOMER:
+                            t1 = System.nanoTime();
                             customerResourceManager.commit(xid);
+                            try {
+                                storeTime( (t1 - startTimes.get(xid)) / 1e6 );
+                            }
+                            catch (IOException e) {
+                                System.err.println("Caught IOException: " + e.getMessage());
+                            }
                             break;
                         default:
                             break;
@@ -660,7 +877,7 @@ public abstract class Middleware implements IResourceManager
 
     // Function to abort transaction
     public boolean abortTransaction(int xid) throws RemoteException,InvalidTransactionException,TransactionAbortedException
-    {   
+    {  
         synchronized(this.transactions)
         {   
             if (!this.transactions.containsKey(xid)) {
@@ -691,6 +908,7 @@ public abstract class Middleware implements IResourceManager
     // Function to initiate abort
     public boolean initiateAbort(int xid) throws RemoteException, InvalidTransactionException, TransactionAbortedException
     {
+        long t1 = 0;
         synchronized (this.transactions)
         {
             synchronized (this.timers)
@@ -714,15 +932,19 @@ public abstract class Middleware implements IResourceManager
                     switch (rm)
                         {
                             case FLIGHT:
+                                t1 = System.nanoTime();
                                 flightResourceManager.abort(xid);
                                 break;
                             case CAR:
+                                t1 = System.nanoTime();
                                 carResourceManager.abort(xid);
                                 break;
                             case ROOM:
+                                t1 = System.nanoTime();
                                 roomResourceManager.abort(xid);
                                 break;
                             case CUSTOMER:
+                                t1 = System.nanoTime();
                                 customerResourceManager.abort(xid);
                                 break;
                             default:
@@ -888,6 +1110,16 @@ public abstract class Middleware implements IResourceManager
     public boolean start(int xid) throws RemoteException
     {
         return false;
+    }
+
+    // Function to store the total time spent in the RM in a text file
+    protected void storeTime(double time) throws IOException
+    {
+        BufferedWriter bw = new BufferedWriter(new FileWriter("MW.csv", true));
+		bw.write(time + ",");
+	    bw.newLine();
+		bw.flush();
+        bw.close();
     }
 }
 

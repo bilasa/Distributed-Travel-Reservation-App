@@ -38,7 +38,7 @@ public class RMIClient extends Client
 		{
 			System.setSecurityManager(new SecurityManager());
 		}
-
+	
 		// Get a reference to the RMIRegister
 		try {
 			RMIClient client = new RMIClient();
