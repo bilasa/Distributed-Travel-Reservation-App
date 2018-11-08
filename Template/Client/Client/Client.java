@@ -340,7 +340,7 @@ public abstract class Client
 
 					int seats = m_resourceManager.queryFlight(id, flightNum);
 
-					if (seats == -1)
+					if (seats == 0)
 					{
 						System.out.println("Query failed");
 					}
@@ -363,7 +363,7 @@ public abstract class Client
 
 					int numCars = m_resourceManager.queryCars(id, location);
 
-					if (numCars == -1)
+					if (numCars == 0)
 					{
 						System.out.println("Query failed");
 					}
@@ -386,7 +386,7 @@ public abstract class Client
 
 					int numRoom = m_resourceManager.queryRooms(id, location);
 
-					if (numRoom == -1)
+					if (numRoom == 0)
 					{
 						System.out.println("Query failed");
 					}
@@ -432,7 +432,7 @@ public abstract class Client
 
 					int price = m_resourceManager.queryFlightPrice(id, flightNum);
 
-					if (price == -1)
+					if (price == 0)
 					{
 						System.out.println("Query failed");
 					}
@@ -455,7 +455,7 @@ public abstract class Client
 
 					int price = m_resourceManager.queryCarsPrice(id, location);
 					
-					if (price == -1)
+					if (price == 0)
 					{
 						System.out.println("Query failed");
 					}
@@ -478,7 +478,7 @@ public abstract class Client
 
 					int price = m_resourceManager.queryRoomsPrice(id, location);
 
-					if (price == -1)
+					if (price == 0)
 					{
 						System.out.println("Query failed");
 					}

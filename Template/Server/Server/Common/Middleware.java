@@ -590,20 +590,25 @@ public abstract class Middleware implements IResourceManager
                     throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid from middleware)");
                 }
 
+                System.out.println("1");
                 Transaction ts = this.transactions.get(xid);
+                System.out.println("2");
                 ArrayList<Operation> ops = ts.getOperations();
+                System.out.println("3");
                 HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
 
                 for (Operation op : ops)
                 {
                     ArrayList<RESOURCE_MANAGER_TYPE> rms = op.getResourceManagers();
+                    System.out.println("4");
 
                     for (RESOURCE_MANAGER_TYPE rm : rms)
                     {
                         if (!set.contains(rm)) set.add(rm);
+                        System.out.println("5");
                     }
                 }
-
+                System.out.println("6");
                 for (RESOURCE_MANAGER_TYPE rm : set) 
                 {
                     switch (rm)
@@ -627,6 +632,7 @@ public abstract class Middleware implements IResourceManager
 
                 this.transactions.remove(xid);
                 this.timers.remove(xid);
+                System.out.println("7");
             }
         }   
 
