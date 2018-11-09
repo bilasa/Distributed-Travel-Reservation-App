@@ -39,19 +39,22 @@ public abstract class Client_Analysis
 		ArrayList<String> transaction = new ArrayList<String>();
 		transaction.add("start");
 		transaction.add("addflight,0,0,5,5");
-		transaction.add("addflight,0,1,5,5");
-		transaction.add("deleteflight,0,0");
+		transaction.add("addRooms,0,1,5,5");
+		transaction.add("addCars,0,1,5,5");
+		transaction.add("addCustomer,0,1");
 		transaction.add("commit,0");
 
-		for (int i = 0; i < (int) this.iterations; i++) 
+		for (int i = 0; i < (int) this.iterations; i++) // # clients
 		{	
-			try {
-				Thread t = new Thread() { 
+			Thread t = null;
+
+			try {	
+				t = new Thread() { 
 			
 					@Override 
 					public void run()
 					{
-						for (int j = 0; j < 10; j++)
+						for (int j = 0; j < 5; j++) // # of transactions
 						{
 							for (int k = 0; k < transaction.size(); k++)
 							{
@@ -79,11 +82,44 @@ public abstract class Client_Analysis
 									e.printStackTrace();
 								}	
 							}
-						}
 
-						try { this.sleep(sleepTime); }
-						catch(InterruptedException e) { }
-						
+							try {
+								Thread.sleep(200);
+							}
+							catch (Exception e) 
+							{
+								e.printStackTrace();
+							}
+						}
+						/*
+						synchronized (this.stamps) 
+						{
+							Long sum = 0;
+							for (Integer ts : this.stamps.keySet())
+							{
+								sum += this.stamps.get(ts);
+							}
+
+							sum /= this.stamps.size();
+
+							try {
+								BufferedWriter bw = new BufferedWriter(new FileWriter("performance_2/response_times_vs_clients.csv", true));
+								bw.write(i + "," + ((double)(sum / 1e6)) + ",");
+								bw.newLine();
+								bw.flush();
+							} 
+							catch (IOException ioe) 
+							{
+								ioe.printStackTrace();
+							} 
+							finally 
+							{                       
+								if (bw != null) {
+									try { bw.close(); } 
+									catch (IOException ioe2) { }
+								}
+							}
+						} */
 					}
 				};
 				t.start();
@@ -91,14 +127,7 @@ public abstract class Client_Analysis
 			catch (Exception e)
 			{
 				e.printStackTrace();
-			}
-
-
-			
-			
-			
-			
-			
+			} 
 		}
 	}
 
@@ -162,6 +191,8 @@ public abstract class Client_Analysis
 							Long stamp_A = this.stamps.get(xid);
 							Long stampB = System.nanoTime();
 							Long diff = stampB - stamp_A;
+							this.stamps.put(xid, diff);
+							
 							
 							try {
 								bw = new BufferedWriter(new FileWriter("response_time" + sleepTime + ".csv", true));
@@ -180,7 +211,7 @@ public abstract class Client_Analysis
 									catch (IOException ioe2) { }
 								}
 							}
-
+							
 							System.out.println("Transaction [xid=" + xid + "] committed");
 						}
 					}	
