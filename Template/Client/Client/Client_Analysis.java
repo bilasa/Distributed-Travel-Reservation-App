@@ -195,7 +195,7 @@ public abstract class Client_Analysis
 							Long diff = stampB - stamp_A;
 							
 							try {
-								bw = new BufferedWriter(new FileWriter("response_time.csv", true));
+								bw = new BufferedWriter(new FileWriter("response_time_" + this.iterations + ".csv", true));
 								bw.write(((double)(diff / 1e6)) + ",");
 								bw.newLine();
 								bw.flush();
