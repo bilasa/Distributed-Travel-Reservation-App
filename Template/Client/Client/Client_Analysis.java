@@ -191,8 +191,6 @@ public abstract class Client_Analysis
 							Long stamp_A = this.stamps.get(xid);
 							Long stampB = System.nanoTime();
 							Long diff = stampB - stamp_A;
-							this.stamps.put(xid, diff);
-							
 							
 							try {
 								bw = new BufferedWriter(new FileWriter("response_time" + sleepTime + ".csv", true));
