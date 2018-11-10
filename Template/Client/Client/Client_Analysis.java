@@ -46,11 +46,13 @@ public abstract class Client_Analysis
 
 		for (int i = 0; i < (int) this.iterations; i++) // # clients
 		{	
-			Thread t = null;
-
+			//Thread t = null;
+			final int num = i;
 			try {	
-				t = new Thread() { 
-			
+				Thread t = new Thread() { 
+					
+					int r = num;
+
 					@Override 
 					public void run()
 					{
@@ -59,16 +61,16 @@ public abstract class Client_Analysis
 							for (int k = 0; k < transaction.size(); k++)
 							{
 								try {
-									String command = transaction.get(j);
+									String command = transaction.get(k);
 									Vector<String> arguments = parse(command);
 									Command cmd = Command.fromString((String) arguments.elementAt(0));
 									
 									try {
-										execute(cmd, arguments);
+										execute(cmd, arguments,r);
 									}
 									catch (ConnectException e) {
 										connectServer();
-										execute(cmd, arguments);
+										execute(cmd, arguments,r);
 									}
 								}
 								catch (IllegalArgumentException|ServerException e) {
@@ -131,7 +133,7 @@ public abstract class Client_Analysis
 		}
 	}
 
-	public void execute(Command cmd, Vector<String> arguments) throws RemoteException, NumberFormatException
+	public void execute(Command cmd, Vector<String> arguments,int round) throws RemoteException, NumberFormatException
 	{	
 		BufferedWriter bw = null;
 
@@ -193,7 +195,7 @@ public abstract class Client_Analysis
 							Long diff = stampB - stamp_A;
 							
 							try {
-								bw = new BufferedWriter(new FileWriter("response_time" + sleepTime + ".csv", true));
+								bw = new BufferedWriter(new FileWriter("response_time_" + round + ".csv", true));
 								bw.write(((double)(diff / 1e6)) + ",");
 								bw.newLine();
 								bw.flush();
