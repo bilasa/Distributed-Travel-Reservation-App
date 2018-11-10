@@ -41,7 +41,7 @@ public abstract class Client_Analysis
 		transaction.add("addflight,0,0,5,5");
 		transaction.add("addRooms,0,1,5,5");
 		transaction.add("addCars,0,1,5,5");
-		transaction.add("addCustomer,0,1");
+		transaction.add("addCustomerid,0,1");
 		transaction.add("commit,0");
 
 		for (int i = 0; i < (int) this.iterations; i++) // # clients
@@ -211,7 +211,7 @@ public abstract class Client_Analysis
 									catch (IOException ioe2) { }
 								}
 							}
-							
+
 							System.out.println("Transaction [xid=" + xid + "] committed");
 						}
 					}	
