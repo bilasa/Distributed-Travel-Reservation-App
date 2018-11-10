@@ -39,7 +39,7 @@ public class RMIClient_Analysis extends Client_Analysis
 		if (args.length > 3)
 		{	
 		
-			tt = Integer.parseInt(args[2]);
+			tt = Integer.parseInt(args[3]);
 		}
 		if (args.length > 4)
 		{	
