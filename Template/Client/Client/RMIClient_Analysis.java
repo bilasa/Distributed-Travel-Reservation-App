@@ -17,27 +17,33 @@ public class RMIClient_Analysis extends Client_Analysis
 	private static String s_rmiPrefix = "group32";
 	private static int s_serverPort = 2156;
 	private static Integer its = null;
+	private static Integer tt = null;
 
 	public static void main(String args[])
 	{	
 		if (args.length > 0)
 		{	
-			System.out.println("feefe");
+	
 			s_serverHost = args[0];
 		}
 		if (args.length > 1)
 		{	
-			System.out.println("feefe3");
+	
 			s_serverName = args[1];
 		}
 		if (args.length > 2)
 		{	
-			System.out.println("ab");
+
 			its = Integer.parseInt(args[2]);
 		}
 		if (args.length > 3)
 		{	
-			System.out.println("feefefwffw");
+		
+			tt = Integer.parseInt(args[2]);
+		}
+		if (args.length > 4)
+		{	
+
 			System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0mUsage: java client.RMIClient [server_hostname [server_rmiobject]]");
 			System.exit(1);
 		}
@@ -79,13 +85,13 @@ public class RMIClient_Analysis extends Client_Analysis
 			while (true) {
 				try {
 					Registry registry = LocateRegistry.getRegistry(server, port);
-					System.out.println(server);
-					System.out.println(port);
+				
 					m_resourceManager = (IResourceManager) registry.lookup(s_rmiPrefix + name);
-					System.out.println("initiate");
+			
 					client_id = UUID.randomUUID().toString();
 					stamps = new HashMap<Integer,Long>();
 					iterations = its;
+					delay = tt;
 					System.out.println("Connected to '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
 					break;
 				}

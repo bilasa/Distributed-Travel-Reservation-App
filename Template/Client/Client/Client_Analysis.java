@@ -14,7 +14,8 @@ public abstract class Client_Analysis
 {
 	IResourceManager m_resourceManager = null;
     String client_id = null;
-    Integer iterations = null;
+	Integer iterations = null;
+	Integer delay = null;
 	HashMap<Integer,Long> stamps;
 	
 	int xid_ = 0;
@@ -47,7 +48,7 @@ public abstract class Client_Analysis
 		for (int i = 0; i < (int) this.iterations; i++) // # clients
 		{	
 			//Thread t = null;
-			final int num = i;
+			final int num = delay;
 			try {	
 				Thread t = new Thread() { 
 					
@@ -86,7 +87,7 @@ public abstract class Client_Analysis
 							}
 
 							try {
-								Thread.sleep(200);
+								Thread.sleep(r);
 							}
 							catch (Exception e) 
 							{
