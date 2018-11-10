@@ -64,7 +64,7 @@ public abstract class Client_Analysis
 									Command cmd = Command.fromString((String) arguments.elementAt(0));
 									
 									try {
-										execute(cmd, arguments);
+										execute(cmd, arguments, j);
 									}
 									catch (ConnectException e) {
 										connectServer();
@@ -131,7 +131,7 @@ public abstract class Client_Analysis
 		}
 	}
 
-	public void execute(Command cmd, Vector<String> arguments) throws RemoteException, NumberFormatException
+	public void execute(Command cmd, Vector<String> arguments, int round) throws RemoteException, NumberFormatException
 	{	
 		BufferedWriter bw = null;
 
@@ -193,7 +193,7 @@ public abstract class Client_Analysis
 							Long diff = stampB - stamp_A;
 							
 							try {
-								bw = new BufferedWriter(new FileWriter("response_time" + sleepTime + ".csv", true));
+								bw = new BufferedWriter(new FileWriter("response_time_" + round + ".csv", true));
 								bw.write(((double)(diff / 1e6)) + ",");
 								bw.newLine();
 								bw.flush();
