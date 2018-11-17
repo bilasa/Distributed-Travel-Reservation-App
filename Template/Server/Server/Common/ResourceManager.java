@@ -46,10 +46,10 @@ public class ResourceManager extends LockManager implements IResourceManager
             else
             {
                 // Check if local history already contains the item
-                RMItem local_item = local_data.get(key);
-                if (local_item != null)
+                if (local_data.contains(key))
                 {
-                    // Return the item found in the local history
+                    // Return the item found in the local history (either null if removed or non-null if not removed)
+                    RMItem local_item = local_data.get(key);
                     return (RMItem)local_item.clone();
                 }
                 
