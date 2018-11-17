@@ -200,7 +200,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                 throw new InvalidTransactionException(xid,"Cannot write data for a non-existent transaction xid");
             }
 
-            local_data.put(key, null)
+            local_data.put(key, null);
             
             // update the hashmap of local histories
             local.put(xid, local_data);
