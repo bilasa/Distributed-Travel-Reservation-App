@@ -191,22 +191,16 @@ public class ResourceManager extends LockManager implements IResourceManager
         catch (DeadlockException deadlock) {
             throw deadlock;
         }
-
-        // First Remove the item from main memory
-        synchronized(m_data) {
-			m_data.remove(key);
-		}
         
-        // Get the local history for the transaction, to remove the item from local if it exists
+        // Get the local history for the transaction
         synchronized(local) {
             RMHashMap local_data = local.get(xid);
             if (local_data == null) // Transaction doesn't exist
             {
                 throw new InvalidTransactionException(xid,"Cannot write data for a non-existent transaction xid");
             }
-            else if (local_data.get(key) != null) {
-                local_data.remove(key);
-            }
+
+            local_data.put(key, null)
             
             // update the hashmap of local histories
             local.put(xid, local_data);
