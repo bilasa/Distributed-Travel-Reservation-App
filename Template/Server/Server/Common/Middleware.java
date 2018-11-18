@@ -407,6 +407,7 @@ public abstract class Middleware implements IResourceManager
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
             flightResourceManager.abort(e.getXId());
+            customerResourceManager.abort(e.getXId());
             System.out.println("Exception caught: Middleware reserveflight catches deadlock Exception"); //e.printStackTrace();
         }
 
@@ -438,6 +439,7 @@ public abstract class Middleware implements IResourceManager
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
             carResourceManager.abort(e.getXId());
+            customerResourceManager.abort(e.getXId());
             System.out.println("Exception caught: Middleware reservecar catches deadlock Exception");//e.printStackTrace();
         }
 
@@ -469,6 +471,7 @@ public abstract class Middleware implements IResourceManager
             this.transactions.remove(e.getXId());
             this.timers.remove(e.getXId());
             roomResourceManager.abort(e.getXId());
+            customerResourceManager.abort(e.getXId());
             System.out.println("Exception caught: Middleware reserveroom catches deadlock Exception"); //e.printStackTrace();
         }
 
@@ -507,7 +510,6 @@ public abstract class Middleware implements IResourceManager
                 if (prices.size() == flightNumbers.size()) flightResourceManager.reserveFlights_FlightRM(xid, flights, -1);
                 if (car && carPrice != -1) carResourceManager.reserveCar_CarRM(xid, location, -1);
                 if (room && roomPrice != -1) roomResourceManager.reserveRoom_RoomRM(xid, location, -1);
-
                 return false;
             }
             
@@ -757,7 +759,7 @@ public abstract class Middleware implements IResourceManager
                 Timer t = this.timers.get(xid);
 
                 ts.addOperation(new Operation(rms));
-                t.schedule(new TimerTask(){
+                t.schedule(new TimerTask() {
                 
                     @Override
                     public void run() {
