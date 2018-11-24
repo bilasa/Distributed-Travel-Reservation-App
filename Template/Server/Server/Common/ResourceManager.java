@@ -46,11 +46,17 @@ public class ResourceManager extends LockManager implements IResourceManager
             else
             {
                 // Check if local history already contains the item
-                RMItem local_item = local_data.get(key);
-                if (local_item != null)
+                if (local_data.containsKey(key))
                 {
-                    // Return the item found in the local history
-                    return (RMItem)local_item.clone();
+                    RMItem local_item = local_data.get(key);
+                    if (local_item == null) // Item was removed by transaction
+                    {
+                        return null;
+                    }
+                    else // Item in local history, not removed
+                    {
+                        return (RMItem)local_item.clone();
+                    }
                 }
                 
                 else
@@ -195,11 +201,11 @@ public class ResourceManager extends LockManager implements IResourceManager
         // Get the local history for the transaction
         synchronized(local) {
             RMHashMap local_data = local.get(xid);
-            if (local_data == null)
+            if (local_data == null) // Transaction doesn't exist
             {
                 throw new InvalidTransactionException(xid,"Cannot write data for a non-existent transaction xid");
             }
-            
+
             local_data.put(key, null);
             
             // update the hashmap of local histories
