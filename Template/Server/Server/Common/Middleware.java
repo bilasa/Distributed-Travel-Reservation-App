@@ -507,14 +507,9 @@ public abstract class Middleware implements IResourceManager
                 (room && roomPrice == -1) || 
                 (customer == false)
             ) { 
-                /*
-                if (prices.size() == flightNumbers.size()) {flightResourceManager.reserveFlights_FlightRM(xid, flights, -1);
+                if (prices.size() == flightNumbers.size()) flightResourceManager.reserveFlights_FlightRM(xid, flights, -1);
                 if (car && carPrice != -1) carResourceManager.reserveCar_CarRM(xid, location, -1);
-                if (room && roomPrice != -1) roomResourceManager.reserveRoom_RoomRM(xid, location, -1); */
-
-                flightResourceManager.abort(xid);
-                if (car) carResourceManager.abort(xid);
-                if (room) roomResourceManager.abort(xid);
+                if (room && roomPrice != -1) roomResourceManager.reserveRoom_RoomRM(xid, location, -1); 
                 return false;
             }
             
