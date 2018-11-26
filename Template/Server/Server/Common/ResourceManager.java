@@ -955,55 +955,130 @@ public class ResourceManager extends LockManager implements IResourceManager
     }
 
     // write ID of file ("a" or "b") into the master file
-    updateMaster(String fileID) {
+    updateMaster(String fileID) 
+    {
         BufferedWriter bw = new BufferedWriter(new FileWriter(master, false));
         bw.write(fileID);
         bw.flush();
     }
 
     // Puts the contents of the last committed copy into main memory (m_data)
-    restoreMainMemory() {
-        String last = "";
+    restoreMainMemory() 
+    {
+        synchronized(m_data) 
+        {
+            m_data = new RMHashMap();
 
-        // Get the name of the last committed copy
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(master)); 
-            last = br.readLine();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            String last = "";
 
-        // Read from the last committed copy
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(last)); 
-            
-            String line; 
-            while ((line = br.readLine()) != null) 
-                String[] entries = line.split("\\s+");
+            // Get the name of the last committed copy
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(master)); 
+                last = br.readLine();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-                String key = entries[0];
-                String item_type = entries[1];
+            // Read from the last committed copy
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(last)); 
+                
+                String line; 
+                while ((line = br.readLine()) != null) 
+                    String[] entries = line.split("\\s+");
 
-                switch (item_type) // check what kind of item it is
-                {
-                    // TO-DO: write to m_data
-                    case "Customer":
-                        break;
-                    case "Flight":
-                        break;
-                    case "Car":
-                        break;
-                    case "Room":
-                        break;
-                }
-            } 
+                    String key = entries[0];
+                    String item_type = entries[1];
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+                    switch (item_type) // check what kind of item it is
+                    {
+                        case "Customer":
+                            Customer cus;
+                            RMHashMap reservations;
+
+                            if ((cus = m_data.get(key)) != null) // Customer already in m_data: add the ReservableItem
+                            {
+                                reservations = cus.getReservations();
+                            }
+                            else // Customer not in m_data: create the customer and put it in m_data
+                            {
+                                int id = Integer.parseInt(entries[2]);
+                                cus = new Customer(id);
+                                reservations = cus.getReservations();
+                                m_data.put(key, cus);
+                            }
+                            
+                            // Reconstruct the ReservableItem
+                            String res_key = entries[3];
+                            String res_item_type = entries[4];
+                            int count = Integer.parseInt(entries[5]);
+                            int price = Integer.parseInt(entries[6]);
+                            int reserved = Integer.parseInt(entries[7]);
+                            String location = entries[8];
+
+                            switch (res_item_type) // check what kind of item is reserved and put it in "reservations"
+                            {
+                                case "Flight":
+                                    Flight flight = new Flight(location, count, price);
+                                    flight.setReserved(reserved);
+                                    reservations.put(res_key, flight);
+                                    break;
+                                case "Car":
+                                    Car car = new Car(location, count, price);
+                                    car.setReserved(reserved);
+                                    reservations.put(res_key, car);
+                                    break;
+                                case "Room":
+                                    Room room = new Room(location, count, price);
+                                    room.setReserved(reserved);
+                                    reservations.put(res_key, room);
+                                    break;
+                            }
+
+                            break;
+                        case "Flight":
+                            // Reconstruct the Flight
+                            int count = Integer.parseInt(entries[2]);
+                            int price = Integer.parseInt(entries[3]);
+                            int reserved = Integer.parseInt(entries[4]);
+                            String location = entries[5];
+
+                            Flight flight = new Flight(location, count, price);
+                            m_data.put(key, flight);
+
+                            break;
+                        case "Car":
+                            // Reconstruct the Car
+                            int count = Integer.parseInt(entries[2]);
+                            int price = Integer.parseInt(entries[3]);
+                            int reserved = Integer.parseInt(entries[4]);
+                            String location = entries[5];
+
+                            Car car = new Car(location, count, price);
+                            m_data.put(key, car);
+
+                            break;
+                        case "Room":
+                            // Reconstruct the Room
+                            int count = Integer.parseInt(entries[2]);
+                            int price = Integer.parseInt(entries[3]);
+                            int reserved = Integer.parseInt(entries[4]);
+                            String location = entries[5];
+
+                            Room room = new Room(location, count, price);
+                            m_data.put(key, room);
+                            
+                            break;
+                    }
+                } 
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
