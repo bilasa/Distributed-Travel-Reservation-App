@@ -18,9 +18,9 @@ public class ResourceManager extends LockManager implements IResourceManager
 	protected RMHashMap m_data = new RMHashMap();
 
     // For shadowing (master record)
-    protected RMHashMap a = new RMHashMap();
-    protected RMHashMap b = new RMHashMap();
-    protected RMHashMap master = a;
+    protected File a;
+    protected File b;
+    protected File master;
 
     // Global lock for commit
     Lock commit_lock = new ReentrantLock();
@@ -31,6 +31,14 @@ public class ResourceManager extends LockManager implements IResourceManager
 	public ResourceManager(String p_name)
 	{
 		m_name = p_name;
+
+        // To distinguish the files of different RMs
+        a = new File("a_" + m_name + ".csv");
+        b = new File("b_" + m_name + ".csv");
+        master = new File("master_" + m_name + ".csv");
+
+        // Handles crash case, if we create a new ResourceManager
+        restoreMainMemory();
 	}
 
 	// Reads a data item
@@ -149,13 +157,13 @@ public class ResourceManager extends LockManager implements IResourceManager
                     // Write main memory copy to non-latest committed copy, and switch master record pointer
                     if(master == a) 
                     {
-                        b = m_data;
-                        master = b;
+                        writeFile(b);
+                        updateMaster(b.getName());
                     } 
                     else 
                     {
-                        a = m_data;
-                        master = a;
+                        writeFile(a);
+                        updateMaster(a.getName());
                     }
 
                 }
@@ -183,7 +191,7 @@ public class ResourceManager extends LockManager implements IResourceManager
         {
             // Discard main memory copy, put latest committed copy into main memory (this step is unecessary for our implementation)
             synchronized(m_data) {
-                m_data = master;
+                // No need to write contents of master file to m_data, as m_data not modified until commit
             }
 
             // Remove the local history
@@ -892,6 +900,111 @@ public class ResourceManager extends LockManager implements IResourceManager
     public boolean shutdownClient(String client_id) throws RemoteException
     {
         return false;
+    }
+
+    // Write main memory copy (m_data) to the given file
+    public void writeFile(File file) 
+    {
+        BufferedWriter bw = new BufferedWriter(new FileWriter(file, false));
+
+        for (String key : m_data.keySet()) // write each key and RMItem to the file
+        {
+            RMItem item = m_data.get(key);
+
+            if (item instanceof ReservableItem) // for Flight, Car, and Room RMs
+            {
+                // Identify the appropriate ReservableItem subclass
+                String type = "";
+                if (item instanceof Flight) type = "Flight";
+                else if (item instanceeof Car) type = "Car";
+                else if (item instanceof Room) type = "Room";
+
+                bw.write(key + "," + type 
+                + "," + ((ReservableItem)item).getCount() 
+                + "," + ((ReservableItem)item).getPrice()
+                + "," + ((ReservableItem)item).getReserved()
+                + "," + ((ReservableItem)item).getLocation());
+                bw.newLine();
+            }
+
+            else if (item instanceof Customer) // for Customer RM
+            {
+                int id = ((Customer)item).getID();
+                RMHashMap reservations = ((Customer)item).getReservations();
+
+                for(String res_key : reservations.keySet()) // write each reservation to the file as a new line
+                {
+                    ReservableItem res_item = reservations.get(res_key);
+
+                    String type = "";
+                    if (res_item instanceof Flight) type = "Flight";
+                    else if (res_item instanceeof Car) type = "Car";
+                    else if (res_item instanceof Room) type = "Room";
+
+                    bw.write(key + ",Customer," + id + "," + res_key + "," + type 
+                    + "," + ((ReservableItem)item).getCount() 
+                    + "," + ((ReservableItem)item).getPrice()
+                    + "," + ((ReservableItem)item).getReserved()
+                    + "," + ((ReservableItem)item).getLocation());
+                    bw.newLine();
+                }
+            }
+        }
+
+        bw.flush();
+    }
+
+    // write ID of file ("a" or "b") into the master file
+    updateMaster(String fileID) {
+        BufferedWriter bw = new BufferedWriter(new FileWriter(master, false));
+        bw.write(fileID);
+        bw.flush();
+    }
+
+    // Puts the contents of the last committed copy into main memory (m_data)
+    restoreMainMemory() {
+        String last = "";
+
+        // Get the name of the last committed copy
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(master)); 
+            last = br.readLine();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Read from the last committed copy
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(last)); 
+            
+            String line; 
+            while ((line = br.readLine()) != null) 
+                String[] entries = line.split("\\s+");
+
+                String key = entries[0];
+                String item_type = entries[1];
+
+                switch (item_type) // check what kind of item it is
+                {
+                    // TO-DO: write to m_data
+                    case "Customer":
+                        break;
+                    case "Flight":
+                        break;
+                    case "Car":
+                        break;
+                    case "Room":
+                        break;
+                }
+            } 
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
  
