@@ -16,6 +16,14 @@ public class ResourceManager extends LockManager implements IResourceManager
 {
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
+
+    // For shadowing (master record)
+    protected RMHashMap a = new RMHashMap();
+    protected RMHashMap b = new RMHashMap();
+    protected RMHashMap master = a;
+
+    // Global lock for commit
+    Lock commit_lock = new ReentrantLock();
     
     // Hashmap indexed by xid to store the local histories of each transaction
     protected Map<Integer, RMHashMap> local = new HashMap<Integer, RMHashMap>();
@@ -110,6 +118,8 @@ public class ResourceManager extends LockManager implements IResourceManager
     // Commits a transaction
     public  boolean commit(int xid) throws RemoteException, InvalidTransactionException
     {
+        commit_lock.lock();
+
         synchronized(local) {
             RMHashMap local_data = local.get(xid);
             if (local_data == null)
@@ -119,6 +129,7 @@ public class ResourceManager extends LockManager implements IResourceManager
             else
             {
                 synchronized(m_data) {
+
                     // Put all items in local history into main memory
                     for (String key : local_data.keySet())
                     {
@@ -128,12 +139,25 @@ public class ResourceManager extends LockManager implements IResourceManager
                         {
                             m_data.remove(key);
                         }
-                        else
+                        else // for writing an item
                         {
-                            m_data.put(key, item); // for writing an item
+                            m_data.put(key, item);
                         }
-                        
+     
                     }
+
+                    // Write main memory copy to non-latest committed copy, and switch master record pointer
+                    if(master == a) 
+                    {
+                        b = m_data;
+                        master = b;
+                    } 
+                    else 
+                    {
+                        a = m_data;
+                        master = a;
+                    }
+
                 }
                 
                 // Unlock all locks owned by transaction
@@ -144,6 +168,9 @@ public class ResourceManager extends LockManager implements IResourceManager
                 local.remove(xid);
 
                 Trace.info("RM::commit(" + xid + ") succeeded");
+
+                commit_lock.unlock();
+
                 return true;
             }
         }
@@ -154,6 +181,11 @@ public class ResourceManager extends LockManager implements IResourceManager
     {
         if (local.get(xid) != null)
         {
+            // Discard main memory copy, put latest committed copy into main memory (this step is unecessary for our implementation)
+            synchronized(m_data) {
+                m_data = master;
+            }
+
             // Remove the local history
             System.out.println("Aborted transaction " + xid);
             local.remove(xid);
