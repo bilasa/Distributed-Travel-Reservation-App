@@ -154,8 +154,19 @@ public class ResourceManager extends LockManager implements IResourceManager
      
                     }
 
+                    // Get the name of the last committed copy
+                    String last;
+                    try {
+                        BufferedReader br = new BufferedReader(new FileReader(master)); 
+                        last = br.readLine();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                     // Write main memory copy to non-latest committed copy, and switch master record pointer
-                    if(master == a) 
+                    if(last == a.getName()) 
                     {
                         writeFile(b);
                         updateMaster(b.getName());
