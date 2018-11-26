@@ -735,9 +735,6 @@ public abstract class Middleware implements IResourceManager
                 this.timers.get(xid).cancel();
                 this.timers.remove(xid);
                 this.transactions.remove(xid);
-                
-                System.out.println(this.transactions.containsKey(xid)? "Transaction-" + xid + " removed" : "Transaction-" + xid + " not removed");
-                System.out.println(this.timers.containsKey(xid)? "Timer-" + xid + " removed" : "Timer-" + xid + " not removed");
             }
         }
         return true;

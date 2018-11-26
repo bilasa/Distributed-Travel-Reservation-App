@@ -64,25 +64,18 @@ public class LockManager
 
 						if (bConvert.get(0) == true) {
 							// Lock conversion
-							System.out.println("First write....");
 
 							TransactionLockObject tempXLockObject = new TransactionLockObject(xid, data, TransactionLockObject.LockType.LOCK_READ);
 							DataLockObject tempDataLockObject = new DataLockObject(xid, data, TransactionLockObject.LockType.LOCK_READ);
 							
-							String lt = dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ? "READ_LOCK" : "WRITE_LOCK";
-							System.out.println("LOCK STATUS for " + xid + ": LOCK_TYPE=" + lt + " [a lock conversion]");
-							
-							( (TransactionLockObject)(this.lockTable.get(tempXLockObject)) ).setLockType(TransactionLockObject.LockType.LOCK_WRITE);
-                            ( (DataLockObject)(this.lockTable.get(tempDataLockObject)) ).setLockType(TransactionLockObject.LockType.LOCK_WRITE);
+							((TransactionLockObject)(this.lockTable.get(tempXLockObject))).setLockType(TransactionLockObject.LockType.LOCK_WRITE);
+                            ((DataLockObject)(this.lockTable.get(tempDataLockObject))).setLockType(TransactionLockObject.LockType.LOCK_WRITE);
 					
                             Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") converted");
 						} else {
 							// Lock request that is not lock conversion
 							this.lockTable.add(xLockObject);
 							this.lockTable.add(dataLockObject);
-
-							String lt = dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ? "READ_LOCK" : "WRITE_LOCK";
-							System.out.println("LOCK STATUS for " + xid + ": LOCK_TYPE=" + lt + " [not a lock conversion]");
 							
 							Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") granted");
 						}
@@ -90,9 +83,6 @@ public class LockManager
 				}
 				if (bConflict) {
 					// Lock conflict exists, wait
-					String lt = dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ? "READ_LOCK" : "WRITE_LOCK";
-					System.out.println("LOCK STATUS for " + xid + ": LOCK_TYPE=" + lt + " [PUT TO WAILIST]");
-					
 					WaitLock(dataLockObject);
 				}
 			}
@@ -271,7 +261,6 @@ public class LockManager
                         }
                         
                         // No one else has a READ lock, set the bitset to 1 for conversion
-						System.out.println("Bit was set");
                         bitset.set(0, true);
                     }
                     // (2) transaction already had a WRITE lock
