@@ -986,7 +986,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                 BufferedReader br = new BufferedReader(new FileReader(last)); 
                 
                 String line; 
-                while ((line = br.readLine()) != null) 
+                while ((line = br.readLine()) != null) {
                     String[] entries = line.split("\\s+");
 
                     String key = entries[0];
