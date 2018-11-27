@@ -91,8 +91,8 @@ public class ResourceManager extends LockManager implements IResourceManager
                          * --> DATA
                          * (key):(value)
                          * e.g. values
-                         * - ReservableItem: key:lm_strLocation-m_nCount-m_nPrice,m_nReserved
-                         * - ReservedItem: key:id:sub_kind,m_location-m_nCount-m_nPrice-m_nReserved,(),()...
+                         * - ReservableItem: key:lm_strLocation#m_nCount#m_nPrice#m_nReserved
+                         * - ReservedItem: key:id:key#m_location#m_nCount#m_nPrice-m_nReserved;...;...
                          */
 
                         // Write from main memory to disk
