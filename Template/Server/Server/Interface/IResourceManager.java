@@ -256,10 +256,18 @@ public interface IResourceManager extends Remote
     public boolean commit(int xid) throws RemoteException, InvalidTransactionException;
 
     // Aborts a transaction
-    public void abort(int xid) throws RemoteException, InvalidTransactionException;
+    public boolean abort(int xid) throws RemoteException, InvalidTransactionException;
 
     // Exits the server
     public void shutdown() throws RemoteException;
+
+    // Crash functions
+    public void resetCrashes() throws RemoteException;
+    public void crashMiddleware(int mode) throws RemoteException;
+    public void crashResourceManager(String name, int mode) throws RemoteException;
+
+    // Prepare to commit
+    public boolean prepare(int xid) throws RemoteException, InvalidTransactionException;
 
     // Start a transaction, add the a local history for the transaction in the hashmap of local histories
     public boolean start(int xid) throws RemoteException;

@@ -37,6 +37,10 @@ public enum Command {
 
 	Bundle("Book N flight numbers, and optionally a room and/or car at a location", "<xid>,<CustomerID>,<FlightNumber1>...<FlightNumberN>,<Location>,<Car-Y/N>,<Room-Y/N>"),
 	
+	CrashMiddleware("Crash Middleware", "<mode>"),
+	CrashResourceManager("Crash ResourceManager", "<name>,<mode>"),
+	ResetCrashes("Reset crashes", ""),
+
 	// Additonal Feature(s)
     GetSummary("Query overall resource/customer summary", "<xid>"),
 

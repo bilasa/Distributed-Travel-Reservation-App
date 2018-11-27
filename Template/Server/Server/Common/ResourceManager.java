@@ -7,41 +7,377 @@ package Server.Common;
 
 import Server.Interface.*;
 import Server.LockManager.*;
-
 import java.util.*;
+import java.util.concurrent.locks.Lock;
 import java.rmi.RemoteException;
 import java.io.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ResourceManager extends LockManager implements IResourceManager
 {
 	protected String m_name = "";
-	protected RMHashMap m_data = new RMHashMap();
-
-    // For shadowing (master record)
-    protected File a;
-    protected File b;
-    protected File master;
-
-    // Global lock for commit
-    Lock commit_lock = new ReentrantLock();
+    protected RMHashMap m_data = new RMHashMap();
+    protected Map<Integer,RMHashMap> local = new HashMap<Integer, RMHashMap>();  // Hashmap indexed by xid to store the local histories of each transaction
+    protected Map<Integer,Boolean> crashes = new HashMap<Integer,Boolean>();
+    protected Lock global_lock = new ReentrantLock();
     
-    // Hashmap indexed by xid to store the local histories of each transaction
-    protected Map<Integer, RMHashMap> local = new HashMap<Integer, RMHashMap>();
-
 	public ResourceManager(String p_name)
 	{
-		m_name = p_name;
+        m_name = p_name;
 
-        // To distinguish the files of different RMs
-        a = new File("a_" + m_name + ".csv");
-        b = new File("b_" + m_name + ".csv");
-        master = new File("master_" + m_name + ".csv");
+        // Set crash mdoes
+        for (int i = 1; i <= 5; i++) {
+            crashes.put(i, false);
+        }
 
-        // Handles crash case, if we create a new ResourceManager
-        restoreMainMemory();
+        writeMainMemory();
 	}
 
-	// Reads a data item
+	// Start a transaction, add the a local history for the transaction in the hashmap of local histories
+    public boolean start(int xid) throws RemoteException 
+    {
+        synchronized(local) {
+            RMHashMap local_data = new RMHashMap();
+            local.put(xid, local_data); // update the hashmap of local histories
+        }
+        return true;
+    }
+    
+    // Commits a transaction
+    public boolean commit(int xid) throws RemoteException, InvalidTransactionException
+    {   
+        // Crash mode 4
+        synchronized(crashes) {
+            if (crashes.get(4)) System.exit(1);
+        }
+
+        boolean transaction_completed = false;
+        
+        while (!transaction_completed) {
+            
+            boolean free = global_lock.tryLock();
+            
+            if (free) {
+                global_lock.lock();
+                synchronized(local) {
+                    
+                    RMHashMap local_data = local.get(xid);
+                    if (local_data == null) {
+                        throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid");
+                    }
+                    
+                    synchronized(m_data) { 
+                        
+                        // Write from local history to main memory 
+                        for (String key : local_data.keySet()) {
+                            RMItem item = local_data.get(key);
+                            if (item == null) {
+                                m_data.remove(key);
+                            }
+                            else {
+                                m_data.put(key, item);
+                            }
+                        }
+
+                        /**
+                         * FORMAT DETAILS
+                         * 
+                         * --> MASTER RECORD
+                         * (File):T-(xid)
+                         * e.g. 
+                         * - A:1
+                         * - B:2
+                         * 
+                         * --> DATA
+                         * (key):(value)
+                         * e.g. values
+                         * - ReservableItem: key:lm_strLocation-m_nCount-m_nPrice,m_nReserved
+                         * - ReservedItem: key:id:sub_kind,m_location-m_nCount-m_nPrice-m_nReserved,(),()...
+                         */
+
+                        // Write from main memory to disk
+                        // Shadowing
+                        try {
+                            // Retrieve previous master record
+                            BufferedReader br = new BufferedReader(new FileReader("master_" + m_name + ".txt")); 
+                            String line = null;
+                            String master_ptr = null;
+                            int master_transaction = -1;
+                            
+                            while ((line = br.readLine()) != null) {
+                                String[] cur = line.trim().split(":");
+                                master_ptr = cur[0];
+                                master_transaction = Integer.parseInt(cur[1]);  
+                            }
+
+                            br.close();
+
+                            BufferedWriter bw = null;
+                            // Nothing has been recorded previously to master record
+                            if (master_ptr == null || master_transaction == -1) {
+                                master_ptr = "A";
+                            }
+                            // Update new master record
+                            else {
+                                bw = new BufferedWriter(new FileWriter("master_" + m_name + ".txt", false));
+                                String updated_ptr = master_ptr.equals("A")? "B" : "A";
+                                bw.write(updated_ptr + ":" + xid);
+                                bw.newLine();
+                                bw.close();
+                            }
+
+                            // Store data to disk
+                            bw = new BufferedWriter(new FileWriter("data_" + m_name + ".txt"));
+                            StringBuilder sb = new StringBuilder();
+
+                            for (String key : m_data.keySet()) {
+
+                                RMItem item = m_data.get(key);
+                                if (item != null) {
+
+                                    if (item instanceof Flight) {
+                                        Flight flight = (Flight) item;
+                                        sb.append(flight.getKey() + ":" + flight.getLocation() + "#" + flight.getCount() + "#" + flight.getPrice() + "#" + flight.getReserved());
+                                    }
+
+                                    if (item instanceof Room) {
+                                        Room room = (Room) item;
+                                        sb.append(room.getKey() + ":" + room.getLocation() + "#" + room.getCount() + "#" + room.getPrice() + "#" + room.getReserved());
+                                    }
+
+                                    if (item instanceof Car) {
+                                        Car car = (Car) item;
+                                        sb.append(car.getKey() + ":" + car.getLocation() + "#" + car.getCount() + "#" + car.getPrice() + "#" + car.getReserved());
+                                    }
+
+                                    if (item instanceof Customer) {
+                                        Customer customer = (Customer) item;
+                                        int id = customer.getID();
+                                        RMHashMap reservations = customer.getReservations();
+                                        StringBuilder customer_sb = new StringBuilder();
+
+                                        ArrayList<ReservedItem> reservedItems = new ArrayList<ReservedItem>();
+                                        for (String reservedItem : reservations.keySet()) {
+                                            reservedItems.add((ReservedItem) reservations.get(reservedItem));
+                                        }
+
+                                        for (int i = 0; i < reservedItems.size(); i++) {
+                                            ReservedItem reserved = reservedItems.get(i);
+                                            customer_sb.append(
+                                                reserved.getKey() + "#" + reserved.getLocation() + "#" + reserved.getCount() + "#" + reserved.getPrice()
+                                            );
+
+                                            if (i != reservedItems.size() - 1) customer_sb.append(";");
+                                        }
+
+                                        sb.append(customer.getKey() + ":" + id + ":" + customer_sb.toString());
+                                    }
+                                }
+
+                                sb.append("\n");
+                            }
+                            
+                            bw.write(sb.toString());
+                            bw.close();
+                        }
+                        catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                global_lock.unlock();
+                transaction_completed = true;
+            }
+            else {
+                try {
+                    Thread.sleep(1000);
+                }
+                catch (InterruptedException e) {
+                    e.printStackTrace();
+                } 
+            }
+        }
+
+        // Restore locks and local history
+        UnlockAll(xid);
+        local.remove(xid);
+        Trace.info("RM::commit(" + xid + ") succeeded");
+        return true;
+    }
+    
+    // Aborts a transaction
+    public boolean abort(int xid) throws RemoteException, InvalidTransactionException
+    {
+        // Crash mode 4
+        synchronized(crashes) {
+            if (crashes.get(4)) System.exit(1);
+        }
+
+        if (local.get(xid) != null) {
+            // Discard main memory copy, put latest committed copy into main memory (this step is unecessary for our implementation)
+            synchronized(m_data) {
+                // No need to write contents of master file to m_data, as m_data not modified until commit
+            }
+            local.remove(xid);
+            UnlockAll(xid);
+        }
+        else {
+            throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid");
+        }
+
+        return true;
+    }
+
+    // Prepare to commit 
+    public boolean prepare(int xid) throws RemoteException, InvalidTransactionException
+    {      
+        // Crash mode 1
+        synchronized(crashes) {
+            if (crashes.get(1)) System.exit(1);
+        }
+
+        synchronized(local) {
+
+            boolean canCommit = this.local.containsKey(xid);
+
+            // Crash mode 2
+            synchronized(crashes) {
+                if (crashes.get(2)) System.exit(1);
+            }
+
+            if (!canCommit) {
+                throw new InvalidTransactionException(xid,"Cannot prepare to a non-existent transaction xid");
+            }
+        }
+        return true;
+    }
+
+    // Function to write to main memory
+    public void writeMainMemory() 
+    {
+        synchronized(m_data) {
+
+            BufferedReader br = null;
+            m_data = new RMHashMap();
+
+            try {
+                br = new BufferedReader(new FileReader("master_" + m_name + ".txt"));
+                String master_record = br.readLine();
+                String record = master_record.trim().split(":")[0].toUpperCase();
+                br.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // Crash mode 5
+            synchronized(crashes) {
+                if (crashes.get(5)) System.exit(1);
+            }
+
+            try {
+                String line = null;
+                br = new BufferedReader(new FileReader("data_" + m_name + ".txt"));
+
+                // Flights
+                if (m_name.equals("Flights")) {
+
+                    while ((line = br.readLine()) != null) {
+                        String[] record = line.trim().split(":");
+                        String key = record[0];
+                        String[] value = record[1].split("#");
+                        Flight flight = new Flight(Integer.parseInt(value[0]), Integer.parseInt(value[1]), Integer.parseInt(value[2]));
+                        flight.setReserved(Integer.parseInt(value[3]));
+                        m_data.put(key, flight);
+                    }
+                } 
+
+                // Rooms
+                if (m_name.equals("Rooms")) {
+
+                    while ((line = br.readLine()) != null) {
+                       
+                        String[] record = line.trim().split(":");
+                        String key = record[0];
+                        String[] value = record[1].split("#");
+                        Room room = new Room(value[0], Integer.parseInt(value[1]), Integer.parseInt(value[2]));
+                        room.setReserved(Integer.parseInt(value[3]));
+                        m_data.put(key, room);
+                    }
+                } 
+
+                // Cars
+                if (m_name.equals("Cars")) {
+
+                    while ((line = br.readLine()) != null) {
+                        
+                        String[] record = line.trim().split(":");
+                        String key = record[0];
+                        String[] value = record[1].split("#");
+                        Car car = new Car(value[0], Integer.parseInt(value[1]), Integer.parseInt(value[2]));
+                        car.setReserved(Integer.parseInt(value[3]));
+                        m_data.put(key, car);
+                    }
+                }
+
+                // Customers
+                if (m_name.equals("Customers")) {
+
+                    while ((line = br.readLine()) != null) {
+
+                        String[] record = line.trim().split(":");
+                        String key = record[0];
+                        int customer_id = Integer.parseInt(record[1]);
+                        String[] list_of_reserved = record[2].split(";");
+
+                        Customer customer = new Customer(customer_id);
+
+                        for (String reserved : list_of_reserved) {
+
+                            String[] data = reserved.split("#");
+                            int reserve_count = Integer.parseInt(data[2]);
+
+                            while (reserve_count > 0) {
+                                customer.reserve(data[0], data[1], Integer.parseInt(data[3]));
+                                reserve_count--;
+                            }
+                        }
+
+                        m_data.put(key, customer);
+                    }
+                }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void resetCrashes() throws RemoteException 
+    {      
+        synchronized(crashes) {
+            for (int i = 1; i <= 5; i++) {
+                crashes.put(i, false);
+            }
+        }
+        return;
+    }
+   
+    public void crashMiddleware(int mode) throws RemoteException
+    {
+        return; // do nothing
+    }
+   
+    public void crashResourceManager(String name, int mode) throws RemoteException
+    {   
+        synchronized(crashes) {
+            crashes.put(mode, true);
+        }
+        return;
+    }
+
+    // Reads a data item
 	protected RMItem readData(int xid, String key) throws DeadlockException, InvalidTransactionException, TransactionAbortedException
     {
         try {
@@ -50,7 +386,6 @@ public class ResourceManager extends LockManager implements IResourceManager
         catch (DeadlockException deadlock) {
             throw deadlock;
         }
-        
         
         // Get the local history for the transaction
         synchronized(local) {
@@ -122,126 +457,10 @@ public class ResourceManager extends LockManager implements IResourceManager
             local.put(xid, local_data);
         }
 	}
-    
-    // Commits a transaction
-    public  boolean commit(int xid) throws RemoteException, InvalidTransactionException
-    {
-        commit_lock.lock();
-
-        synchronized(local) {
-            RMHashMap local_data = local.get(xid);
-            if (local_data == null)
-            {
-                throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid");
-            }
-            else
-            {
-                synchronized(m_data) {
-
-                    // Put all items in local history into main memory
-                    for (String key : local_data.keySet())
-                    {
-                        RMItem item = local_data.get(key);
-
-                        if (item == null) // for removing an item
-                        {
-                            m_data.remove(key);
-                        }
-                        else // for writing an item
-                        {
-                            m_data.put(key, item);
-                        }
-     
-                    }
-
-                    // Get the name of the last committed copy
-                    String last;
-                    try {
-                        BufferedReader br = new BufferedReader(new FileReader(master)); 
-                        last = br.readLine();
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    // Write main memory copy to non-latest committed copy, and switch master record pointer
-                    if(last == a.getName()) 
-                    {
-                        writeFile(b);
-                        updateMaster(b.getName());
-                    } 
-                    else 
-                    {
-                        writeFile(a);
-                        updateMaster(a.getName());
-                    }
-
-                }
-                
-                // Unlock all locks owned by transaction
-                UnlockAll(xid);
-                System.out.println("Commited transaction " + xid);
-                
-                // Remove the local history
-                local.remove(xid);
-
-                Trace.info("RM::commit(" + xid + ") succeeded");
-
-                commit_lock.unlock();
-
-                return true;
-            }
-        }
-    }
-    
-    // Aborts a transaction
-    public  void abort(int xid) throws RemoteException, InvalidTransactionException
-    {
-        if (local.get(xid) != null)
-        {
-            // Discard main memory copy, put latest committed copy into main memory (this step is unecessary for our implementation)
-            synchronized(m_data) {
-                // No need to write contents of master file to m_data, as m_data not modified until commit
-            }
-
-            // Remove the local history
-            System.out.println("Aborted transaction " + xid);
-            local.remove(xid);
-
-            // Unlock all locks owned by transaction
-            UnlockAll(xid);
-        }
-        else
-        {
-            throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid");
-        }
-    }
-    
-    // Exits the server
-    public void shutdown() throws RemoteException
-    {   
-        System.out.println("Server is shutdown");
-        System.exit(0);
-    }
-    
-    // Start a transaction, add the a local history for the transaction in the hashmap of local histories
-    public boolean start(int xid) throws RemoteException 
-    {
-        synchronized(local) {
-            RMHashMap local_data = new RMHashMap();
-            
-            // update the hashmap of local histories
-            local.put(xid, local_data);
-        }
-
-        return true;
-    }
 
 	// Remove the item out of storage
 	protected void removeData(int xid, String key) throws DeadlockException, InvalidTransactionException, TransactionAbortedException
 	{
-
         try {
             Lock(xid, key, TransactionLockObject.LockType.LOCK_WRITE);
         }
@@ -258,38 +477,35 @@ public class ResourceManager extends LockManager implements IResourceManager
             }
 
             local_data.put(key, null);
-            
-            // update the hashmap of local histories
-            local.put(xid, local_data);
+            local.put(xid, local_data); // update the hashmap of local histories
         }
 	}
 
 	// Deletes the encar item
 	protected boolean deleteItem(int xid, String key) throws DeadlockException, InvalidTransactionException, TransactionAbortedException
     {
-            Trace.info("RM::deleteItem(" + xid + ", " + key + ") called");
-            ReservableItem curObj = (ReservableItem)readData(xid, key);
-            // Check if there is such an item in the storage
-            if (curObj == null)
+        Trace.info("RM::deleteItem(" + xid + ", " + key + ") called");
+        ReservableItem curObj = (ReservableItem)readData(xid, key);
+        // Check if there is such an item in the storage
+        if (curObj == null)
+        {
+            Trace.warn("RM::deleteItem(" + xid + ", " + key + ") failed--item doesn't exist");
+            return false;
+        }
+        else
+        {
+            if (curObj.getReserved() == 0)
             {
-                Trace.warn("RM::deleteItem(" + xid + ", " + key + ") failed--item doesn't exist");
-                return false;
+                removeData(xid, curObj.getKey());
+                Trace.info("RM::deleteItem(" + xid + ", " + key + ") item deleted");
+                return true;
             }
             else
             {
-                if (curObj.getReserved() == 0)
-                {
-                    removeData(xid, curObj.getKey());
-                    Trace.info("RM::deleteItem(" + xid + ", " + key + ") item deleted");
-                    return true;
-                }
-                else
-                {
-                    Trace.info("RM::deleteItem(" + xid + ", " + key + ") item can't be deleted because some customers have reserved it");
-                    return false;
-                }
+                Trace.info("RM::deleteItem(" + xid + ", " + key + ") item can't be deleted because some customers have reserved it");
+                return false;
             }
-    
+        }
 	}
 
 	// Query the number of available seats/rooms/cars
@@ -319,7 +535,6 @@ public class ResourceManager extends LockManager implements IResourceManager
             }
             Trace.info("RM::queryPrice(" + xid + ", " + key + ") returns cost=$" + value);
             return value;
-        
 	}
 
 	// Reserve an item
@@ -563,34 +778,33 @@ public class ResourceManager extends LockManager implements IResourceManager
 
 	public boolean deleteCustomer(int xid, int customerID) throws RemoteException, DeadlockException, InvalidTransactionException, TransactionAbortedException
     {
-            Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
-            Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
-            if (customer == null)
+        Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
+        Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
+        if (customer == null)
+        {
+            Trace.warn("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--customer doesn't exist");
+            return false;
+        }
+        else
+        {
+            // Increase the reserved numbers of all reservable items which the customer reserved.
+            RMHashMap reservations = customer.getReservations();
+            for (String reservedKey : reservations.keySet())
             {
-                Trace.warn("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--customer doesn't exist");
-                return false;
+                ReservedItem reserveditem = customer.getReservedItem(reservedKey);
+                Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") has reserved " + reserveditem.getKey() + " " +  reserveditem.getCount() +  " times");
+                ReservableItem item  = (ReservableItem)readData(xid, reserveditem.getKey());
+                Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") has reserved " + reserveditem.getKey() + " which is reserved " +  item.getReserved() +  " times and is still available " + item.getCount() + " times");
+                item.setReserved(item.getReserved() - reserveditem.getCount());
+                item.setCount(item.getCount() + reserveditem.getCount());
+                writeData(xid, item.getKey(), item);
             }
-            else
-            {
-                // Increase the reserved numbers of all reservable items which the customer reserved.
-                RMHashMap reservations = customer.getReservations();
-                for (String reservedKey : reservations.keySet())
-                {
-                    ReservedItem reserveditem = customer.getReservedItem(reservedKey);
-                    Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") has reserved " + reserveditem.getKey() + " " +  reserveditem.getCount() +  " times");
-                    ReservableItem item  = (ReservableItem)readData(xid, reserveditem.getKey());
-                    Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") has reserved " + reserveditem.getKey() + " which is reserved " +  item.getReserved() +  " times and is still available " + item.getCount() + " times");
-                    item.setReserved(item.getReserved() - reserveditem.getCount());
-                    item.setCount(item.getCount() + reserveditem.getCount());
-                    writeData(xid, item.getKey(), item);
-                }
 
-                // Remove the customer from the storage
-                removeData(xid, customer.getKey());
-                Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") succeeded");
-                return true;
-            }
-        
+            // Remove the customer from the storage
+            removeData(xid, customer.getKey());
+            Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") succeeded");
+            return true;
+        }     
 	}
 
 	// Adds flight reservation to this customer
@@ -913,184 +1127,10 @@ public class ResourceManager extends LockManager implements IResourceManager
         return false;
     }
 
-    // Write main memory copy (m_data) to the given file
-    public void writeFile(File file) 
-    {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(file, false));
-
-        for (String key : m_data.keySet()) // write each key and RMItem to the file
-        {
-            RMItem item = m_data.get(key);
-
-            if (item instanceof ReservableItem) // for Flight, Car, and Room RMs
-            {
-                // Identify the appropriate ReservableItem subclass
-                String type = "";
-                if (item instanceof Flight) type = "Flight";
-                else if (item instanceeof Car) type = "Car";
-                else if (item instanceof Room) type = "Room";
-
-                bw.write(key + "," + type 
-                + "," + ((ReservableItem)item).getCount() 
-                + "," + ((ReservableItem)item).getPrice()
-                + "," + ((ReservableItem)item).getReserved()
-                + "," + ((ReservableItem)item).getLocation());
-                bw.newLine();
-            }
-
-            else if (item instanceof Customer) // for Customer RM
-            {
-                int id = ((Customer)item).getID();
-                RMHashMap reservations = ((Customer)item).getReservations();
-
-                for(String res_key : reservations.keySet()) // write each reservation to the file as a new line
-                {
-                    ReservableItem res_item = reservations.get(res_key);
-
-                    String type = "";
-                    if (res_item instanceof Flight) type = "Flight";
-                    else if (res_item instanceeof Car) type = "Car";
-                    else if (res_item instanceof Room) type = "Room";
-
-                    bw.write(key + ",Customer," + id + "," + res_key + "," + type 
-                    + "," + ((ReservableItem)item).getCount() 
-                    + "," + ((ReservableItem)item).getPrice()
-                    + "," + ((ReservableItem)item).getReserved()
-                    + "," + ((ReservableItem)item).getLocation());
-                    bw.newLine();
-                }
-            }
-        }
-
-        bw.flush();
-    }
-
-    // write ID of file ("a" or "b") into the master file
-    updateMaster(String fileID) 
-    {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(master, false));
-        bw.write(fileID);
-        bw.flush();
-    }
-
-    // Puts the contents of the last committed copy into main memory (m_data)
-    restoreMainMemory() 
-    {
-        synchronized(m_data) 
-        {
-            m_data = new RMHashMap();
-
-            String last = "";
-
-            // Get the name of the last committed copy
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(master)); 
-                last = br.readLine();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            // Read from the last committed copy
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(last)); 
-                
-                String line; 
-                while ((line = br.readLine()) != null) {
-                    String[] entries = line.split("\\s+");
-
-                    String key = entries[0];
-                    String item_type = entries[1];
-
-                    switch (item_type) // check what kind of item it is
-                    {
-                        case "Customer":
-                            Customer cus;
-                            RMHashMap reservations;
-
-                            if ((cus = m_data.get(key)) != null) // Customer already in m_data: add the ReservableItem
-                            {
-                                reservations = cus.getReservations();
-                            }
-                            else // Customer not in m_data: create the customer and put it in m_data
-                            {
-                                int id = Integer.parseInt(entries[2]);
-                                cus = new Customer(id);
-                                reservations = cus.getReservations();
-                                m_data.put(key, cus);
-                            }
-                            
-                            // Reconstruct the ReservableItem
-                            String res_key = entries[3];
-                            String res_item_type = entries[4];
-                            int count = Integer.parseInt(entries[5]);
-                            int price = Integer.parseInt(entries[6]);
-                            int reserved = Integer.parseInt(entries[7]);
-                            String location = entries[8];
-
-                            switch (res_item_type) // check what kind of item is reserved and put it in "reservations"
-                            {
-                                case "Flight":
-                                    Flight flight = new Flight(location, count, price);
-                                    flight.setReserved(reserved);
-                                    reservations.put(res_key, flight);
-                                    break;
-                                case "Car":
-                                    Car car = new Car(location, count, price);
-                                    car.setReserved(reserved);
-                                    reservations.put(res_key, car);
-                                    break;
-                                case "Room":
-                                    Room room = new Room(location, count, price);
-                                    room.setReserved(reserved);
-                                    reservations.put(res_key, room);
-                                    break;
-                            }
-
-                            break;
-                        case "Flight":
-                            // Reconstruct the Flight
-                            int count = Integer.parseInt(entries[2]);
-                            int price = Integer.parseInt(entries[3]);
-                            int reserved = Integer.parseInt(entries[4]);
-                            String location = entries[5];
-
-                            Flight flight = new Flight(location, count, price);
-                            m_data.put(key, flight);
-
-                            break;
-                        case "Car":
-                            // Reconstruct the Car
-                            int count = Integer.parseInt(entries[2]);
-                            int price = Integer.parseInt(entries[3]);
-                            int reserved = Integer.parseInt(entries[4]);
-                            String location = entries[5];
-
-                            Car car = new Car(location, count, price);
-                            m_data.put(key, car);
-
-                            break;
-                        case "Room":
-                            // Reconstruct the Room
-                            int count = Integer.parseInt(entries[2]);
-                            int price = Integer.parseInt(entries[3]);
-                            int reserved = Integer.parseInt(entries[4]);
-                            String location = entries[5];
-
-                            Room room = new Room(location, count, price);
-                            m_data.put(key, room);
-                            
-                            break;
-                    }
-                } 
-
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+     // Exits the server
+     public void shutdown() throws RemoteException
+     {   
+         // Do nothing
+     }
 }
  

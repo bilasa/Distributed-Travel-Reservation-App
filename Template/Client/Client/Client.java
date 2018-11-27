@@ -87,6 +87,24 @@ public abstract class Client
 					}
 					break;
 				}
+				case CrashMiddleware: {
+					checkArgumentsCount(2, arguments.size());
+					int mode = toInt(arguments.elementAt(1));
+					m_resourceManager.crashMiddleware(mode);
+					break;
+				}
+				case CrashResourceManager: {
+					checkArgumentsCount(3, arguments.size());
+					String name = arguments.elementAt(1);
+					int mode = toInt(arguments.elementAt(2));
+					m_resourceManager.crashResourceManager(name, mode);
+					break;
+				}
+				case ResetCrashes: {
+					checkArgumentsCount(1, arguments.size());
+					m_resourceManager.resetCrashes();
+					break;
+				}
 				// Transaction commands
 				case Start: {
 
