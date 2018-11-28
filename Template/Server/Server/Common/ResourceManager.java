@@ -20,6 +20,10 @@ public class ResourceManager extends LockManager implements IResourceManager
     protected Map<Integer,RMHashMap> local = new HashMap<Integer,RMHashMap>();  // Hashmap indexed by xid to store the local histories of each transaction
     protected Map<Integer,Boolean> crashes = new HashMap<Integer,Boolean>();
     protected Lock global_lock = new ReentrantLock();
+
+    private HashMap<Integer,Timer> timers = new HashMap<Integer,Timer>(); // timers for vote request timeout
+
+    private long VOTE_REQUEST_TIME_LIMIT = 120000; // max allowed time for VOTE_REQ to come after starting transaction (2 mins)
     
 	public ResourceManager(String p_name)
 	{
@@ -40,6 +44,18 @@ public class ResourceManager extends LockManager implements IResourceManager
             RMHashMap local_data = new RMHashMap();
             local.put(xid, local_data); // update the hashmap of local histories
         }
+
+        // Set VOTE_REQUEST timer
+        Timer vote_timer = new Timer();
+        this.timers.put(xid, vote_timer);
+        vote_timer.schedule(new TimerTask(){
+            
+            @Override
+            public void run() {
+                vote_failure_handler(xid);
+            }
+        }, VOTE_REQUEST_TIME_LIMIT);
+
         return true;
     }
     
@@ -202,6 +218,9 @@ public class ResourceManager extends LockManager implements IResourceManager
         // Restore locks and local history
         UnlockAll(xid);
         local.remove(xid);
+
+        recordDecision(xid, true); // log a COMMIT
+
         Trace.info("RM::commit(" + xid + ") succeeded");
         return true;
     }
@@ -226,31 +245,42 @@ public class ResourceManager extends LockManager implements IResourceManager
             throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid");
         }
 
+        recordDecision(xid, false); // log an ABORT
+
         return true;
     }
 
     // Prepare to commit 
     public boolean prepare(int xid) throws RemoteException, InvalidTransactionException
-    {      
+    {   
+        // Cancel the vote request timer
+        synchronized(timers) {
+            Timer t = timers.get(xid);
+            t.cancel();
+            timers.remove(t);
+        }
+
         // Crash mode 1
         synchronized(crashes) {
             if (crashes.get(1)) System.exit(1);
         }
 
+        boolean canCommit = false;
         synchronized(local) {
 
-            boolean canCommit = this.local.containsKey(xid);
+            canCommit = this.local.containsKey(xid);
 
             // Crash mode 2
             synchronized(crashes) {
                 if (crashes.get(2)) System.exit(1);
             }
 
-            if (!canCommit) {
-                throw new InvalidTransactionException(xid,"Cannot prepare to a non-existent transaction xid");
-            }
         }
-        return true;
+
+        if (!canCommit) recordDecision(xid, false); // vote NO => log an ABORT
+        else recordYes(xid); // vote YES => log a YES 
+
+        return canCommit; // send vote
     }
 
     // Function to write to main memory
@@ -1132,5 +1162,52 @@ public class ResourceManager extends LockManager implements IResourceManager
      {   
          // Do nothing
      }
+
+     // Function to record commit/abort decision
+    public void recordDecision(int xid, boolean commit) 
+    {   
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("rm_records_" + m_name + ".txt", true));
+            String record = xid + ":" + (commit? "COMMIT" : "ABORT");
+            bw.write(record);
+            bw.newLine();
+            bw.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Function to record YES vote
+    public void recordYes(int xid) 
+    {   
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("rm_records_" + m_name + ".txt", true));
+            String record = xid + ":" + "YES";
+            bw.write(record);
+            bw.newLine();
+            bw.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Function to handle vote request failure
+    public void vote_failure_handler(int xid) 
+    {   
+        try {
+            abort(xid);
+
+            recordDecision(xid, false); // write ABORT to log
+        }
+        catch (InvalidTransactionException e) {
+            e.printStackTrace();
+        }
+        catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return;
+    }
 }
  
