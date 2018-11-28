@@ -318,12 +318,14 @@ public class ResourceManager extends LockManager implements IResourceManager
                 if (m_name.equals("Flights")) {
 
                     while ((line = br.readLine()) != null) {
-                        String[] record = line.trim().split(":");
-                        String key = record[0];
-                        String[] value = record[1].split("#");
-                        Flight flight = new Flight(Integer.parseInt(value[0]), Integer.parseInt(value[1]), Integer.parseInt(value[2]));
-                        flight.setReserved(Integer.parseInt(value[3]));
-                        m_data.put(key, flight);
+                        if (line.length() > 0) {
+                            String[] record = line.trim().split(":");
+                            String key = record[0];
+                            String[] value = record[1].split("#");
+                            Flight flight = new Flight(Integer.parseInt(value[0]), Integer.parseInt(value[1]), Integer.parseInt(value[2]));
+                            flight.setReserved(Integer.parseInt(value[3]));
+                            m_data.put(key, flight);
+                        }
                     }
                 } 
 
@@ -331,13 +333,14 @@ public class ResourceManager extends LockManager implements IResourceManager
                 if (m_name.equals("Rooms")) {
 
                     while ((line = br.readLine()) != null) {
-                       
-                        String[] record = line.trim().split(":");
-                        String key = record[0];
-                        String[] value = record[1].split("#");
-                        Room room = new Room(value[0], Integer.parseInt(value[1]), Integer.parseInt(value[2]));
-                        room.setReserved(Integer.parseInt(value[3]));
-                        m_data.put(key, room);
+                        if (line.length() > 0) {
+                            String[] record = line.trim().split(":");
+                            String key = record[0];
+                            String[] value = record[1].split("#");
+                            Room room = new Room(value[0], Integer.parseInt(value[1]), Integer.parseInt(value[2]));
+                            room.setReserved(Integer.parseInt(value[3]));
+                            m_data.put(key, room);
+                        }
                     }
                 } 
 
@@ -345,13 +348,14 @@ public class ResourceManager extends LockManager implements IResourceManager
                 if (m_name.equals("Cars")) {
 
                     while ((line = br.readLine()) != null) {
-                        
-                        String[] record = line.trim().split(":");
-                        String key = record[0];
-                        String[] value = record[1].split("#");
-                        Car car = new Car(value[0], Integer.parseInt(value[1]), Integer.parseInt(value[2]));
-                        car.setReserved(Integer.parseInt(value[3]));
-                        m_data.put(key, car);
+                        if (line.length() > 0) {
+                            String[] record = line.trim().split(":");
+                            String key = record[0];
+                            String[] value = record[1].split("#");
+                            Car car = new Car(value[0], Integer.parseInt(value[1]), Integer.parseInt(value[2]));
+                            car.setReserved(Integer.parseInt(value[3]));
+                            m_data.put(key, car);
+                        }
                     }
                 }
 
@@ -359,26 +363,27 @@ public class ResourceManager extends LockManager implements IResourceManager
                 if (m_name.equals("Customers")) {
 
                     while ((line = br.readLine()) != null) {
+                        if (line.length() > 0) {
+                            String[] record = line.trim().split(":");
+                            String key = record[0];
+                            int customer_id = Integer.parseInt(record[1]);
+                            String[] list_of_reserved = record[2].split(";");
 
-                        String[] record = line.trim().split(":");
-                        String key = record[0];
-                        int customer_id = Integer.parseInt(record[1]);
-                        String[] list_of_reserved = record[2].split(";");
+                            Customer customer = new Customer(customer_id);
 
-                        Customer customer = new Customer(customer_id);
+                            for (String reserved : list_of_reserved) {
 
-                        for (String reserved : list_of_reserved) {
+                                String[] data = reserved.split("#");
+                                int reserve_count = Integer.parseInt(data[2]);
 
-                            String[] data = reserved.split("#");
-                            int reserve_count = Integer.parseInt(data[2]);
-
-                            while (reserve_count > 0) {
-                                customer.reserve(data[0], data[1], Integer.parseInt(data[3]));
-                                reserve_count--;
+                                while (reserve_count > 0) {
+                                    customer.reserve(data[0], data[1], Integer.parseInt(data[3]));
+                                    reserve_count--;
+                                }
                             }
-                        }
 
-                        m_data.put(key, customer);
+                            m_data.put(key, customer);
+                        }
                     }
                 }
             }
@@ -468,28 +473,29 @@ public class ResourceManager extends LockManager implements IResourceManager
             if (m_name.equals("Flights")) {
 
                 while ((line = br.readLine()) != null) {
-                    
-                    String[] record = line.trim().split(":");
-                    
-                    int key = Integer.parseInt(record[0]);
-                    String[] list_items = record[1].split(";");
-                    RMHashMap new_map = new RMHashMap();
-                    
-                    for (String item : list_items) {
+                    if (line.length() > 0) {
+                        String[] record = line.trim().split(":");
+                        
+                        int key = Integer.parseInt(record[0]);
+                        String[] list_items = record[1].split(";");
+                        RMHashMap new_map = new RMHashMap();
+                        
+                        for (String item : list_items) {
 
-                        if (item.length() > 0) {
+                            if (item.length() > 0) {
 
-                            String[] data = item.split("$");
-                            String key_data = data[0];
-                            String[] details = data[1].split("#");
+                                String[] data = item.split("$");
+                                String key_data = data[0];
+                                String[] details = data[1].split("#");
 
-                            Flight f = new Flight(Integer.parseInt(details[0]), Integer.parseInt(details[1]), Integer.parseInt(details[2]));
-                            f.setReserved(Integer.parseInt(details[3]));
-                            new_map.put(key_data,f);
+                                Flight f = new Flight(Integer.parseInt(details[0]), Integer.parseInt(details[1]), Integer.parseInt(details[2]));
+                                f.setReserved(Integer.parseInt(details[3]));
+                                new_map.put(key_data,f);
+                            }
                         }
-                    }
 
-                    local.put(key, new_map);
+                        local.put(key, new_map);
+                    }
                 }
             } 
 
@@ -497,28 +503,29 @@ public class ResourceManager extends LockManager implements IResourceManager
             if (m_name.equals("Rooms")) {
 
                 while ((line = br.readLine()) != null) {
+                    if (line.length() > 0) {
+                        String[] record = line.trim().split(":");
+                        
+                        int key = Integer.parseInt(record[0]);
+                        String[] list_items = record[1].split(";");
+                        RMHashMap new_map = new RMHashMap();
 
-                    String[] record = line.trim().split(":");
-                    
-                    int key = Integer.parseInt(record[0]);
-                    String[] list_items = record[1].split(";");
-                    RMHashMap new_map = new RMHashMap();
+                        for (String item : list_items) {
 
-                    for (String item : list_items) {
+                            if (item.length() > 0) {
 
-                        if (item.length() > 0) {
+                                String[] data = item.split("$");
+                                String key_data = data[0];
+                                String[] details = data[1].split("#");
 
-                            String[] data = item.split("$");
-                            String key_data = data[0];
-                            String[] details = data[1].split("#");
-
-                            Room r = new Room(details[0], Integer.parseInt(details[1]), Integer.parseInt(details[2]));
-                            r.setReserved(Integer.parseInt(details[3]));
-                            new_map.put(key_data,r);
+                                Room r = new Room(details[0], Integer.parseInt(details[1]), Integer.parseInt(details[2]));
+                                r.setReserved(Integer.parseInt(details[3]));
+                                new_map.put(key_data,r);
+                            }
                         }
-                    }
 
-                    local.put(key, new_map);
+                        local.put(key, new_map);
+                    }
                 }
             } 
 
@@ -526,89 +533,68 @@ public class ResourceManager extends LockManager implements IResourceManager
             if (m_name.equals("Cars")) {
 
                 while ((line = br.readLine()) != null) {
+                    if (line.length() > 0) {
+                        String[] record = line.trim().split(":");
+                        
+                        int key = Integer.parseInt(record[0]);
+                        String[] list_items = record[1].split(";");
+                        RMHashMap new_map = new RMHashMap();
 
-                    String[] record = line.trim().split(":");
-                    
-                    int key = Integer.parseInt(record[0]);
-                    String[] list_items = record[1].split(";");
-                    RMHashMap new_map = new RMHashMap();
+                        for (String item : list_items) {
 
-                    for (String item : list_items) {
+                            if (item.length() > 0) {
 
-                        if (item.length() > 0) {
+                                String[] data = item.split("$");
+                                String key_data = data[0];
+                                String[] details = data[1].split("#");
 
-                            String[] data = item.split("$");
-                            String key_data = data[0];
-                            String[] details = data[1].split("#");
-
-                            Car c = new Car(details[0], Integer.parseInt(details[1]), Integer.parseInt(details[2]));
-                            c.setReserved(Integer.parseInt(details[3]));
-                            new_map.put(key_data,c);
+                                Car c = new Car(details[0], Integer.parseInt(details[1]), Integer.parseInt(details[2]));
+                                c.setReserved(Integer.parseInt(details[3]));
+                                new_map.put(key_data,c);
+                            }
                         }
-                    }
 
-                    local.put(key, new_map);
+                        local.put(key, new_map);
+                    }
                 }
             }
 
             // Customers
             if (m_name.equals("Customers")) {
 
-                /**
-                 * Customer customer = (Customer) item;
-                    int id = customer.getID();
-                    RMHashMap reservations = customer.getReservations();
-                    StringBuilder customer_sb = new StringBuilder();
-
-                    ArrayList<ReservedItem> reservedItems = new ArrayList<ReservedItem>();
-                    for (String reservedItem : reservations.keySet()) {
-                        reservedItems.add((ReservedItem) reservations.get(reservedItem));
-                    }
-
-                    for (int i = 0; i < reservedItems.size(); i++) {
-                        ReservedItem reserved = reservedItems.get(i);
-                        customer_sb.append(
-                            reserved.getKey() + "$" + reserved.getLocation() + "#" + reserved.getCount() + "#" + reserved.getPrice()
-                        );
-
-                        if (i != reservedItems.size() - 1) customer_sb.append(";");
-                    }
-
-                    sb.append(customer.getKey() + "$" + id + "$" + customer_sb.toString());
-                 */
-
                 while ((line = br.readLine()) != null) {
+                    if (line.length() > 0) {
+                        String[] record = line.trim().split(":");
+                        
+                        int key = Integer.parseInt(record[0]);
+                        String[] customers = record[1].split(";");
+                        RMHashMap new_map = new RMHashMap();
 
-                    String[] record = line.trim().split(":");
-                    
-                    int key = Integer.parseInt(record[0]);
-                    String[] customers = record[1].split(";");
-                    RMHashMap new_map = new RMHashMap();
+                        for (String customer : customers) {
 
-                    for (String customer : customers) {
+                            String[] data = record[1].split("$");
+                            String customer_key = data[0];
+                            int customer_id = Integer.parseInt(data[1]);
+                            String customer_key_2 = data[2];
+                            String[] reserved_items = data[3].split("/");
 
-                        String[] data = record[1].split("$");
-                        String customer_key = data[0];
-                        int customer_id = Integer.parseInt(data[1]);
-                        String customer_key_2 = data[2];
-                        String[] reserved_items = data[3].split("/");
+                            Customer c = new Customer(customer_id);
 
-                        Customer c = new Customer(customer_id);
+                            for (String reserved_item : reserved_items) {
 
-                        for (String reserved_item : reserved_items) {
-
-                            String[] details = reserved_item.split("#");
-                            int reserve_count = Integer.parseInt(details[2]);
-                            while (reserve_count > 0) {
-                                c.reserve(details[0], details[1], Integer.parseInt(details[3]));
-                                reserve_count--;
+                                String[] details = reserved_item.split("#");
+                                int reserve_count = Integer.parseInt(details[2]);
+                                while (reserve_count > 0) {
+                                    c.reserve(details[0], details[1], Integer.parseInt(details[3]));
+                                    reserve_count--;
+                                }
                             }
+
+                            new_map.put(customer_key,c);
                         }
 
-                        new_map.put(customer_key,c);
+                        local.put(key,new_map);
                     }
-
-                    local.put(key,new_map);
                 }
             }
 

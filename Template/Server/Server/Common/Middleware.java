@@ -502,31 +502,32 @@ public abstract class Middleware implements IResourceManager
             String line = null;
 
             while ((line = br.readLine()) != null) {
+                if (line.length() > 0) {
+                    String[] record = line.trim().split(":");
+                    int xid = Integer.parseInt(record[0]);
+                    String record_type = record[1];
 
-                String[] record = line.trim().split(":");
-                int xid = Integer.parseInt(record[0]);
-                String record_type = record[1];
+                    switch (record_type) {
 
-                switch (record_type) {
-
-                    case "S_O_T":
-                        s_o_t.add(xid);
-                        break;
-                    case "S_O_2PC":
-                        ArrayList<String> list = new ArrayList<String>();
-                        String[] rms = record[2].split(";");
-                        for (String rm : rms) list.add(rm);
-                        s_o_2pc.put(xid,list);
-                        break;
-                    case "MW_DEC":
-                        if (record[2].equals("COMMIT")) mw_dec.put(xid,true);
-                        else mw_dec.put(xid,false);
-                        break;
-                    case "E_O_T":
-                        e_o_t.add(xid);
-                        break;
-                    default:
-                        break;
+                        case "S_O_T":
+                            s_o_t.add(xid);
+                            break;
+                        case "S_O_2PC":
+                            ArrayList<String> list = new ArrayList<String>();
+                            String[] rms = record[2].split(";");
+                            for (String rm : rms) list.add(rm);
+                            s_o_2pc.put(xid,list);
+                            break;
+                        case "MW_DEC":
+                            if (record[2].equals("COMMIT")) mw_dec.put(xid,true);
+                            else mw_dec.put(xid,false);
+                            break;
+                        case "E_O_T":
+                            e_o_t.add(xid);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
 
