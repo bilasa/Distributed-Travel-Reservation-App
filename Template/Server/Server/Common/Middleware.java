@@ -29,6 +29,13 @@ public abstract class Middleware implements IResourceManager
     public IResourceManager roomResourceManager = null;
     public IResourceManager customerResourceManager = null;
     protected Map<Integer,Boolean> crashes = new HashMap<Integer,Boolean>();
+
+    private HashMap<Integer,Transaction> transactions = new HashMap<Integer,Transaction>();
+    private HashMap<Integer,Timer> timers = new HashMap<Integer,Timer>();
+    
+    private long TRANSACTION_TIME_LIMIT = 120000;
+    private long VOTE_REQUEST_TIME_LIMIT = 60000;
+    private int count = 0;
     
     public Middleware(String p_name)
     {
@@ -39,37 +46,8 @@ public abstract class Middleware implements IResourceManager
             crashes.put(i, false);
         }
 
-        /**
-         * TODO : PART 4 - check vote file (i.e. middleware recovery)
-         * Format of message:
-         * 
-         * T-(XID):(KEY):(VALUE)
-         * 
-         * e.g. 
-         * 
-         * T-1:VOTE:COMMIT
-         * T-2:VOTE:ABORT
-         * T-3:EOT:EOT
-         * 
-         * Interpretation:
-         * - Middleware registered a YES vote for transaction 1 
-         * - Middleware registered a NO vote for transaction 2
-         * - Middleware registered a END-OF-TRANSACTION for transaction 3
-         */
+        recovery();        
     }
-    
-    /**
-     * THE FOLLOWING INCORPORATE THE IMPLEMENTATION OF TRANSACTION MANAGEMENT
-     * - START
-     * - COMMIT
-     * - ABORT
-     * - SHUTDOWN
-     */
-
-    private HashMap<Integer,Transaction> transactions = new HashMap<Integer,Transaction>();
-    private HashMap<Integer,Timer> timers = new HashMap<Integer,Timer>();
-    private long TRANSACTION_TIME_LIMIT = 120000;
-    private int count = 0;
 
     // Crash functions
     public void resetCrashes() throws RemoteException 
@@ -79,6 +57,12 @@ public abstract class Middleware implements IResourceManager
                 crashes.put(i, false);
             }
         }
+
+        flightResourceManager.resetCrashes();
+        roomResourceManager.resetCrashes();
+        carResourceManager.resetCrashes();
+        customerResourceManager.resetCrashes();
+
         return;
     }
    
@@ -107,13 +91,23 @@ public abstract class Middleware implements IResourceManager
         return;
     }
 
+     /**
+     * THE FOLLOWING INCORPORATE THE IMPLEMENTATION OF TRANSACTION MANAGEMENT
+     * - START
+     * - COMMIT
+     * - ABORT
+     * - SHUTDOWN
+     */
+
     // Function to start transaction
     public int startTransaction(String client_id) throws RemoteException
     {   
-        synchronized(this.transactions)
-        {
+        int xid = -1;
+
+        synchronized(this.transactions) {
             int id = this.count++; //(int) new Date().getTime();
-            int xid = id < 0? -id : id;
+            xid = id < 0? -id : id;
+            final int xid_t = xid;
             this.transactions.put(xid, new Transaction(xid,client_id));
 
             Timer t = new Timer();
@@ -123,7 +117,7 @@ public abstract class Middleware implements IResourceManager
                 @Override
                 public void run() {
                     try {
-                        initiateAbort(xid);
+                        initiateAbort(xid_t);
                     }
                     catch (InvalidTransactionException e) 
                     {
@@ -139,86 +133,176 @@ public abstract class Middleware implements IResourceManager
                     }
                     
                 }
-            }, this.TRANSACTION_TIME_LIMIT);
+            }, TRANSACTION_TIME_LIMIT);
 
             flightResourceManager.start(xid);
             carResourceManager.start(xid);
             roomResourceManager.start(xid);
-            customerResourceManager.start(xid);
-
-            return xid;
+            customerResourceManager.start(xid); 
         }
+        
+        recordStartOfTransaction(xid);
+        return xid;
     }
 
     // Function to commit transaction
     public boolean commitTransaction(int xid) throws RemoteException,TransactionAbortedException,InvalidTransactionException
     {   
-        synchronized(this.transactions)
-        {   
-            synchronized(this.timers) 
-            {
-                if (!this.transactions.containsKey(xid)) 
-                {
-                    throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid from middleware)");
+        HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
+        
+        synchronized(this.transactions) {
+
+            if (!this.transactions.containsKey(xid)) {
+                throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid from middleware)");
+            }
+
+            Transaction ts = this.transactions.get(xid);
+            ArrayList<Operation> ops = ts.getOperations();
+
+            // Find out relevant RM(s)
+            for (Operation op : ops) {
+                ArrayList<RESOURCE_MANAGER_TYPE> rms = op.getResourceManagers();
+                for (RESOURCE_MANAGER_TYPE rm : rms) {
+                    if (!set.contains(rm)) set.add(rm);
                 }
+            }
+        }
 
-                Transaction ts = this.transactions.get(xid);
-                ArrayList<Operation> ops = ts.getOperations();
-                HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
+        // Start of 2PC
+        ArrayList<String> record_rms = new ArrayList<String>();
+        for (RESOURCE_MANAGER_TYPE rm : set) {
+            switch (rm) {
+                case FLIGHT:
+                    record_rms.add("flights");
+                    break;
+                case CAR:
+                    record_rms.add("cars");
+                    break;
+                case ROOM:
+                    record_rms.add("rooms");
+                    break;
+                case CUSTOMER:
+                    record_rms.add("customers");
+                    break;
+                default:
+                    break;
+            }
+        }
+        recordStartOf2PC(xid, record_rms);
+        
+        // Crash mode 1
+        synchronized(crashes) {
+            if (crashes.get(1)) System.exit(1);
+        }
+        
+        /**
+         * Middelware failure handling implementation
+         * Case: Waiting for Votes
+         * Solution: Add a timer to keep track before sending any request and after receiving all requests 
+         */
 
-                // Find out relevant RM(s)
-                for (Operation op : ops)
-                {
-                    ArrayList<RESOURCE_MANAGER_TYPE> rms = op.getResourceManagers();
+        // Set VOTE_REQUEST timer
+        Timer vote_timer = new Timer();
+        vote_timer.schedule(new TimerTask(){
+            
+            @Override
+            public void run() {
+                vote_failure_handler(xid);
+            }
+        }, VOTE_REQUEST_TIME_LIMIT);
 
-                    for (RESOURCE_MANAGER_TYPE rm : rms)
-                    {
-                        if (!set.contains(rm)) set.add(rm);
-                    }
+        // Send vote request
+        HashMap<RESOURCE_MANAGER_TYPE,Boolean> votes = new HashMap<RESOURCE_MANAGER_TYPE,Boolean>();
+        
+        for (RESOURCE_MANAGER_TYPE rm : set) {
+            
+            boolean ack = false;
+            
+            try {
+
+                switch (rm) {
+                    case FLIGHT:
+                        ack = flightResourceManager.prepare(xid);
+                        votes.put(rm, ack);
+                        recordResourceManagerDecision(xid, "flights", ack);
+                        break;
+                    case CAR:
+                        ack = carResourceManager.prepare(xid);
+                        votes.put(rm, ack);
+                        recordResourceManagerDecision(xid, "cars", ack);
+                        break;
+                    case ROOM:
+                        ack = roomResourceManager.prepare(xid);
+                        votes.put(rm, ack);
+                        recordResourceManagerDecision(xid, "rooms", ack);
+                        break;
+                    case CUSTOMER:
+                        ack = customerResourceManager.prepare(xid);
+                        votes.put(rm, ack);
+                        recordResourceManagerDecision(xid, "customers", ack);
+                        break;
+                    default:
+                        break;
                 }
+            }
+            catch (RemoteException e) {
+                
+                try {
+                    Thread.sleep(60000); // Try one more time if one of them fails due to RM crash
 
-                // Crash mode 1
-                synchronized(crashes) {
-                    if (crashes.get(1)) System.exit(1);
-                }
-
-                // Send vote request
-                HashMap<RESOURCE_MANAGER_TYPE,Boolean> votes = new HashMap<RESOURCE_MANAGER_TYPE,Boolean>();
-                for (RESOURCE_MANAGER_TYPE rm : set) 
-                {
-                    switch (rm)
-                    {
+                    switch (rm) {
                         case FLIGHT:
-                            votes.put(rm, flightResourceManager.prepare(xid));
+                            ack = flightResourceManager.prepare(xid);
+                            votes.put(rm, ack);
+                            recordResourceManagerDecision(xid, "flights", ack);
                             break;
                         case CAR:
-                            votes.put(rm, carResourceManager.prepare(xid));
+                            ack = carResourceManager.prepare(xid);
+                            votes.put(rm, ack);
+                            recordResourceManagerDecision(xid, "cars", ack);
                             break;
                         case ROOM:
-                            votes.put(rm, roomResourceManager.prepare(xid));
+                            ack = roomResourceManager.prepare(xid);
+                            votes.put(rm, ack);
+                            recordResourceManagerDecision(xid, "rooms", ack);
                             break;
                         case CUSTOMER:
-                            votes.put(rm, customerResourceManager.prepare(xid));
+                            ack = customerResourceManager.prepare(xid);
+                            votes.put(rm, ack);
+                            recordResourceManagerDecision(xid, "customers", ack);
                             break;
                         default:
                             break;
                     }
-
-                    // Crash mode 3
-                    synchronized(crashes) {
-                        if (crashes.get(3)) System.exit(1);
-                    }
                 }
+                catch (InterruptedException e2) {
+                    e2.printStackTrace();
+                }
+            }
+
+            // Crash mode 3
+            synchronized(crashes) {
+                if (crashes.get(3)) System.exit(1);
+            }
+        }
+
+        /* At this point, all votes are received */
+        // Cancel VOTE_REQUEST timer
+        vote_timer.cancel();
+ 
+        // If no failure happens, the following is ran
+        synchronized(transactions) {
+
+            if (transactions.containsKey(xid)) { // if not found, it means vote_failure_handler removed it already
 
                 // Crash mode 2
                 synchronized(crashes) {
                     if (crashes.get(2)) System.exit(1);
                 }
-                
+
                 // Verify vote request
                 boolean canCommit = true;
-                for (RESOURCE_MANAGER_TYPE rm : votes.keySet()) 
-                {
+                for (RESOURCE_MANAGER_TYPE rm : votes.keySet()) {
                     boolean vote = votes.get(rm);
                     if (!vote) {
                         canCommit = false;
@@ -232,17 +316,16 @@ public abstract class Middleware implements IResourceManager
                 }
 
                 // Middelware records approval or decline vote
-                recordVote(xid, canCommit);
+                recordMiddlewareDecision(xid, canCommit);
 
                 // Crash mode 5
                 synchronized(crashes) {
                     if (crashes.get(5)) System.exit(1);
                 }
-
+                
                 // Commit or Abort based on vote request
                 HashMap<RESOURCE_MANAGER_TYPE,Boolean> completed = new HashMap<RESOURCE_MANAGER_TYPE,Boolean>();
-                if (canCommit) 
-                {
+                if (canCommit) {
                     for (RESOURCE_MANAGER_TYPE rm : set) 
                     {   
                         try {
@@ -282,7 +365,7 @@ public abstract class Middleware implements IResourceManager
                     for (RESOURCE_MANAGER_TYPE rm : votes.keySet())
                     {   
                         boolean vote = votes.get(rm);
-                        if (!vote) 
+                        if (vote) 
                         {      
                             try {
                                 boolean ack = false;
@@ -304,35 +387,41 @@ public abstract class Middleware implements IResourceManager
                                 }
                                 completed.put(rm,ack);
                             }
-                            catch (IOException e) {
+                            catch (RemoteException e) {
                                 completed.put(rm, false);
                                 e.printStackTrace();
                             }
                         }
                     }
-                }
+                }   
 
                 // Crash mode 7
                 synchronized(crashes) {
                     if (crashes.get(7)) System.exit(1);
                 }
 
-                recordEndofTransaction(xid);
-                this.timers.get(xid).cancel();
-                this.timers.remove(xid);
+                synchronized(timers) 
+                {
+                    this.timers.get(xid).cancel();
+                    this.timers.remove(xid);  
+                }
+            
                 this.transactions.remove(xid);
+                recordEndOfTransaction(xid);
+                
+                return true;
             }
-        }   
-        return true;
+        }
+        return false;
     }
 
-    // Function to record middleware vote
-    public void recordVote(int xid, boolean canCommit) 
+    // Function to record start of transaction
+    public void recordStartOfTransaction(int xid) 
     {   
-        try {   
-            BufferedWriter bw = new BufferedWriter(new FileWriter("votes" + ".txt", true));
-            String msg = "T-" + xid + ":" + "VOTE" + ":" + (canCommit? "COMMIT" : "ABORT");
-            bw.write(msg);
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("middleware_records_" + m_name + ".txt", true));
+            String record = xid + ":" + "S_O_T";
+            bw.write(record);
             bw.newLine();
             bw.close();
         }
@@ -341,19 +430,415 @@ public abstract class Middleware implements IResourceManager
         }
     }
 
-    // Function to record middleware end of transaction
-    public void recordEndofTransaction(int xid) 
+    // Function to record start of 2PC
+    public void recordStartOf2PC(int xid, ArrayList<String> resourceManagers) 
     {   
-        try {   
-            BufferedWriter bw = new BufferedWriter(new FileWriter("votes" + m_name + ".txt", true));
-            String msg = "T-" + xid + ":" + "EOT:EOT";
-            bw.write(msg);
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("middleware_records_" + m_name + ".txt", true));
+            String record = xid + ":" + "S_O_2PC" + ":";
+            
+            for (int i = 0; i < resourceManagers.size(); i++) {
+                record += resourceManagers.get(i);
+                if (i != resourceManagers.size() - 1) record += ";";
+            }
+
+            bw.write(record);
             bw.newLine();
             bw.close();
         }
         catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    // Function to record Middleware decision
+    public void recordMiddlewareDecision(int xid, boolean canCommit) 
+    {   
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("middleware_records_" + m_name + ".txt", true));
+            String record = xid + ":" + "MW_DEC" + (canCommit? "COMMIT" : "ABORT");
+            bw.write(record);
+            bw.newLine();
+            bw.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Function to record resource manager decision
+    public void recordResourceManagerDecision(int xid, String name, boolean ack) 
+    {   
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("middleware_records_" + m_name + ".txt", true));
+            String record = xid + ":" + "RM_DEC" + ":" + name + ":" + (ack? "YES" : "NO");
+            bw.write(record);
+            bw.newLine();
+            bw.close();
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Function to record end of transaction
+    public void recordEndOfTransaction(int xid)
+    {   
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("middleware_records_" + m_name + ".txt", true));
+            String record = xid + ":" + "E_O_T";
+            bw.write(record);
+            bw.newLine();
+            bw.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Function to recovery from log file
+    public void recovery()
+    {
+        /**
+         * Format of record messages:
+         * 
+         * 1. Start of transaction
+         * - xid:S_O_T
+         * 
+         * 2. Start of 2PC
+         * - xid:S_O_2PC:[list of resource managers separated by ';']
+         * 
+         * 3. Resource Manager decision
+         * - xid:RM_DEC:name:[YES/NO]
+         * 
+         * 4. Middleware decision
+         * - xid:MW_DEC:[COMMIT/ABORT]
+         * 
+         * 5. End of transaction
+         * - xid:E_O_T
+         */
+
+        // Log information 
+        Set<Integer> s_o_t = new HashSet<Integer>();
+        Set<Integer> e_o_t = new HashSet<Integer>();
+        Map<Integer,ArrayList<String>> s_o_2pc = new HashMap<Integer,ArrayList<String>>();
+        Map<Integer,Boolean> mw_dec = new HashMap<Integer,Boolean>(); // true -> commit, false -> abort
+        Map<Integer,HashMap<String,Boolean>> rm_dec = new HashMap<Integer,HashMap<String,Boolean>>(); 
+
+        // Read from Middleware log
+        try {
+            BufferedReader br = new BufferedReader(new FileReader("middleware_records_" + m_name + ".txt"));
+            String line = null;
+
+            while ((line = br.readLine()) != null) {
+
+                String[] record = line.trim().split(":");
+                int xid = Integer.parseInt(record[0]);
+                String record_type = record[1];
+
+                switch (record_type) {
+
+                    case "S_O_T":
+                        s_o_t.add(xid);
+                        break;
+                    case "S_O_2PC":
+                        ArrayList<String> list = new ArrayList<String>();
+                        String[] rms = record[2].split(";");
+                        for (String rm : rms) list.add(rm);
+                        s_o_2pc.put(xid,list);
+                        break;
+                    case "MW_DEC":
+                        if (record[2].equals("COMMIT")) mw_dec.put(xid,true);
+                        else mw_dec.put(xid,false);
+                        break;
+                    case "RM_DEC":
+                        String name = record[2];
+                        boolean res = record[3].equals("YES")? true : false;
+                        if (!rm_dec.containsKey(xid)) rm_dec.put(xid,new HashMap<String,Boolean>());
+                        HashMap<String,Boolean> current_list = rm_dec.get(xid);
+                        current_list.put(name,res);
+                        rm_dec.put(xid,current_list);
+                        break;
+                    case "E_O_T":
+                        e_o_t.add(xid);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            br.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Attempt communication again, if necessary
+        // Phase between START and 2PC
+        for (Integer xid : s_o_t) {
+            if (!s_o_2pc.containsKey(xid)) {
+
+                try {
+                    flightResourceManager.abort(xid);
+                }
+                catch (InvalidTransactionException e) {
+                    System.out.println("Error caught: transaction " + xid + " already removed in flight resource manager.");
+                }
+                catch (RemoteException e) {
+                    System.out.println("Exception caught: remote. Deteted during middleware recovery");
+                }
+
+                try {
+                    roomResourceManager.abort(xid);
+                }
+                catch (InvalidTransactionException e) {
+                    System.out.println("Error caught: transaction " + xid + " already removed in room resource manager.");
+                }
+                catch (RemoteException e) {
+                    System.out.println("Exception caught: remote. Deteted during middleware recovery");
+                }
+
+                try {
+                    carResourceManager.abort(xid);
+                }
+                catch (InvalidTransactionException e) {
+                    System.out.println("Error caught: transaction " + xid + " already removed in car resource manager.");
+                }
+                catch (RemoteException e) {
+                    System.out.println("Exception caught: remote. Deteted during middleware recovery");
+                }
+
+                try {
+                    customerResourceManager.abort(xid);
+                }
+                catch (InvalidTransactionException e) {
+                    System.out.println("Error caught: transaction " + xid + " already removed in customer resource manager.");
+                }
+                catch (RemoteException e) {
+                    System.out.println("Exception caught: remote. Deteted during middleware recovery");
+                }
+
+                s_o_t.remove(xid);
+            }
+        }
+
+        // Phase between 2PC and END
+        for (Integer xid : s_o_2pc.keySet()) {
+            // Transaction not ended
+            if (!e_o_t.contains(xid)) {
+
+                List<String> rms = s_o_2pc.get(xid);
+
+                // Middleware already has a decision
+                if (mw_dec.containsKey(xid)) {
+                    
+                    // Commit
+                    if (mw_dec.get(xid)) {
+                        for (String rm : rms) {
+                            try {
+                                switch (rm) {
+                                    case "flights":
+                                        flightResourceManager.commit(xid);
+                                        break;
+                                    case "rooms":
+                                        roomResourceManager.commit(xid);
+                                        break;
+                                    case "cars":
+                                        carResourceManager.commit(xid);
+                                        break;
+                                    case "customers":
+                                        customerResourceManager.commit(xid);
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                            catch (RemoteException e) {
+                                System.out.println("Exception caught: remote issue found during middleware recovery commit.");
+                            }
+                            catch (InvalidTransactionException e) {
+                                System.out.println("Exception caught: invalid transaction id issue found during middleware recovery commit.");
+                            }
+                            catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    // abort
+                    else {
+                        for (String rm : rms) {
+                            try {
+                                switch (rm) {
+                                    case "flights":
+                                        flightResourceManager.commit(xid);
+                                        break;
+                                    case "rooms":
+                                        roomResourceManager.commit(xid);
+                                        break;
+                                    case "cars":
+                                        carResourceManager.commit(xid);
+                                        break;
+                                    case "customers":
+                                        customerResourceManager.commit(xid);
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                            catch (RemoteException e) {
+                                System.out.println("Exception caught: remote issue found during middleware recovery abort.");
+                            }
+                            catch (InvalidTransactionException e) {
+                                System.out.println("Exception caught: invalid transaction id issue found during middleware recovery abort.");
+                            }
+                            catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    s_o_t.remove(xid);
+                    s_o_2pc.remove(xid);
+                    mw_dec.remove(xid);
+                    if (rm_dec.containsKey(xid)) rm_dec.remove(xid);
+                }
+                // Middleware does not have decision yet
+                else {
+                    for (String rm : rms) {
+                        try {
+                            switch (rm) {
+                                case "flights":
+                                    flightResourceManager.abort(xid);
+                                    break;
+                                case "rooms":
+                                    roomResourceManager.abort(xid);
+                                    break;
+                                case "cars":
+                                    carResourceManager.abort(xid);
+                                    break;
+                                case "customers":
+                                    customerResourceManager.abort(xid);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        catch (RemoteException e) {
+                            System.out.println("Exception caught: remote issue found during middleware recovery abort.");
+                        }
+                        catch (InvalidTransactionException e) {
+                            System.out.println("Exception caught: invalid transaction id issue found during middleware recovery abort.");
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    s_o_t.remove(xid);
+                    s_o_2pc.remove(xid);
+                    if (rm_dec.containsKey(xid)) rm_dec.remove(xid);
+                }
+            }
+        }
+
+        // Garbage collection
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("middleware_records_" + m_name + ".txt", false));
+            StringBuilder sb = new StringBuilder();
+
+            for (Integer xid : s_o_t) {
+                
+                if (!e_o_t.contains(xid)) {
+
+                    // Start of transaction
+                    sb.append(xid + ":" + "S_O_T");
+                    sb.append("\n");
+                    
+                    // Start of 2PC
+                    if (s_o_2pc.containsKey(xid)) {
+                        sb.append(xid + ":" + "S_O_2PC" + ":");
+                        List<String> list = s_o_2pc.get(xid);
+                        for (int i = 0; i < list.size(); i++) {
+                            sb.append(list.get(i));
+                            if (i != list.size() - 1) sb.append(";");
+                        }
+                    } 
+                    sb.append("\n");
+
+                    // MW decision
+                    sb.append(xid + ":" + "MW_DEC" + ":" + (mw_dec.get(xid)? "COMMIT" : "ABORT"));
+                    sb.append("\n");
+
+                    // RM decision
+                    HashMap<String,Boolean> list = rm_dec.get(xid);
+                    for (String s : list.keySet()) {
+                        sb.append(xid + ":" + "RM_DEC" + ":" + s + ":" + (list.get(s)? "YES" : "NO"));
+                    }
+                    sb.append("\n");
+                }
+            }
+            
+            bw.write(sb.toString());
+            bw.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Function to handle vote failure
+    public void vote_failure_handler(int xid) 
+    {   
+        synchronized(timers) {
+            Timer t = timers.get(xid);
+            t.cancel();
+            timers.remove(t);
+        }
+
+        synchronized(transactions) {
+
+            Transaction ts = this.transactions.get(xid);
+            ArrayList<Operation> ops = ts.getOperations();
+            HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
+
+            for (Operation op : ops) {
+                ArrayList<RESOURCE_MANAGER_TYPE> rms = op.getResourceManagers();
+                for (RESOURCE_MANAGER_TYPE rm : rms) {
+                    if (!set.contains(rm)) set.add(rm);
+                }
+            }
+
+            for (RESOURCE_MANAGER_TYPE rm : set) {
+                try {
+                    switch(rm) {
+                        case FLIGHT:
+                            flightResourceManager.abort(xid);
+                            break;
+                        case CAR:
+                            carResourceManager.abort(xid);
+                            break;
+                        case ROOM:
+                            roomResourceManager.abort(xid);
+                            break;
+                        case CUSTOMER:
+                            customerResourceManager.abort(xid);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                catch (InvalidTransactionException e) {
+                    e.printStackTrace();
+                }
+                catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            transactions.remove(xid);
+            recordEndOfTransaction(xid);
+        }
+        return;
     }
 
     // Function to abort transaction
@@ -371,8 +856,7 @@ public abstract class Middleware implements IResourceManager
     // Function to shutdown
     public boolean shutdownClient(String client_id) throws RemoteException
     {   
-        synchronized(this.transactions)
-        {   
+        synchronized(this.transactions) {   
             for (Integer xid : transactions.keySet())
             {
                 if (this.transactions.get(xid).getClientId().equals(client_id)) 
@@ -386,68 +870,68 @@ public abstract class Middleware implements IResourceManager
 
     // Function to initiate abort
     public boolean initiateAbort(int xid) throws RemoteException, InvalidTransactionException, TransactionAbortedException
-    {
-        synchronized(this.transactions)
-        {
-            synchronized(this.timers)
-            {
-                Transaction ts = this.transactions.get(xid);
-                ArrayList<Operation> ops = ts.getOperations();
-                HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
+    {  
+        HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
 
-                for (Operation op : ops)
+        synchronized(this.transactions) {
+            
+            Transaction ts = this.transactions.get(xid);
+            ArrayList<Operation> ops = ts.getOperations();
+
+            for (Operation op : ops) {
+                ArrayList<RESOURCE_MANAGER_TYPE> rms = op.getResourceManagers();
+
+                for (RESOURCE_MANAGER_TYPE rm : rms)
                 {
-                    ArrayList<RESOURCE_MANAGER_TYPE> rms = op.getResourceManagers();
-
-                    for (RESOURCE_MANAGER_TYPE rm : rms)
-                    {
-                        if (!set.contains(rm)) set.add(rm);
-                    }
+                    if (!set.contains(rm)) set.add(rm);
                 }
-
-                for (RESOURCE_MANAGER_TYPE rm : set)
-                {
-                    switch (rm)
-                        {
-                            case FLIGHT:
-                                flightResourceManager.abort(xid);
-                                break;
-                            case CAR:
-                                carResourceManager.abort(xid);
-                                break;
-                            case ROOM:
-                                roomResourceManager.abort(xid);
-                                break;
-                            case CUSTOMER:
-                                customerResourceManager.abort(xid);
-                                break;
-                            default:
-                                break;
-                        }
-                }
-
-                this.timers.get(xid).cancel();
-                this.timers.remove(xid);
-                this.transactions.remove(xid);
             }
+            
+            this.transactions.remove(xid);
         }
+
+        for (RESOURCE_MANAGER_TYPE rm : set) {
+            switch (rm)
+                {
+                    case FLIGHT:
+                        flightResourceManager.abort(xid);
+                        break;
+                    case CAR:
+                        carResourceManager.abort(xid);
+                        break;
+                    case ROOM:
+                        roomResourceManager.abort(xid);
+                        break;
+                    case CUSTOMER:
+                        customerResourceManager.abort(xid);
+                        break;
+                    default:
+                        break;
+                }
+        }
+          
+        synchronized(this.timers) {
+            this.timers.get(xid).cancel();
+            this.timers.remove(xid);
+        }
+        
         return true;
     }
 
     // Function to add operation and to update timer for a transaction
     public void updateTransaction(int xid, ArrayList<RESOURCE_MANAGER_TYPE> rms) throws RemoteException, InvalidTransactionException, TransactionAbortedException
     {   
-        synchronized(this.transactions) 
+        synchronized(transactions) 
         {
-            synchronized(this.timers) 
+            synchronized(timers) 
             {
-                if (!this.transactions.containsKey(xid) || !this.timers.containsKey(xid)) 
+                if (!transactions.containsKey(xid) || !timers.containsKey(xid)) 
                 {
                     throw new InvalidTransactionException(xid,"Cannot identify the transaction xid by transaction manager");
                 }
 
-                Transaction ts = this.transactions.get(xid);
-                Timer t = this.timers.get(xid);
+                Transaction ts = transactions.get(xid);
+                Timer t = timers.get(xid);
 
                 ts.addOperation(new Operation(rms));
                 t.schedule(new TimerTask() {
@@ -470,7 +954,7 @@ public abstract class Middleware implements IResourceManager
                             System.out.println("Exception caught: Middleware-updateTransaction-Remote"); //e.printStackTrace();
                         }
                     }
-                }, this.TRANSACTION_TIME_LIMIT);
+                }, TRANSACTION_TIME_LIMIT);
             }
         }
     }

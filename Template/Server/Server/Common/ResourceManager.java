@@ -17,7 +17,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 {
 	protected String m_name = "";
     protected RMHashMap m_data = new RMHashMap();
-    protected Map<Integer,RMHashMap> local = new HashMap<Integer, RMHashMap>();  // Hashmap indexed by xid to store the local histories of each transaction
+    protected Map<Integer,RMHashMap> local = new HashMap<Integer,RMHashMap>();  // Hashmap indexed by xid to store the local histories of each transaction
     protected Map<Integer,Boolean> crashes = new HashMap<Integer,Boolean>();
     protected Lock global_lock = new ReentrantLock();
     

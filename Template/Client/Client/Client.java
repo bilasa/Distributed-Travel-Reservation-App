@@ -91,6 +91,7 @@ public abstract class Client
 					checkArgumentsCount(2, arguments.size());
 					int mode = toInt(arguments.elementAt(1));
 					m_resourceManager.crashMiddleware(mode);
+					System.out.println("Crashed Middleware.");
 					break;
 				}
 				case CrashResourceManager: {
@@ -98,19 +99,19 @@ public abstract class Client
 					String name = arguments.elementAt(1);
 					int mode = toInt(arguments.elementAt(2));
 					m_resourceManager.crashResourceManager(name, mode);
+					System.out.println("Crashed " + name + " Resource Manager.");
 					break;
 				}
 				case ResetCrashes: {
 					checkArgumentsCount(1, arguments.size());
 					m_resourceManager.resetCrashes();
+					System.out.println("Reseted Crashes.");
 					break;
 				}
 				// Transaction commands
 				case Start: {
 
 					checkArgumentsCount(1, arguments.size());
-					System.out.println("Starting Transaction");
-					
 					int new_xid = m_resourceManager.startTransaction(this.client_id);
 
 					if (new_xid != -1) 
