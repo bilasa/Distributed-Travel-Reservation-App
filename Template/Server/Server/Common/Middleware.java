@@ -640,16 +640,16 @@ public abstract class Middleware implements IResourceManager
                             try {
                                 switch (rm) {
                                     case "flights":
-                                        flightResourceManager.commit(xid);
+                                        flightResourceManager.abort(xid);
                                         break;
                                     case "rooms":
-                                        roomResourceManager.commit(xid);
+                                        roomResourceManager.abort(xid);
                                         break;
                                     case "cars":
-                                        carResourceManager.commit(xid);
+                                        carResourceManager.abort(xid);
                                         break;
                                     case "customers":
-                                        customerResourceManager.commit(xid);
+                                        customerResourceManager.abort(xid);
                                         break;
                                     default:
                                         break;
