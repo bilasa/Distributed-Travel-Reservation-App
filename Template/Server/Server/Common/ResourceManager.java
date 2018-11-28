@@ -35,6 +35,7 @@ public class ResourceManager extends LockManager implements IResourceManager
         }
 
         writeMainMemory();
+        recordLocalHistory();
 	}
 
 	// Start a transaction, add the a local history for the transaction in the hashmap of local histories
@@ -278,7 +279,10 @@ public class ResourceManager extends LockManager implements IResourceManager
         }
 
         if (!canCommit) recordDecision(xid, false); // vote NO => log an ABORT
-        else recordYes(xid); // vote YES => log a YES 
+        else {
+            recordYes(xid); // vote YES => log a YES 
+            recordLocalHistory();
+        } 
 
         return canCommit; // send vote
     }
@@ -381,6 +385,237 @@ public class ResourceManager extends LockManager implements IResourceManager
             catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void recordLocalHistory() 
+    {
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("local_history_" + m_name + ".txt", false));
+            StringBuilder sb = new StringBuilder();
+
+            synchronized(local) {
+                // For each transaction XID
+                for (Integer xid : local.keySet()) {
+
+                    sb.append(xid + ":");
+
+                    RMHashMap xid_map = local.get(xid);
+
+                    for (String key : xid_map.keySet()) {
+
+                        RMItem item = xid_map.get(key);
+                        sb.append(key + ":");
+
+                        if (item != null) {
+
+                            if (item instanceof Flight) {
+                                Flight flight = (Flight) item;
+                                sb.append(flight.getKey() + "$" + flight.getLocation() + "#" + flight.getCount() + "#" + flight.getPrice() + "#" + flight.getReserved());
+                            }
+
+                            if (item instanceof Room) {
+                                Room room = (Room) item;
+                                sb.append(room.getKey() + "$" + room.getLocation() + "#" + room.getCount() + "#" + room.getPrice() + "#" + room.getReserved());
+                            }
+
+                            if (item instanceof Car) {
+                                Car car = (Car) item;
+                                sb.append(car.getKey() + "$" + car.getLocation() + "#" + car.getCount() + "#" + car.getPrice() + "#" + car.getReserved());
+                            }
+
+                            if (item instanceof Customer) {
+                                Customer customer = (Customer) item;
+                                int id = customer.getID();
+                                RMHashMap reservations = customer.getReservations();
+                                StringBuilder customer_sb = new StringBuilder();
+
+                                ArrayList<ReservedItem> reservedItems = new ArrayList<ReservedItem>();
+                                for (String reservedItem : reservations.keySet()) {
+                                    reservedItems.add((ReservedItem) reservations.get(reservedItem));
+                                }
+
+                                for (int i = 0; i < reservedItems.size(); i++) {
+                                    ReservedItem reserved = reservedItems.get(i);
+                                    customer_sb.append(
+                                        reserved.getKey() + "$" + reserved.getLocation() + "#" + reserved.getCount() + "#" + reserved.getPrice()
+                                    );
+
+                                    if (i != reservedItems.size() - 1) customer_sb.append("/");
+                                }
+
+                                sb.append(customer.getKey() + "$" + id + "$" + customer_sb.toString());
+                            }
+                        }
+                        sb.append(";");
+                    }
+                    sb.append("\n");
+                }
+            }
+            bw.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void recoverLocalHistory()
+    {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader("local_history_" + m_name + ".txt"));
+            String line = null;
+
+            if (m_name.equals("Flights")) {
+
+                while ((line = br.readLine()) != null) {
+                    
+                    String[] record = line.trim().split(":");
+                    
+                    int key = Integer.parseInt(record[0]);
+                    String[] list_items = record[1].split(";");
+                    RMHashMap new_map = new RMHashMap();
+                    
+                    for (String item : list_items) {
+
+                        if (item.length() > 0) {
+
+                            String[] data = item.split("$");
+                            String key_data = data[0];
+                            String[] details = data[1].split("#");
+
+                            Flight f = new Flight(Integer.parseInt(details[0]), Integer.parseInt(details[1]), Integer.parseInt(details[2]));
+                            f.setReserved(Integer.parseInt(details[3]));
+                            new_map.put(key_data,f);
+                        }
+                    }
+
+                    local.put(key, new_map);
+                }
+            } 
+
+            // Rooms
+            if (m_name.equals("Rooms")) {
+
+                while ((line = br.readLine()) != null) {
+
+                    String[] record = line.trim().split(":");
+                    
+                    int key = Integer.parseInt(record[0]);
+                    String[] list_items = record[1].split(";");
+                    RMHashMap new_map = new RMHashMap();
+
+                    for (String item : list_items) {
+
+                        if (item.length() > 0) {
+
+                            String[] data = item.split("$");
+                            String key_data = data[0];
+                            String[] details = data[1].split("#");
+
+                            Room r = new Room(details[0], Integer.parseInt(details[1]), Integer.parseInt(details[2]));
+                            r.setReserved(Integer.parseInt(details[3]));
+                            new_map.put(key_data,r);
+                        }
+                    }
+
+                    local.put(key, new_map);
+                }
+            } 
+
+            // Cars
+            if (m_name.equals("Cars")) {
+
+                while ((line = br.readLine()) != null) {
+
+                    String[] record = line.trim().split(":");
+                    
+                    int key = Integer.parseInt(record[0]);
+                    String[] list_items = record[1].split(";");
+                    RMHashMap new_map = new RMHashMap();
+
+                    for (String item : list_items) {
+
+                        if (item.length() > 0) {
+
+                            String[] data = item.split("$");
+                            String key_data = data[0];
+                            String[] details = data[1].split("#");
+
+                            Car c = new Car(details[0], Integer.parseInt(details[1]), Integer.parseInt(details[2]));
+                            c.setReserved(Integer.parseInt(details[3]));
+                            new_map.put(key_data,c);
+                        }
+                    }
+
+                    local.put(key, new_map);
+                }
+            }
+
+            // Customers
+            if (m_name.equals("Customers")) {
+
+                /**
+                 * Customer customer = (Customer) item;
+                    int id = customer.getID();
+                    RMHashMap reservations = customer.getReservations();
+                    StringBuilder customer_sb = new StringBuilder();
+
+                    ArrayList<ReservedItem> reservedItems = new ArrayList<ReservedItem>();
+                    for (String reservedItem : reservations.keySet()) {
+                        reservedItems.add((ReservedItem) reservations.get(reservedItem));
+                    }
+
+                    for (int i = 0; i < reservedItems.size(); i++) {
+                        ReservedItem reserved = reservedItems.get(i);
+                        customer_sb.append(
+                            reserved.getKey() + "$" + reserved.getLocation() + "#" + reserved.getCount() + "#" + reserved.getPrice()
+                        );
+
+                        if (i != reservedItems.size() - 1) customer_sb.append(";");
+                    }
+
+                    sb.append(customer.getKey() + "$" + id + "$" + customer_sb.toString());
+                 */
+
+                while ((line = br.readLine()) != null) {
+
+                    String[] record = line.trim().split(":");
+                    
+                    int key = Integer.parseInt(record[0]);
+                    String[] customers = record[1].split(";");
+                    RMHashMap new_map = new RMHashMap();
+
+                    for (String customer : customers) {
+
+                        String[] data = record[1].split("$");
+                        String customer_key = data[0];
+                        int customer_id = Integer.parseInt(data[1]);
+                        String customer_key_2 = data[2];
+                        String[] reserved_items = data[3].split("/");
+
+                        Customer c = new Customer(customer_id);
+
+                        for (String reserved_item : reserved_items) {
+
+                            String[] details = reserved_item.split("#");
+                            int reserve_count = Integer.parseInt(details[2]);
+                            while (reserve_count > 0) {
+                                c.reserve(details[0], details[1], Integer.parseInt(details[3]));
+                                reserve_count--;
+                            }
+                        }
+
+                        new_map.put(customer_key,c);
+                    }
+
+                    local.put(key,new_map);
+                }
+            }
+
+            br.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
