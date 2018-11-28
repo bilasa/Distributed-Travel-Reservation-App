@@ -213,69 +213,50 @@ public abstract class Middleware implements IResourceManager
 
         // Send vote request
         HashMap<RESOURCE_MANAGER_TYPE,Boolean> votes = new HashMap<RESOURCE_MANAGER_TYPE,Boolean>();
-        
+        boolean ack = false;
         for (RESOURCE_MANAGER_TYPE rm : set) {
-            
-            boolean ack = false;
-            
-            try {
-                switch (rm) {
-                    case FLIGHT:
-                        ack = flightResourceManager.prepare(xid);
-                        votes.put(rm, ack);
-                        break;
-                    case CAR:
-                        ack = carResourceManager.prepare(xid);
-                        votes.put(rm, ack);
-                        break;
-                    case ROOM:
-                        ack = roomResourceManager.prepare(xid);
-                        votes.put(rm, ack);
-                        break;
-                    case CUSTOMER:
-                        ack = customerResourceManager.prepare(xid);
-                        votes.put(rm, ack);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            catch (RemoteException e) {
-                
+            int attempt_vote = 0;
+            while (attempt_vote < 2) {
                 try {
-                    Thread.sleep(60000); // Try one more time if one of them fails due to RM crash
-
                     switch (rm) {
                         case FLIGHT:
                             ack = flightResourceManager.prepare(xid);
-                            votes.put(rm, ack);
                             break;
                         case CAR:
                             ack = carResourceManager.prepare(xid);
-                            votes.put(rm, ack);
                             break;
                         case ROOM:
                             ack = roomResourceManager.prepare(xid);
-                            votes.put(rm, ack);
                             break;
                         case CUSTOMER:
                             ack = customerResourceManager.prepare(xid);
-                            votes.put(rm, ack);
                             break;
                         default:
                             break;
                     }
-                }
-                catch (InterruptedException e2) {
                     votes.put(rm, ack);
-                    e2.printStackTrace();
+                    attempt_vote = 2;
+                }
+                catch (RemoteException e) {
+                    System.out.println("Exception caught: remote exception at vote request (attempt again in 60s).");
+                    votes.put(rm, false);
+                    attempt_vote++;
+                    if (attempt_vote <= 1) {
+                        try {
+                            Thread.sleep(60000);
+                        }
+                        catch (InterruptedException e2) {
+                            e2.printStackTrace();
+                        }
+                    }
                 }
             }
+        }
+   
 
-            // Crash mode 3
-            synchronized(crashes) {
-                if (crashes.get(3)) System.exit(1);
-            }
+        // Crash mode 3
+        synchronized(crashes) {
+            if (crashes.get(3)) System.exit(1);
         }
 
         /* At this point, all votes are received */
@@ -317,73 +298,88 @@ public abstract class Middleware implements IResourceManager
                 
                 // Commit or Abort based on vote request
                 HashMap<RESOURCE_MANAGER_TYPE,Boolean> completed = new HashMap<RESOURCE_MANAGER_TYPE,Boolean>();
+                ack = false;
                 if (canCommit) {
-                    for (RESOURCE_MANAGER_TYPE rm : set) 
-                    {   
-                        boolean ack = false;
-
-                        try {
-                            switch (rm)
-                            {
-                                case FLIGHT:
-                                    ack = flightResourceManager.commit(xid);
-                                    break;
-                                case CAR:
-                                    ack = carResourceManager.commit(xid);
-                                    break;
-                                case ROOM:
-                                    ack = roomResourceManager.commit(xid);
-                                    break;
-                                case CUSTOMER:
-                                    ack = customerResourceManager.commit(xid);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            completed.put(rm, ack);
-
-                            // Crash mode 6
-                            synchronized(crashes) {
-                                if (crashes.get(6)) System.exit(1);
-                            }
-                        }
-                        catch (RemoteException e) {
-                            completed.put(rm, false);
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                else 
-                {
-                    for (RESOURCE_MANAGER_TYPE rm : votes.keySet())
-                    {   
-                        boolean vote = votes.get(rm);
-                        if (vote) 
-                        {   
-                            boolean ack = false;
-
+                    for (RESOURCE_MANAGER_TYPE rm : set) {
+                        int attempt_commit = 0;
+                        while (attempt_commit < 2) {
                             try {
                                 switch (rm)
                                 {
                                     case FLIGHT:
-                                        ack = flightResourceManager.abort(xid);
+                                        ack = flightResourceManager.commit(xid);
                                         break;
                                     case CAR:
-                                        ack = carResourceManager.abort(xid);
+                                        ack = carResourceManager.commit(xid);
                                         break;
                                     case ROOM:
-                                        ack = roomResourceManager.abort(xid);
+                                        ack = roomResourceManager.commit(xid);
                                         break;
                                     case CUSTOMER:
-                                        ack = customerResourceManager.abort(xid);
+                                        ack = customerResourceManager.commit(xid);
                                         break;
                                     default:
+                                        break;
                                 }
-                                completed.put(rm,ack);
+                                completed.put(rm, ack);
+    
+                                // Crash mode 6
+                                synchronized(crashes) {
+                                    if (crashes.get(6)) System.exit(1);
+                                }
                             }
                             catch (RemoteException e) {
+                                System.out.println("Exception caught: remote exception at commit (attempt again in 60s).");
                                 completed.put(rm, false);
-                                e.printStackTrace();
+                                attempt_commit++;
+                                if (attempt_commit <= 1) {
+                                    try {
+                                        Thread.sleep(60000);
+                                    }
+                                    catch (InterruptedException e2) {
+                                        e2.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    for (RESOURCE_MANAGER_TYPE rm : votes.keySet()) {   
+                        if (votes.get(rm)) {   
+                            int attempt_abort = 0;
+                            while (attempt_abort < 2) {
+                                try {
+                                    switch (rm) {
+                                        case FLIGHT:
+                                            ack = flightResourceManager.abort(xid);
+                                            break;
+                                        case CAR:
+                                            ack = carResourceManager.abort(xid);
+                                            break;
+                                        case ROOM:
+                                            ack = roomResourceManager.abort(xid);
+                                            break;
+                                        case CUSTOMER:
+                                            ack = customerResourceManager.abort(xid);
+                                            break;
+                                        default:
+                                    }
+                                    completed.put(rm,ack);
+                                }
+                                catch (RemoteException e) {
+                                    System.out.println("Exception caught: remote exception at abort (attempt again in 60s).");
+                                    completed.put(rm, false);
+                                    attempt_abort++;
+                                    if (attempt_abort <= 1) {
+                                        try {
+                                            Thread.sleep(60000);
+                                        }
+                                        catch (InterruptedException e2) {
+                                            e2.printStackTrace();
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
