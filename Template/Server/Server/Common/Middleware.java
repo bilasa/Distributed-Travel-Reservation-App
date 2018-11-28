@@ -42,7 +42,7 @@ public abstract class Middleware implements IResourceManager
         m_name = p_name;
 
         // Set crash modes
-        for (int i = 1; i <= 7; i++) {
+        for (int i = 1; i <= 8; i++) {
             crashes.put(i, false);
         }
 
@@ -152,11 +152,11 @@ public abstract class Middleware implements IResourceManager
         
         synchronized(this.transactions) {
 
-            if (!this.transactions.containsKey(xid)) {
+            if (!transactions.containsKey(xid)) {
                 throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid from middleware)");
             }
 
-            Transaction ts = this.transactions.get(xid);
+            Transaction ts = transactions.get(xid);
             ArrayList<Operation> ops = ts.getOperations();
 
             // Find out relevant RM(s)
@@ -219,27 +219,22 @@ public abstract class Middleware implements IResourceManager
             boolean ack = false;
             
             try {
-
                 switch (rm) {
                     case FLIGHT:
                         ack = flightResourceManager.prepare(xid);
                         votes.put(rm, ack);
-                        recordResourceManagerDecision(xid, "flights", ack);
                         break;
                     case CAR:
                         ack = carResourceManager.prepare(xid);
                         votes.put(rm, ack);
-                        recordResourceManagerDecision(xid, "cars", ack);
                         break;
                     case ROOM:
                         ack = roomResourceManager.prepare(xid);
                         votes.put(rm, ack);
-                        recordResourceManagerDecision(xid, "rooms", ack);
                         break;
                     case CUSTOMER:
                         ack = customerResourceManager.prepare(xid);
                         votes.put(rm, ack);
-                        recordResourceManagerDecision(xid, "customers", ack);
                         break;
                     default:
                         break;
@@ -254,28 +249,25 @@ public abstract class Middleware implements IResourceManager
                         case FLIGHT:
                             ack = flightResourceManager.prepare(xid);
                             votes.put(rm, ack);
-                            recordResourceManagerDecision(xid, "flights", ack);
                             break;
                         case CAR:
                             ack = carResourceManager.prepare(xid);
                             votes.put(rm, ack);
-                            recordResourceManagerDecision(xid, "cars", ack);
                             break;
                         case ROOM:
                             ack = roomResourceManager.prepare(xid);
                             votes.put(rm, ack);
-                            recordResourceManagerDecision(xid, "rooms", ack);
                             break;
                         case CUSTOMER:
                             ack = customerResourceManager.prepare(xid);
                             votes.put(rm, ack);
-                            recordResourceManagerDecision(xid, "customers", ack);
                             break;
                         default:
                             break;
                     }
                 }
                 catch (InterruptedException e2) {
+                    votes.put(rm, ack);
                     e2.printStackTrace();
                 }
             }
@@ -328,8 +320,9 @@ public abstract class Middleware implements IResourceManager
                 if (canCommit) {
                     for (RESOURCE_MANAGER_TYPE rm : set) 
                     {   
+                        boolean ack = false;
+
                         try {
-                            boolean ack = false;
                             switch (rm)
                             {
                                 case FLIGHT:
@@ -366,9 +359,10 @@ public abstract class Middleware implements IResourceManager
                     {   
                         boolean vote = votes.get(rm);
                         if (vote) 
-                        {      
+                        {   
+                            boolean ack = false;
+
                             try {
-                                boolean ack = false;
                                 switch (rm)
                                 {
                                     case FLIGHT:
@@ -466,21 +460,6 @@ public abstract class Middleware implements IResourceManager
         }
     }
 
-    // Function to record resource manager decision
-    public void recordResourceManagerDecision(int xid, String name, boolean ack) 
-    {   
-        try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("middleware_records_" + m_name + ".txt", true));
-            String record = xid + ":" + "RM_DEC" + ":" + name + ":" + (ack? "YES" : "NO");
-            bw.write(record);
-            bw.newLine();
-            bw.close();
-        }
-        catch(IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     // Function to record end of transaction
     public void recordEndOfTransaction(int xid)
     {   
@@ -508,13 +487,10 @@ public abstract class Middleware implements IResourceManager
          * 2. Start of 2PC
          * - xid:S_O_2PC:[list of resource managers separated by ';']
          * 
-         * 3. Resource Manager decision
-         * - xid:RM_DEC:name:[YES/NO]
-         * 
-         * 4. Middleware decision
+         * 3. Middleware decision
          * - xid:MW_DEC:[COMMIT/ABORT]
          * 
-         * 5. End of transaction
+         * 4. End of transaction
          * - xid:E_O_T
          */
 
@@ -523,7 +499,6 @@ public abstract class Middleware implements IResourceManager
         Set<Integer> e_o_t = new HashSet<Integer>();
         Map<Integer,ArrayList<String>> s_o_2pc = new HashMap<Integer,ArrayList<String>>();
         Map<Integer,Boolean> mw_dec = new HashMap<Integer,Boolean>(); // true -> commit, false -> abort
-        Map<Integer,HashMap<String,Boolean>> rm_dec = new HashMap<Integer,HashMap<String,Boolean>>(); 
 
         // Read from Middleware log
         try {
@@ -551,14 +526,6 @@ public abstract class Middleware implements IResourceManager
                         if (record[2].equals("COMMIT")) mw_dec.put(xid,true);
                         else mw_dec.put(xid,false);
                         break;
-                    case "RM_DEC":
-                        String name = record[2];
-                        boolean res = record[3].equals("YES")? true : false;
-                        if (!rm_dec.containsKey(xid)) rm_dec.put(xid,new HashMap<String,Boolean>());
-                        HashMap<String,Boolean> current_list = rm_dec.get(xid);
-                        current_list.put(name,res);
-                        rm_dec.put(xid,current_list);
-                        break;
                     case "E_O_T":
                         e_o_t.add(xid);
                         break;
@@ -576,6 +543,7 @@ public abstract class Middleware implements IResourceManager
         // Attempt communication again, if necessary
         // Phase between START and 2PC
         for (Integer xid : s_o_t) {
+            
             if (!s_o_2pc.containsKey(xid)) {
 
                 try {
@@ -634,34 +602,40 @@ public abstract class Middleware implements IResourceManager
                     
                     // Commit
                     if (mw_dec.get(xid)) {
-                        for (String rm : rms) {
-                            try {
-                                switch (rm) {
-                                    case "flights":
-                                        flightResourceManager.commit(xid);
-                                        break;
-                                    case "rooms":
-                                        roomResourceManager.commit(xid);
-                                        break;
-                                    case "cars":
-                                        carResourceManager.commit(xid);
-                                        break;
-                                    case "customers":
-                                        customerResourceManager.commit(xid);
-                                        break;
-                                    default:
-                                        break;
+                        
+                        if (!e_o_t.contains(xid)) {
+                            for (String rm : rms) {
+                                try {
+                                    switch (rm) {
+                                        case "flights":
+                                            flightResourceManager.commit(xid);
+                                            break;
+                                        case "rooms":
+                                            roomResourceManager.commit(xid);
+                                            break;
+                                        case "cars":
+                                            carResourceManager.commit(xid);
+                                            break;
+                                        case "customers":
+                                            customerResourceManager.commit(xid);
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                }
+                                catch (RemoteException e) {
+                                    System.out.println("Exception caught: remote issue found during middleware recovery commit.");
+                                }
+                                catch (InvalidTransactionException e) {
+                                    System.out.println("Exception caught: invalid transaction id issue found during middleware recovery commit.");
+                                }
+                                catch (Exception e) {
+                                    e.printStackTrace();
                                 }
                             }
-                            catch (RemoteException e) {
-                                System.out.println("Exception caught: remote issue found during middleware recovery commit.");
-                            }
-                            catch (InvalidTransactionException e) {
-                                System.out.println("Exception caught: invalid transaction id issue found during middleware recovery commit.");
-                            }
-                            catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                        }
+                        else {
+                            e_o_t.remove(xid);
                         }
                     }
                     // abort
@@ -700,7 +674,6 @@ public abstract class Middleware implements IResourceManager
                     s_o_t.remove(xid);
                     s_o_2pc.remove(xid);
                     mw_dec.remove(xid);
-                    if (rm_dec.containsKey(xid)) rm_dec.remove(xid);
                 }
                 // Middleware does not have decision yet
                 else {
@@ -736,9 +709,13 @@ public abstract class Middleware implements IResourceManager
 
                     s_o_t.remove(xid);
                     s_o_2pc.remove(xid);
-                    if (rm_dec.containsKey(xid)) rm_dec.remove(xid);
                 }
             }
+        }
+
+        // Crash mode 8
+        synchronized(crashes) {
+            if (crashes.get(8)) System.exit(1);
         }
 
         // Garbage collection
@@ -766,15 +743,10 @@ public abstract class Middleware implements IResourceManager
                     sb.append("\n");
 
                     // MW decision
-                    sb.append(xid + ":" + "MW_DEC" + ":" + (mw_dec.get(xid)? "COMMIT" : "ABORT"));
-                    sb.append("\n");
-
-                    // RM decision
-                    HashMap<String,Boolean> list = rm_dec.get(xid);
-                    for (String s : list.keySet()) {
-                        sb.append(xid + ":" + "RM_DEC" + ":" + s + ":" + (list.get(s)? "YES" : "NO"));
+                    if (mw_dec.containsKey(xid)) {
+                        sb.append(xid + ":" + "MW_DEC" + ":" + (mw_dec.get(xid)? "COMMIT" : "ABORT"));
+                        sb.append("\n");
                     }
-                    sb.append("\n");
                 }
             }
             
