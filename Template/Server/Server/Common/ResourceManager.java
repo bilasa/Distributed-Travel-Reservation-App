@@ -115,6 +115,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                         // Shadowing
                         try {
                             // Retrieve previous master record
+                            System.out.println("ATTENTION: Participant reading master record");
                             File master_file = new File("master_" + m_name + ".txt");
                             master_file.createNewFile();
                             BufferedReader br = new BufferedReader(new FileReader(master_file)); 
@@ -146,9 +147,10 @@ public class ResourceManager extends LockManager implements IResourceManager
                             bw.close();
                             
                             // Store data to disk
+                            System.out.println("ATTENTION: Participant is recoring main memory to to shadowing files.");
                             File data_file = new File("data_" + m_name + "_" + updated_ptr + ".txt");
                             data_file.createNewFile();
-                            bw = new BufferedWriter(new FileWriter(data_file), false);
+                            bw = new BufferedWriter(new FileWriter(data_file, false));
                             StringBuilder sb = new StringBuilder();
 
                             for (String key : m_data.keySet()) {
