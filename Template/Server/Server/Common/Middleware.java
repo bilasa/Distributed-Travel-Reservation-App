@@ -135,6 +135,8 @@ public abstract class Middleware implements IResourceManager
                 }
             }, TRANSACTION_TIME_LIMIT);
 
+            System.out.println("STARTED TRANSACTION - " + xid);
+
             flightResourceManager.start(xid);
             carResourceManager.start(xid);
             roomResourceManager.start(xid);
