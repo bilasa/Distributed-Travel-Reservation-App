@@ -116,35 +116,42 @@ public class ResourceManager extends LockManager implements IResourceManager
                         // Shadowing
                         try {
                             // Retrieve previous master record
-                            BufferedReader br = new BufferedReader(new FileReader("master_" + m_name + ".txt")); 
+                            File master_file = new File("master_" + m_name + ".txt");
+                            master_file.createNewFile();
+                            BufferedReader br = new BufferedReader(new FileReader(master_file)); 
                             String line = null;
                             String master_ptr = null;
                             int master_transaction = -1;
                             
                             while ((line = br.readLine()) != null) {
-                                String[] cur = line.trim().split(":");
-                                master_ptr = cur[0];
-                                master_transaction = Integer.parseInt(cur[1]);  
+                                if (line.length() > 0) {
+                                    String[] cur = line.trim().split(":");
+                                    master_ptr = cur[0];
+                                    master_transaction = Integer.parseInt(cur[1]);  
+                                } 
                             }
 
                             br.close();
 
                             BufferedWriter bw = null;
+                            String updated_ptr = "A";
                             // Nothing has been recorded previously to master record
                             if (master_ptr == null || master_transaction == -1) {
-                                master_ptr = "A";
+                                updated_ptr = "A";
                             }
                             // Update new master record
                             else {
-                                bw = new BufferedWriter(new FileWriter("master_" + m_name + ".txt", false));
-                                String updated_ptr = master_ptr.equals("A")? "B" : "A";
+                                bw = new BufferedWriter(new FileWriter(master_file, false));
+                                updated_ptr = master_ptr.equals("A")? "B" : "A";
                                 bw.write(updated_ptr + ":" + xid);
                                 bw.newLine();
                                 bw.close();
                             }
 
                             // Store data to disk
-                            bw = new BufferedWriter(new FileWriter("data_" + m_name + ".txt"));
+                            File data_file = new File("data_" + m_name + "_" + updated_ptr + ".txt");
+                            data_file.createNewFile();
+                            bw = new BufferedWriter(new FileWriter(data_file));
                             StringBuilder sb = new StringBuilder();
 
                             for (String key : m_data.keySet()) {
@@ -275,7 +282,6 @@ public class ResourceManager extends LockManager implements IResourceManager
             synchronized(crashes) {
                 if (crashes.get(2)) System.exit(1);
             }
-
         }
 
         if (!canCommit) recordDecision(xid, false); // vote NO => log an ABORT
@@ -293,17 +299,24 @@ public class ResourceManager extends LockManager implements IResourceManager
         synchronized(m_data) {
 
             BufferedReader br = null;
+            File master_file = null;
             m_data = new RMHashMap();
 
+            String record_ptr = "A";
+
             try {
-                br = new BufferedReader(new FileReader("master_" + m_name + ".txt"));
+                master_file = new File("master_" + m_name + ".txt");
+                master_file.createNewFile();
+                br = new BufferedReader(new FileReader(master_file));
                 String master_record = br.readLine();
-                String record = master_record.trim().split(":")[0].toUpperCase();
+                if (master_record != null || master_record.length() > 0) record_ptr = master_record.trim().split(":")[0].toUpperCase();
                 br.close();
             }
             catch (IOException e) {
                 e.printStackTrace();
             }
+
+            File data_file = null;
 
             // Crash mode 5
             synchronized(crashes) {
@@ -312,7 +325,9 @@ public class ResourceManager extends LockManager implements IResourceManager
 
             try {
                 String line = null;
-                br = new BufferedReader(new FileReader("data_" + m_name + ".txt"));
+                data_file = new File("data_" + m_name + "_" + record_ptr + ".txt");
+                data_file.createNewFile();
+                br = new BufferedReader(new FileReader(data_file));
 
                 // Flights
                 if (m_name.equals("Flights")) {
@@ -396,7 +411,9 @@ public class ResourceManager extends LockManager implements IResourceManager
     public void recordLocalHistory() 
     {
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("local_history_" + m_name + ".txt", false));
+            File local_history_file = new File("local_history_" + m_name + ".txt");
+            local_history_file.createNewFile();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(local_history_file, false));
             StringBuilder sb = new StringBuilder();
 
             synchronized(local) {
@@ -467,7 +484,9 @@ public class ResourceManager extends LockManager implements IResourceManager
     public void recoverLocalHistory()
     {
         try {
-            BufferedReader br = new BufferedReader(new FileReader("local_history_" + m_name + ".txt"));
+            File local_history_file = new File("local_history_" + m_name + ".txt");
+            local_history_file.createNewFile();
+            BufferedReader br = new BufferedReader(new FileReader(local_history_file));
             String line = null;
 
             if (m_name.equals("Flights")) {
@@ -1388,7 +1407,9 @@ public class ResourceManager extends LockManager implements IResourceManager
     public void recordDecision(int xid, boolean commit) 
     {   
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("rm_records_" + m_name + ".txt", true));
+            File record_file = new File("rm_records_" + m_name + ".txt");
+            record_file.createNewFile();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(record_file, true));
             String record = xid + ":" + (commit? "COMMIT" : "ABORT");
             bw.write(record);
             bw.newLine();
@@ -1403,7 +1424,9 @@ public class ResourceManager extends LockManager implements IResourceManager
     public void recordYes(int xid) 
     {   
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("rm_records_" + m_name + ".txt", true));
+            File record_file = new File("rm_records_" + m_name + ".txt");
+            record_file.createNewFile();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(record_file, true));
             String record = xid + ":" + "YES";
             bw.write(record);
             bw.newLine();
@@ -1419,7 +1442,6 @@ public class ResourceManager extends LockManager implements IResourceManager
     {   
         try {
             abort(xid);
-
             recordDecision(xid, false); // write ABORT to log
         }
         catch (InvalidTransactionException e) {

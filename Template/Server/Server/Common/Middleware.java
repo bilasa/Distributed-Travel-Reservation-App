@@ -188,6 +188,7 @@ public abstract class Middleware implements IResourceManager
                     break;
             }
         }
+
         recordStartOf2PC(xid, record_rms);
         
         // Crash mode 1
@@ -253,7 +254,6 @@ public abstract class Middleware implements IResourceManager
             }
         }
    
-
         // Crash mode 3
         synchronized(crashes) {
             if (crashes.get(3)) System.exit(1);
@@ -282,7 +282,7 @@ public abstract class Middleware implements IResourceManager
                         break;
                     }
                 }
-
+                
                 // Crash mode 4
                 synchronized(crashes) {
                     if (crashes.get(4)) System.exit(1);
@@ -409,7 +409,9 @@ public abstract class Middleware implements IResourceManager
     public void recordStartOfTransaction(int xid) 
     {   
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("middleware_records_" + m_name + ".txt", true));
+            File middleware_records = new File("middleware_records_" + m_name + ".txt");
+            middleware_records.createNewFile();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(middleware_records, true));
             String record = xid + ":" + "S_O_T";
             bw.write(record);
             bw.newLine();
@@ -424,7 +426,9 @@ public abstract class Middleware implements IResourceManager
     public void recordStartOf2PC(int xid, ArrayList<String> resourceManagers) 
     {   
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("middleware_records_" + m_name + ".txt", true));
+            File middleware_records = new File("middleware_records_" + m_name + ".txt");
+            middleware_records.createNewFile();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(middleware_records, true));
             String record = xid + ":" + "S_O_2PC" + ":";
             
             for (int i = 0; i < resourceManagers.size(); i++) {
@@ -445,8 +449,10 @@ public abstract class Middleware implements IResourceManager
     public void recordMiddlewareDecision(int xid, boolean canCommit) 
     {   
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("middleware_records_" + m_name + ".txt", true));
-            String record = xid + ":" + "MW_DEC" + (canCommit? "COMMIT" : "ABORT");
+            File middleware_records = new File("middleware_records_" + m_name + ".txt");
+            middleware_records.createNewFile();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(middleware_records, true));
+            String record = xid + ":" + "MW_DEC" + ":" + (canCommit? "COMMIT" : "ABORT");
             bw.write(record);
             bw.newLine();
             bw.close();
@@ -460,7 +466,9 @@ public abstract class Middleware implements IResourceManager
     public void recordEndOfTransaction(int xid)
     {   
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("middleware_records_" + m_name + ".txt", true));
+            File middleware_records = new File("middleware_records_" + m_name + ".txt");
+            middleware_records.createNewFile();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(middleware_records, true));
             String record = xid + ":" + "E_O_T";
             bw.write(record);
             bw.newLine();
@@ -498,7 +506,9 @@ public abstract class Middleware implements IResourceManager
 
         // Read from Middleware log
         try {
-            BufferedReader br = new BufferedReader(new FileReader("middleware_records_" + m_name + ".txt"));
+            File middleware_records = new File("middleware_records_" + m_name + ".txt");
+            middleware_records.createNewFile();
+            BufferedReader br = new BufferedReader(new FileReader(middleware_records));
             String line = null;
 
             while ((line = br.readLine()) != null) {
@@ -717,7 +727,9 @@ public abstract class Middleware implements IResourceManager
 
         // Garbage collection
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("middleware_records_" + m_name + ".txt", false));
+            File middleware_records = new File("middleware_records_" + m_name + ".txt");
+            middleware_records.createNewFile();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(middleware_records, false));
             StringBuilder sb = new StringBuilder();
 
             for (Integer xid : s_o_t) {
