@@ -382,7 +382,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                             Customer customer = new Customer(customer_id);
 
-                            if (record[2] != null && record[2].length() > 0 && (record[2].indexOf(';') != -1)) {
+                            if (record.length > 2 && record[2].length() > 0 && (record[2].indexOf(';') != -1)) {
                                 String[] list_of_reserved = record[2].split(";");
                                 for (String reserved : list_of_reserved) {
 
