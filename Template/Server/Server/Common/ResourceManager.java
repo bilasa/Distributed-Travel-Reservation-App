@@ -602,32 +602,35 @@ public class ResourceManager extends LockManager implements IResourceManager
                                     String[] data = record[1].split("$");
                                     String customer_key = data[0];
                                     
-                                    String item_data = data[1];
-                                    String[] item_data_details = item_data.split("%");
- 
-                                    String customer_key2 = item_data_details[0];
-                                    int customer_id = Integer.parseInt(item_data_details[1]);
+                                    if (data.length > 1) {
 
-                                    Customer c = new Customer(customer_id);
+                                        String item_data = data[1];
+                                        String[] item_data_details = item_data.split("%");
+    
+                                        String customer_key2 = item_data_details[0];
+                                        int customer_id = Integer.parseInt(item_data_details[1]);
 
-                                    if (item_data_details.length > 2) {
+                                        Customer c = new Customer(customer_id);
 
-                                        String[] reserveds = item_data_details[2].split("/");
+                                        if (item_data_details.length > 2) {
 
-                                        for (String reserved : reserveds) {
+                                            String[] reserveds = item_data_details[2].split("/");
 
-                                            if (reserved.length() > 0) {
+                                            for (String reserved : reserveds) {
 
-                                                String[] rs = reserved.split("#");
-                                                int reserve_count = Integer.parseInt(rs[2]);
-                                                while (reserve_count > 0) {
-                                                    c.reserve(rs[0], rs[1], Integer.parseInt(rs[3]));
-                                                    reserve_count--;
-                                                }
-                                            }   
+                                                if (reserved.length() > 0) {
+
+                                                    String[] rs = reserved.split("#");
+                                                    int reserve_count = Integer.parseInt(rs[2]);
+                                                    while (reserve_count > 0) {
+                                                        c.reserve(rs[0], rs[1], Integer.parseInt(rs[3]));
+                                                        reserve_count--;
+                                                    }
+                                                }   
+                                            }
                                         }
+                                        new_map.put(customer_key,c);
                                     }
-                                    new_map.put(customer_key,c);
                                 }     
                             }
                         }
