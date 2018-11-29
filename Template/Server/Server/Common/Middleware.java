@@ -407,6 +407,7 @@ public abstract class Middleware implements IResourceManager
                     this.timers.remove(xid);  
                 }
             
+                System.out.println("this part was reached");
                 this.transactions.remove(xid);
                 recordEndOfTransaction(xid);
                 
@@ -534,12 +535,12 @@ public abstract class Middleware implements IResourceManager
                             s_o_t.add(xid);
                             break;
                         case "S_O_2PC":
+                            ArrayList<String> list = new ArrayList<String>();
                             if (record[2].length() > 0) {
-                                ArrayList<String> list = new ArrayList<String>();
                                 String[] rms = record[2].split(";");
                                 for (String rm : rms) list.add(rm);
-                                s_o_2pc.put(xid,list);
                             }
+                            s_o_2pc.put(xid,list);
                             break;
                         case "MW_DEC":
                             if (record[2].equals("COMMIT")) mw_dec.put(xid,true);
@@ -828,7 +829,7 @@ public abstract class Middleware implements IResourceManager
                     e.printStackTrace();
                 }
             }
-
+            System.out.println("this part was reached in vote_failure_handler");
             transactions.remove(xid);
             recordEndOfTransaction(xid);
         }
@@ -867,9 +868,9 @@ public abstract class Middleware implements IResourceManager
     {  
         HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
 
-        synchronized(this.transactions) {
+        synchronized(transactions) {
             
-            Transaction ts = this.transactions.get(xid);
+            Transaction ts = ransactions.get(xid);
             ArrayList<Operation> ops = ts.getOperations();
 
             for (Operation op : ops) {
@@ -880,8 +881,8 @@ public abstract class Middleware implements IResourceManager
                     if (!set.contains(rm)) set.add(rm);
                 }
             }
-            
-            this.transactions.remove(xid);
+            System.out.println("this part was reached in initiateAbort");
+            transactions.remove(xid);
         }
 
         for (RESOURCE_MANAGER_TYPE rm : set) {
