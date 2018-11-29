@@ -200,16 +200,18 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                             bw.write(sb.toString());
                             bw.close();
+
+                            UnlockAll(xid); // Restore locks and local history
+                            recordDecision(xid, true); // log a COMMIT
+                            System.out.println("RM logged commit"); 
+                            transaction_completed = true;
                         }
                         catch (IOException e) {
                             e.printStackTrace();
                         }
-
-                        // Restore locks and local history
-                        UnlockAll(xid);
-                        recordDecision(xid, true); // log a COMMIT
-                        global_lock.unlock();
-                        System.out.println("RM logged commit");    
+                        finally {
+                            global_lock.unlock();
+                        }
                     }
                     else {
                         try {
@@ -220,8 +222,6 @@ public class ResourceManager extends LockManager implements IResourceManager
                         } 
                     }
                     System.out.println("get here ever");
-                    transaction_completed = true;
-                    break;
                 }
                 Trace.info("RM::commit(" + xid + ") succeeded");
                 return true;
