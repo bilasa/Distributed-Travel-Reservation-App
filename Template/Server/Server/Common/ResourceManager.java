@@ -312,7 +312,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                 System.out.println("duh");
                 System.out.println(master_record);
                 System.out.println("duh");
-                if (master_record != null || master_record.length() > 0) record_ptr = master_record.trim().split(":")[0].toUpperCase();
+                if (master_record != null && master_record.length() > 0) record_ptr = master_record.trim().split(":")[0].toUpperCase();
                 br.close();
             }
             catch (IOException e) {
