@@ -216,7 +216,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                     // Restore locks and local history
                     UnlockAll(xid);
                     System.out.println("RM removes xid - 2");
-                    local.remove(xid);
+                    //local.remove(xid);
 
                     recordDecision(xid, true); // log a COMMIT
                 }
@@ -233,8 +233,6 @@ public class ResourceManager extends LockManager implements IResourceManager
                 } 
             }
         }
-
-        
 
         Trace.info("RM::commit(" + xid + ") succeeded");
         return true;
