@@ -503,11 +503,11 @@ public abstract class Middleware implements IResourceManager
         Set<Integer> e_o_t = new HashSet<Integer>();
         Map<Integer,ArrayList<String>> s_o_2pc = new HashMap<Integer,ArrayList<String>>();
         Map<Integer,Boolean> mw_dec = new HashMap<Integer,Boolean>(); // true -> commit, false -> abort
-
+        File middleware_records = null;
+        
         // Read from Middleware log
         try {
-            File middleware_records = new File("middleware_records_" + m_name + ".txt");
-            middleware_records.createNewFile();
+            middleware_records = new File("middleware_records_" + m_name + ".txt").createNewFile();
             BufferedReader br = new BufferedReader(new FileReader(middleware_records));
             String line = null;
 
