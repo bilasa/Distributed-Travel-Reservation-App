@@ -18,7 +18,7 @@ public class RMIResourceManager extends ResourceManager
 {
 	private static String s_serverName = "server";
 	private static String s_rmiPrefix = "group32";
-	private static int s_serverPort = 2123;
+	private static int s_serverPort = 2133;
 
 	public static void main(String args[])
 	{
@@ -32,11 +32,11 @@ public class RMIResourceManager extends ResourceManager
 			// Create a new Server object
 			RMIResourceManager server = new RMIResourceManager(s_serverName);
 
-			if (s_serverName.equals("Flights")) s_serverPort = 2128;
-			else if (s_serverName.equals("Cars")) s_serverPort = 2124;
+			if (s_serverName.equals("Flights")) s_serverPort = 2138;
+			else if (s_serverName.equals("Cars")) s_serverPort = 2134;
 			else if (s_serverName.equals
-			("Rooms")) s_serverPort = 2125;
-			else if (s_serverName.equals("Customers")) s_serverPort = 2126;
+			("Rooms")) s_serverPort = 2135;
+			else if (s_serverName.equals("Customers")) s_serverPort = 2136;
 
 			// Dynamically generate the stub (client proxy)
 			IResourceManager resourceManager = (IResourceManager) UnicastRemoteObject.exportObject(server, s_serverPort);
