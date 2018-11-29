@@ -379,21 +379,24 @@ public class ResourceManager extends LockManager implements IResourceManager
                             String[] record = line.trim().split(":");
                             String key = record[0];
                             int customer_id = Integer.parseInt(record[1]);
-                            String[] list_of_reserved = record[2].split(";");
 
                             Customer customer = new Customer(customer_id);
 
-                            for (String reserved : list_of_reserved) {
+                            if (record[2] != null && record[2].length() > 0 && (record[2].indexOf(';') != -1)) {
+                                String[] list_of_reserved = record[2].split(";");
+                                for (String reserved : list_of_reserved) {
 
-                                String[] data = reserved.split("#");
-                                int reserve_count = Integer.parseInt(data[2]);
+                                    String[] data = reserved.split("#");
+                                    int reserve_count = Integer.parseInt(data[2]);
 
-                                while (reserve_count > 0) {
-                                    customer.reserve(data[0], data[1], Integer.parseInt(data[3]));
-                                    reserve_count--;
+                                    while (reserve_count > 0) {
+                                        customer.reserve(data[0], data[1], Integer.parseInt(data[3]));
+                                        reserve_count--;
+                                    }
                                 }
                             }
 
+                            
                             m_data.put(key, customer);
                         }
                     }
