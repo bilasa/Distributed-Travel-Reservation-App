@@ -67,15 +67,21 @@ public class ResourceManager extends LockManager implements IResourceManager
         synchronized(local) {
             synchronized(m_data) { 
 
+                System.out.println("ATTENTION: Participant commit function is called");
+
                  // Crash mode 4
                 if (crashes.get(4)) System.exit(1);
 
                 boolean transaction_completed = false;
                 while (!transaction_completed) {
                     
+                    System.out.println("ATTENTION: Participant checking if global lock is free.");
                     boolean free = global_lock.tryLock();
-                    if (free) {
 
+                    if (free) {
+                        
+                        System.out.println("ATTENTION: Participant has accessed global lock and will proceed to shadowing.");
+                        
                         global_lock.lock();
                         RMHashMap local_data = local.get(xid);
                         if (local_data == null) {
@@ -113,6 +119,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                         // Shadowing
                         try {
                             // Retrieve previous master record
+                            System.out.println("ATTENTION: Participant reading master record");
                             File master_file = new File("master_" + m_name + ".txt");
                             master_file.createNewFile();
                             BufferedReader br = new BufferedReader(new FileReader(master_file)); 
@@ -144,9 +151,10 @@ public class ResourceManager extends LockManager implements IResourceManager
                             bw.close();
                             
                             // Store data to disk
+                            System.out.println("ATTENTION: Participant is recoring main memory to to shadowing files.");
                             File data_file = new File("data_" + m_name + "_" + updated_ptr + ".txt");
                             data_file.createNewFile();
-                            bw = new BufferedWriter(new FileWriter(data_file));
+                            bw = new BufferedWriter(new FileWriter(data_file, false));
                             StringBuilder sb = new StringBuilder();
 
                             for (String key : m_data.keySet()) {
@@ -200,7 +208,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                             bw.close();
 
                             UnlockAll(xid); // Restore locks and local history
-                            local.remove(xid);
+                            //local.remove(xid);
 
                             System.out.println("ATTENTION: Participant decision log is recorded");
                             recordDecision(xid, true); // log a COMMIT
@@ -215,6 +223,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                     }
                     else {
                         try {
+                            System.out.println("ATTENTION: Participant cannot access global lock and will sleep.");
                             Thread.sleep(1000);
                         }
                         catch (InterruptedException e) {
@@ -261,6 +270,8 @@ public class ResourceManager extends LockManager implements IResourceManager
         synchronized(local) {
             synchronized(timers) {
 
+                System.out.println("ATTENTION: Participant prepare function is called for XID[" + xid + "]");
+
                 Timer t = timers.get(xid); // Cancel the vote request timer
                 t.cancel();
                 timers.remove(t);
@@ -275,13 +286,17 @@ public class ResourceManager extends LockManager implements IResourceManager
                 if (crashes.get(2)) System.exit(1);
 
                 if (!canCommit) {
+                    System.out.println("ATTENTION: Participant vote decision for XID[" + xid + "] is record");
                     recordDecision(xid, false); // vote NO => log an ABORT
                 }
                 else {
+                    System.out.println("ATTENTION: Participant vote decision for XID[" + xid + "] is record");
                     recordYes(xid); // vote YES => log a YES 
+                    System.out.println("ATTENTION: Participant for XID[" + xid + "] is recording local history");
                     recordLocalHistory();
                 } 
 
+                System.out.println("ATTENTION: Participant vote decision for XID[" + xid + "] is " + (canCommit? "YES" : "NO"));
                 return canCommit; // send vote
             }
         }
@@ -329,6 +344,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                     while ((line = br.readLine()) != null) {
                         if (line.length() > 0) {
+                            System.out.println("DEBUG: Reading line: " + line);
                             String[] record = line.trim().split(":");
                             String key = record[0];
                             String[] value = record[1].split("#");
@@ -344,6 +360,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                     while ((line = br.readLine()) != null) {
                         if (line.length() > 0) {
+                            System.out.println("DEBUG: Reading line: " + line);
                             String[] record = line.trim().split(":");
                             String key = record[0];
                             String[] value = record[1].split("#");
@@ -359,6 +376,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                     while ((line = br.readLine()) != null) {
                         if (line.length() > 0) {
+                            System.out.println("DEBUG: Reading line: " + line);
                             String[] record = line.trim().split(":");
                             String key = record[0];
                             String[] value = record[1].split("#");
@@ -374,6 +392,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                     while ((line = br.readLine()) != null) {
                         if (line.length() > 0) {
+                            System.out.println("DEBUG: Reading line: " + line);
                             String[] record = line.trim().split(":");
                             String key = record[0];
                             int customer_id = Integer.parseInt(record[1]);
@@ -494,10 +513,11 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                 while ((line = br.readLine()) != null) {
                     if (line.length() > 0) {
+                        System.out.println("DEBUG: Reading line: " + line);
                         String[] record = line.trim().split(":");
                         int key = Integer.parseInt(record[0]);
                         RMHashMap new_map = new RMHashMap();
-
+                        
                         if (record.length > 1) {
 
                             String[] list_items = record[1].split(";");
@@ -525,6 +545,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                 while ((line = br.readLine()) != null) {
                     if (line.length() > 0) {
+                        System.out.println("DEBUG: Reading line: " + line);
                         String[] record = line.trim().split(":");
                         int key = Integer.parseInt(record[0]);
                         RMHashMap new_map = new RMHashMap();
@@ -556,6 +577,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                 while ((line = br.readLine()) != null) {
                     if (line.length() > 0) {
+                        System.out.println("DEBUG: Reading line: " + line);
                         String[] record = line.trim().split(":");
                         int key = Integer.parseInt(record[0]);
                         RMHashMap new_map = new RMHashMap();
@@ -587,6 +609,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                 while ((line = br.readLine()) != null) {
                     if (line.length() > 0) {
+                        System.out.println("DEBUG: Reading line: " + line);
                         String[] record = line.trim().split(":");
                         int key = Integer.parseInt(record[0]); // xid
                         RMHashMap new_map = new RMHashMap();
@@ -602,32 +625,35 @@ public class ResourceManager extends LockManager implements IResourceManager
                                     String[] data = record[1].split("$");
                                     String customer_key = data[0];
                                     
-                                    String item_data = data[1];
-                                    String[] item_data_details = item_data.split("%");
- 
-                                    String customer_key2 = item_data_details[0];
-                                    int customer_id = Integer.parseInt(item_data_details[1]);
+                                    if (data.length > 1) {
 
-                                    Customer c = new Customer(customer_id);
+                                        String item_data = data[1];
+                                        String[] item_data_details = item_data.split("%");
+    
+                                        String customer_key2 = item_data_details[0];
+                                        int customer_id = Integer.parseInt(item_data_details[1]);
 
-                                    if (item_data_details.length > 2) {
+                                        Customer c = new Customer(customer_id);
 
-                                        String[] reserveds = item_data_details[2].split("/");
+                                        if (item_data_details.length > 2) {
 
-                                        for (String reserved : reserveds) {
+                                            String[] reserveds = item_data_details[2].split("/");
 
-                                            if (reserved.length() > 0) {
+                                            for (String reserved : reserveds) {
 
-                                                String[] rs = reserved.split("#");
-                                                int reserve_count = Integer.parseInt(rs[2]);
-                                                while (reserve_count > 0) {
-                                                    c.reserve(rs[0], rs[1], Integer.parseInt(rs[3]));
-                                                    reserve_count--;
-                                                }
-                                            }   
+                                                if (reserved.length() > 0) {
+
+                                                    String[] rs = reserved.split("#");
+                                                    int reserve_count = Integer.parseInt(rs[2]);
+                                                    while (reserve_count > 0) {
+                                                        c.reserve(rs[0], rs[1], Integer.parseInt(rs[3]));
+                                                        reserve_count--;
+                                                    }
+                                                }   
+                                            }
                                         }
+                                        new_map.put(customer_key,c);
                                     }
-                                    new_map.put(customer_key,c);
                                 }     
                             }
                         }

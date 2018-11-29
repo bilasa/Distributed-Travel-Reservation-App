@@ -161,14 +161,6 @@ public abstract class Middleware implements IResourceManager
                     ArrayList<RESOURCE_MANAGER_TYPE> rms = op.getResourceManagers();
                     for (RESOURCE_MANAGER_TYPE rm : rms) {
                         if (!set.contains(rm)) set.add(rm);
-
-                        switch(rm) {
-                            case FLIGHT:
-                                System.out.println("Middlware interested in flight rm");
-                                break;
-                            default:
-                                break;
-                        }
                     }
                 }
 
@@ -178,7 +170,6 @@ public abstract class Middleware implements IResourceManager
                     switch (rm) {
                         case FLIGHT:
                             record_rms.add("flights");
-                            System.out.println("again, interested in flight rm, so save in record");
                             break;
                         case CAR:
                             record_rms.add("cars");

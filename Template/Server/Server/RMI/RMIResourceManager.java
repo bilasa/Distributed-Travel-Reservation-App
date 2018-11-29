@@ -18,7 +18,7 @@ public class RMIResourceManager extends ResourceManager
 {
 	private static String s_serverName = "server";
 	private static String s_rmiPrefix = "group32";
-	private static int s_serverPort = 2133;
+	private static int s_serverPort = 2143;
 
 	public static void main(String args[])
 	{
