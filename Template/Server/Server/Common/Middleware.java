@@ -135,7 +135,7 @@ public abstract class Middleware implements IResourceManager
                 }
             }, TRANSACTION_TIME_LIMIT);
 
-            System.out.println("STARTED TRANSACTION - " + xid);
+            System.out.println("STARTED TRANSACTION AT middelware - " + xid);
 
             flightResourceManager.start(xid);
             carResourceManager.start(xid);
@@ -152,7 +152,7 @@ public abstract class Middleware implements IResourceManager
     {   
         HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
         
-        synchronized(this.transactions) {
+        synchronized(transactions) {
 
             if (!transactions.containsKey(xid)) {
                 throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid from middleware)");
@@ -166,6 +166,14 @@ public abstract class Middleware implements IResourceManager
                 ArrayList<RESOURCE_MANAGER_TYPE> rms = op.getResourceManagers();
                 for (RESOURCE_MANAGER_TYPE rm : rms) {
                     if (!set.contains(rm)) set.add(rm);
+
+                    switch(rm) {
+                        case FLIGHT:
+                            System.out.println("Middlware interested in flight rm");
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         }
@@ -176,6 +184,7 @@ public abstract class Middleware implements IResourceManager
             switch (rm) {
                 case FLIGHT:
                     record_rms.add("flights");
+                    System.out.println("again, interested in flight rm, so save in record");
                     break;
                 case CAR:
                     record_rms.add("cars");

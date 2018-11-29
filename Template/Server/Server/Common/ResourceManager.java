@@ -42,6 +42,7 @@ public class ResourceManager extends LockManager implements IResourceManager
     public boolean start(int xid) throws RemoteException 
     {
         synchronized(local) {
+            System.out.println("Started transaction at rms: " + xid);
             RMHashMap local_data = new RMHashMap();
             local.put(xid, local_data); // update the hashmap of local histories
         }
@@ -235,7 +236,8 @@ public class ResourceManager extends LockManager implements IResourceManager
     
     // Aborts a transaction
     public boolean abort(int xid) throws RemoteException, InvalidTransactionException
-    {
+    {   
+        System.out.println("RM ABORT WAS CALLEd");
         // Crash mode 4
         synchronized(crashes) {
             if (crashes.get(4)) System.exit(1);
