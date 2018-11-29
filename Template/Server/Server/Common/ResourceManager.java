@@ -79,6 +79,9 @@ public class ResourceManager extends LockManager implements IResourceManager
                 global_lock.lock();
                 synchronized(local) {
                     
+                    System.out.println(local.containsKey(xid)? "xid exists" : "naaaah");
+                    System.out.println("size " + local.size());
+
                     RMHashMap local_data = local.get(xid);
                     if (local_data == null) {
                         throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid");
@@ -237,26 +240,27 @@ public class ResourceManager extends LockManager implements IResourceManager
     // Aborts a transaction
     public boolean abort(int xid) throws RemoteException, InvalidTransactionException
     {   
-        System.out.println("RM ABORT WAS CALLEd");
-        // Crash mode 4
-        synchronized(crashes) {
-            if (crashes.get(4)) System.exit(1);
-        }
-
-        if (local.get(xid) != null) {
-            // Discard main memory copy, put latest committed copy into main memory (this step is unecessary for our implementation)
-            synchronized(m_data) {
-                // No need to write contents of master file to m_data, as m_data not modified until commit
+        synchronized(local) {
+            System.out.println("RM ABORT WAS CALLEd");
+            // Crash mode 4
+            synchronized(crashes) {
+                if (crashes.get(4)) System.exit(1);
             }
-            local.remove(xid);
-            UnlockAll(xid);
-        }
-        else {
-            throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid");
-        }
 
-        recordDecision(xid, false); // log an ABORT
+            if (local.get(xid) != null) {
+                // Discard main memory copy, put latest committed copy into main memory (this step is unecessary for our implementation)
+                synchronized(m_data) {
+                    // No need to write contents of master file to m_data, as m_data not modified until commit
+                }
+                local.remove(xid);
+                UnlockAll(xid);
+            }
+            else {
+                throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid");
+            }
 
+            recordDecision(xid, false); // log an ABORT
+        }
         return true;
     }
 

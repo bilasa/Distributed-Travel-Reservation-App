@@ -627,7 +627,9 @@ public abstract class Middleware implements IResourceManager
                         if (!e_o_t.contains(xid)) {
                             for (String rm : rms) {
                                 try {
+                                    System.out.println(rm);
                                     switch (rm) {
+                                        
                                         case "flights":
                                             flightResourceManager.commit(xid);
                                             break;
@@ -868,6 +870,11 @@ public abstract class Middleware implements IResourceManager
     {  
         HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
 
+        synchronized(this.timers) {
+            this.timers.get(xid).cancel();
+            this.timers.remove(xid);
+        }
+
         synchronized(transactions) {
             
             Transaction ts = ransactions.get(xid);
@@ -903,11 +910,6 @@ public abstract class Middleware implements IResourceManager
                     default:
                         break;
                 }
-        }
-          
-        synchronized(this.timers) {
-            this.timers.get(xid).cancel();
-            this.timers.remove(xid);
         }
         
         return true;
