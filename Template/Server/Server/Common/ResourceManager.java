@@ -67,6 +67,8 @@ public class ResourceManager extends LockManager implements IResourceManager
         synchronized(local) {
             synchronized(m_data) { 
 
+                System.out.println("ATTENTION: Participant commit function is called");
+
                  // Crash mode 4
                 if (crashes.get(4)) System.exit(1);
 
@@ -146,7 +148,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                             // Store data to disk
                             File data_file = new File("data_" + m_name + "_" + updated_ptr + ".txt");
                             data_file.createNewFile();
-                            bw = new BufferedWriter(new FileWriter(data_file));
+                            bw = new BufferedWriter(new FileWriter(data_file), false);
                             StringBuilder sb = new StringBuilder();
 
                             for (String key : m_data.keySet()) {
@@ -200,7 +202,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                             bw.close();
 
                             UnlockAll(xid); // Restore locks and local history
-                            local.remove(xid);
+                            //local.remove(xid);
 
                             System.out.println("ATTENTION: Participant decision log is recorded");
                             recordDecision(xid, true); // log a COMMIT
@@ -261,6 +263,8 @@ public class ResourceManager extends LockManager implements IResourceManager
         synchronized(local) {
             synchronized(timers) {
 
+                System.out.println("ATTENTION: Participant prepare function is called for XID[" + xid + "]");
+
                 Timer t = timers.get(xid); // Cancel the vote request timer
                 t.cancel();
                 timers.remove(t);
@@ -275,13 +279,17 @@ public class ResourceManager extends LockManager implements IResourceManager
                 if (crashes.get(2)) System.exit(1);
 
                 if (!canCommit) {
+                    System.out.println("ATTENTION: Participant vote decision for XID[" + xid + "] is record");
                     recordDecision(xid, false); // vote NO => log an ABORT
                 }
                 else {
+                    System.out.println("ATTENTION: Participant vote decision for XID[" + xid + "] is record");
                     recordYes(xid); // vote YES => log a YES 
+                    System.out.println("ATTENTION: Participant for XID[" + xid + "] is recording local history");
                     recordLocalHistory();
                 } 
 
+                System.out.println("ATTENTION: Participant vote decision for XID[" + xid + "] is" + (canCommit? "YES" : "NO"));
                 return canCommit; // send vote
             }
         }
