@@ -72,7 +72,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                 boolean transaction_completed = false;
                 while (!transaction_completed) {
-
+                    /*
                     boolean free = global_lock.tryLock();
                     if (free) {
 
@@ -107,7 +107,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                          * e.g. values
                          * - ReservableItem: key:lm_strLocation#m_nCount#m_nPrice#m_nReserved
                          * - ReservedItem: key:id:key#m_location#m_nCount#m_nPrice-m_nReserved;...;...
-                         */
+                         
 
                         // Write from main memory to disk
                         // Shadowing
@@ -224,6 +224,10 @@ public class ResourceManager extends LockManager implements IResourceManager
                         } 
                     }
                     System.out.println("get here ever");
+
+                    */
+                    System.out.println("change flag");
+                    transaction_completed = true;
                 }
                 Trace.info("RM::commit(" + xid + ") succeeded");
                 return true;
