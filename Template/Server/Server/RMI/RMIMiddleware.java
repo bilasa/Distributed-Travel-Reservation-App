@@ -14,8 +14,8 @@ import java.io.*;
 public class RMIMiddleware extends Middleware
 {
     private static String s_serverHost = "localhost";
-    private static int s_serverPort = 2123;
-    private static int s_serverPort2 = 2156;
+    private static int s_serverPort = 2133;
+    private static int s_serverPort2 = 2166;
     
     // Server name
     private static String s_serverName = "RMIMiddleware";
@@ -116,10 +116,10 @@ public class RMIMiddleware extends Middleware
     // Connects the Middleware to all 4 ResourceManager servers
     public void connectServers()
     {   
-        connectServer("Flights", 2128, flightServerName);
-        connectServer("Cars", 2124, carServerName);
-        connectServer("Rooms", 2125, roomServerName);
-        connectServer("Customers", 2126, customerServerName);
+        connectServer("Flights", 2138, flightServerName);
+        connectServer("Cars", 2134, carServerName);
+        connectServer("Rooms", 2135, roomServerName);
+        connectServer("Customers", 2136, customerServerName);
     }
     
     public void connectServer(String server, int port, String host) // middleware name, port, RM hostname
