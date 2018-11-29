@@ -202,6 +202,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                             bw.close();
 
                             UnlockAll(xid); // Restore locks and local history
+                            local.remove(xid);
                             recordDecision(xid, true); // log a COMMIT
                             System.out.println("RM logged commit"); 
                             transaction_completed = true;
@@ -424,7 +425,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                     for (String key : xid_map.keySet()) {
 
                         RMItem item = xid_map.get(key);
-                        sb.append(key + ":");
+                        sb.append(key + "$");
 
                         if (item != null) {
 
@@ -457,7 +458,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                                 for (int i = 0; i < reservedItems.size(); i++) {
                                     ReservedItem reserved = reservedItems.get(i);
                                     customer_sb.append(
-                                        reserved.getKey() + "$" + reserved.getLocation() + "#" + reserved.getCount() + "#" + reserved.getPrice()
+                                        reserved.getKey() + "#" + reserved.getLocation() + "#" + reserved.getCount() + "#" + reserved.getPrice()
                                     );
 
                                     if (i != reservedItems.size() - 1) customer_sb.append("/");
@@ -584,7 +585,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                     if (line.length() > 0) {
                         String[] record = line.trim().split(":");
                         
-                        int key = Integer.parseInt(record[0]);
+                        int key = Integer.parseInt(record[0]); // xid
                         String[] customers = record[1].split(";");
                         RMHashMap new_map = new RMHashMap();
 
@@ -592,11 +593,11 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                             String[] data = record[1].split("$");
                             String customer_key = data[0];
+                            String customer_key2 = data[1];
                             int customer_id = Integer.parseInt(data[1]);
-                            String customer_key_2 = data[2];
-                            String[] reserved_items = data[3].split("/");
 
                             Customer c = new Customer(customer_id);
+                            String[] reserved_items = data[2].split("/");
 
                             for (String reserved_item : reserved_items) {
 
