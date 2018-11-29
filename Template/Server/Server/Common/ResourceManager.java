@@ -133,11 +133,12 @@ public class ResourceManager extends LockManager implements IResourceManager
                             BufferedWriter bw = null;
                             String updated_ptr = "A";
                             // Nothing has been recorded previously to master record
-                            if (master_ptr == null || master_transaction == -1) {
+                            if (master_ptr == null && master_transaction == -1) {
                                 updated_ptr = "A";
                             }
                             // Update new master record
                             else {
+                                System.out.println("Updating master record from " + master_ptr + " to " + updated_ptr);
                                 bw = new BufferedWriter(new FileWriter(master_file, false));
                                 updated_ptr = master_ptr.equals("A")? "B" : "A";
                                 bw.write(updated_ptr + ":" + xid);
@@ -205,6 +206,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                             recordDecision(xid, true); // log a COMMIT
                             System.out.println("RM logged commit"); 
                             transaction_completed = true;
+                            return true;
                         }
                         catch (IOException e) {
                             e.printStackTrace();
@@ -466,6 +468,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                     sb.append("\n");
                 }
 
+                bw.write(sb.toString());
                 bw.close();
             }
             catch (IOException e) {
