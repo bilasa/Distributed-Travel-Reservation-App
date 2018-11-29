@@ -511,7 +511,7 @@ public abstract class Middleware implements IResourceManager
                             break;
                         case "S_O_2PC":
                             ArrayList<String> list = new ArrayList<String>();
-                            if (record != null && record[2].length() > 0) {
+                            if (record != null && record.length > 2 && record[2].length() > 0) {
                                 String[] rms = record[2].split(";");
                                 for (String rm : rms) list.add(rm);
                             }
