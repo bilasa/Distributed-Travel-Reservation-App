@@ -45,50 +45,43 @@ public class ResourceManager extends LockManager implements IResourceManager
             System.out.println("Started transaction at rms: " + xid);
             RMHashMap local_data = new RMHashMap();
             local.put(xid, local_data); // update the hashmap of local histories
+
+            // Set VOTE_REQUEST timer
+            Timer vote_timer = new Timer();
+            this.timers.put(xid, vote_timer);
+            vote_timer.schedule(new TimerTask(){
+                
+                @Override
+                public void run() {
+                    vote_failure_handler(xid);
+                }
+            }, VOTE_REQUEST_TIME_LIMIT);
+
+            return true;
         }
-
-        // Set VOTE_REQUEST timer
-        Timer vote_timer = new Timer();
-        this.timers.put(xid, vote_timer);
-        vote_timer.schedule(new TimerTask(){
-            
-            @Override
-            public void run() {
-                vote_failure_handler(xid);
-            }
-        }, VOTE_REQUEST_TIME_LIMIT);
-
-        return true;
     }
     
     // Commits a transaction
     public boolean commit(int xid) throws RemoteException, InvalidTransactionException
     {   
-        // Crash mode 4
-        synchronized(crashes) {
-            if (crashes.get(4)) System.exit(1);
-        }
+        synchronized(local) {
+            synchronized(m_data) { 
 
-        boolean transaction_completed = false;
-        
-        while (!transaction_completed) {
-            
-            boolean free = global_lock.tryLock();
-            
-            if (free) {
-                global_lock.lock();
-                synchronized(local) {
-                    
-                    System.out.println(local.containsKey(xid)? "xid exists" : "naaaah");
-                    System.out.println("size " + local.size());
+                 // Crash mode 4
+                if (crashes.get(4)) System.exit(1);
 
-                    RMHashMap local_data = local.get(xid);
-                    if (local_data == null) {
-                        throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid");
-                    }
-                    
-                    synchronized(m_data) { 
-                        
+                boolean transaction_completed = false;
+                while (!transaction_completed) {
+
+                    boolean free = global_lock.tryLock();
+                    if (free) {
+
+                        global_lock.lock();
+                        RMHashMap local_data = local.get(xid);
+                        if (local_data == null) {
+                            throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid");
+                        }
+
                         // Write from local history to main memory 
                         for (String key : local_data.keySet()) {
                             RMItem item = local_data.get(key);
@@ -204,51 +197,45 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                                 sb.append("\n");
                             }
-                            
+
                             bw.write(sb.toString());
                             bw.close();
                         }
                         catch (IOException e) {
                             e.printStackTrace();
                         }
+
+                        // Restore locks and local history
+                        UnlockAll(xid);
+                        recordDecision(xid, true); // log a COMMIT
+                        System.out.println("RM logged commit");
+
+                        global_lock.unlock();
+                        transaction_completed = true;
                     }
-
-                    // Restore locks and local history
-                    UnlockAll(xid);
-                    System.out.println("RM removes xid - 2");
-                    //local.remove(xid);
-
-                    recordDecision(xid, true); // log a COMMIT
+                    else {
+                        try {
+                            Thread.sleep(1000);
+                        }
+                        catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } 
+                    }
                 }
-
-                global_lock.unlock();
-                transaction_completed = true;
-            }
-            else {
-                try {
-                    Thread.sleep(1000);
-                }
-                catch (InterruptedException e) {
-                    e.printStackTrace();
-                } 
+                Trace.info("RM::commit(" + xid + ") succeeded");
+                return true;
             }
         }
-
-        Trace.info("RM::commit(" + xid + ") succeeded");
-        return true;
     }
     
     // Aborts a transaction
     public boolean abort(int xid) throws RemoteException, InvalidTransactionException
     {   
         synchronized(local) {
-            System.out.println("RM ABORT WAS CALLEd");
-            // Crash mode 4
-            synchronized(crashes) {
-                if (crashes.get(4)) System.exit(1);
-            }
 
-            if (local.get(xid) != null) {
+             // Crash mode 4
+             if (crashes.get(4)) System.exit(1);
+             if (local.get(xid) != null) {
                 // Discard main memory copy, put latest committed copy into main memory (this step is unecessary for our implementation)
                 synchronized(m_data) {
                     // No need to write contents of master file to m_data, as m_data not modified until commit
@@ -260,45 +247,42 @@ public class ResourceManager extends LockManager implements IResourceManager
             else {
                 throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid");
             }
-
             recordDecision(xid, false); // log an ABORT
+
+            return true;
         }
-        return true;
     }
 
     // Prepare to commit 
     public boolean prepare(int xid) throws RemoteException, InvalidTransactionException
     {   
-        // Cancel the vote request timer
-        synchronized(timers) {
-            Timer t = timers.get(xid);
-            t.cancel();
-            timers.remove(t);
-        }
-
-        // Crash mode 1
-        synchronized(crashes) {
-            if (crashes.get(1)) System.exit(1);
-        }
-
-        boolean canCommit = false;
         synchronized(local) {
+            synchronized(timers) {
 
-            canCommit = this.local.containsKey(xid);
+                Timer t = timers.get(xid); // Cancel the vote request timer
+                t.cancel();
+                timers.remove(t);
 
-            // Crash mode 2
-            synchronized(crashes) {
+                 // Crash mode 1
+                if (crashes.get(1)) System.exit(1);
+
+                boolean canCommit = false;
+                canCommit = this.local.containsKey(xid);
+
+                // Crash mode 2
                 if (crashes.get(2)) System.exit(1);
+
+                if (!canCommit) {
+                    recordDecision(xid, false); // vote NO => log an ABORT
+                }
+                else {
+                    recordYes(xid); // vote YES => log a YES 
+                    recordLocalHistory();
+                } 
+
+                return canCommit; // send vote
             }
         }
-
-        if (!canCommit) recordDecision(xid, false); // vote NO => log an ABORT
-        else {
-            recordYes(xid); // vote YES => log a YES 
-            recordLocalHistory();
-        } 
-
-        return canCommit; // send vote
     }
 
     // Function to write to main memory
@@ -327,9 +311,7 @@ public class ResourceManager extends LockManager implements IResourceManager
             File data_file = null;
 
             // Crash mode 5
-            synchronized(crashes) {
-                if (crashes.get(5)) System.exit(1);
-            }
+            if (crashes.get(5)) System.exit(1);
 
             try {
                 String line = null;
@@ -417,14 +399,15 @@ public class ResourceManager extends LockManager implements IResourceManager
     }
 
     public void recordLocalHistory() 
-    {
-        try {
-            File local_history_file = new File("local_history_" + m_name + ".txt");
-            local_history_file.createNewFile();
-            BufferedWriter bw = new BufferedWriter(new FileWriter(local_history_file, false));
-            StringBuilder sb = new StringBuilder();
+    {   
+        synchronized(local) {
 
-            synchronized(local) {
+            try {
+                File local_history_file = new File("local_history_" + m_name + ".txt");
+                local_history_file.createNewFile();
+                BufferedWriter bw = new BufferedWriter(new FileWriter(local_history_file, false));
+                StringBuilder sb = new StringBuilder();
+
                 // For each transaction XID
                 for (Integer xid : local.keySet()) {
 
@@ -481,12 +464,13 @@ public class ResourceManager extends LockManager implements IResourceManager
                     }
                     sb.append("\n");
                 }
+
+                bw.close();
             }
-            bw.close();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }  
     }
 
     public void recoverLocalHistory()
@@ -634,10 +618,8 @@ public class ResourceManager extends LockManager implements IResourceManager
 
     public void resetCrashes() throws RemoteException 
     {      
-        synchronized(crashes) {
-            for (int i = 1; i <= 5; i++) {
-                crashes.put(i, false);
-            }
+        for (int i = 1; i <= 5; i++) {
+            crashes.put(i, false);
         }
         return;
     }
@@ -649,63 +631,57 @@ public class ResourceManager extends LockManager implements IResourceManager
    
     public void crashResourceManager(String name, int mode) throws RemoteException
     {   
-        synchronized(crashes) {
-            crashes.put(mode, true);
-        }
+        crashes.put(mode, true);
         return;
     }
 
     // Reads a data item
 	protected RMItem readData(int xid, String key) throws DeadlockException, InvalidTransactionException, TransactionAbortedException
-    {
-        try {
-            Lock(xid, key, TransactionLockObject.LockType.LOCK_READ);
-        }
-        catch (DeadlockException deadlock) {
-            throw deadlock;
-        }
-        
-        // Get the local history for the transaction
+    {   
         synchronized(local) {
-            RMHashMap local_data = local.get(xid);
-            if (local_data == null)
-            {
-                 throw new InvalidTransactionException(xid,"Cannot read data for a non-existent transaction xid");
-            }
-            else
-            {
-                // Check if local history already contains the item
-                if (local_data.containsKey(key))
-                {
-                    RMItem local_item = local_data.get(key);
-                    if (local_item == null) // Item was removed by transaction
-                    {
-                        return null;
-                    }
-                    else // Item in local history, not removed
-                    {
-                        return (RMItem)local_item.clone();
-                    }
+            synchronized(m_data) {
+
+                try {
+                    Lock(xid, key, TransactionLockObject.LockType.LOCK_READ);
                 }
-                
+                catch (DeadlockException deadlock) {
+                    throw deadlock;
+                }
+
+                // Get the local history for the transaction
+                RMHashMap local_data = local.get(xid);
+                if (local_data == null)
+                {
+                    throw new InvalidTransactionException(xid,"Cannot read data for a non-existent transaction xid");
+                }
                 else
                 {
-                    // otherwise, check the main memory
-                    RMItem item;
-                    synchronized(m_data) {
-                        item = m_data.get(key);
+                    // Check if local history already contains the item
+                    if (local_data.containsKey(key)) {
+                        RMItem local_item = local_data.get(key);
+                        if (local_item == null) // Item was removed by transaction
+                        {
+                            return null;
+                        }
+                        else // Item in local history, not removed
+                        {
+                            return (RMItem)local_item.clone();
+                        }
                     }
-                    if (item != null)
-                    {
-                        // add item to local history
-                        local_data.put(key, item);
-                        
-                        // update the hashmap of local histories
-                        local.put(xid, local_data);
-                        
-                        return (RMItem)item.clone();
+                    else {
+                        // otherwise, check the main memory
+                        RMItem item = m_data.get(key);
+                        if (item != null) {
+                            // add item to local history
+                            local_data.put(key, item);
+                            
+                            // update the hashmap of local histories
+                            local.put(xid, local_data);
+                            
+                            return (RMItem)item.clone();
+                        }
+                        return null;
                     }
-                    return null;
                 }
             }
         }
@@ -713,16 +689,16 @@ public class ResourceManager extends LockManager implements IResourceManager
 
 	// Writes a data item
 	protected void writeData(int xid, String key, RMItem value) throws DeadlockException, InvalidTransactionException, TransactionAbortedException
-    {
-        try {
-            Lock(xid, key, TransactionLockObject.LockType.LOCK_WRITE);
-        }
-        catch (DeadlockException deadlock) {
-            throw deadlock;
-        }
-        
-        // Get the local history for the transaction
+    {   
         synchronized(local) {
+            try {
+                Lock(xid, key, TransactionLockObject.LockType.LOCK_WRITE);
+            }
+            catch (DeadlockException deadlock) {
+                throw deadlock;
+            }
+        
+            // Get the local history for the transaction
             RMHashMap local_data = local.get(xid);
             if (local_data == null)
             {
@@ -730,24 +706,22 @@ public class ResourceManager extends LockManager implements IResourceManager
             }
             
             local_data.put(key, value);
-            
-            // update the hashmap of local histories
-            local.put(xid, local_data);
+            local.put(xid, local_data); // update the hashmap of local histories
         }
 	}
 
 	// Remove the item out of storage
 	protected void removeData(int xid, String key) throws DeadlockException, InvalidTransactionException, TransactionAbortedException
-	{
-        try {
-            Lock(xid, key, TransactionLockObject.LockType.LOCK_WRITE);
-        }
-        catch (DeadlockException deadlock) {
-            throw deadlock;
-        }
-        
-        // Get the local history for the transaction
+	{   
         synchronized(local) {
+            try {
+                Lock(xid, key, TransactionLockObject.LockType.LOCK_WRITE);
+            }
+            catch (DeadlockException deadlock) {
+                throw deadlock;
+            }
+        
+            // Get the local history for the transaction
             RMHashMap local_data = local.get(xid);
             if (local_data == null) // Transaction doesn't exist
             {
