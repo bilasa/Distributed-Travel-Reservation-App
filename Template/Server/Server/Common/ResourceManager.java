@@ -122,6 +122,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                             
                             while ((line = br.readLine()) != null) {
                                 if (line.length() > 0) {
+                                    System.out.println("This shouldn't happen - 0");
                                     String[] cur = line.trim().split(":");
                                     master_ptr = cur[0];
                                     master_transaction = Integer.parseInt(cur[1]);  
@@ -134,18 +135,17 @@ public class ResourceManager extends LockManager implements IResourceManager
                             String updated_ptr = "A";
                             // Nothing has been recorded previously to master record
                             if (master_ptr == null && master_transaction == -1) {
-                                updated_ptr = "A";
+                                System.out.println("This should happen - 0");
+                                updated_ptr = master_ptr;
                             }
                             // Update new master record
-                            else {
-                                System.out.println("Updating master record from " + master_ptr + " to " + updated_ptr);
-                                bw = new BufferedWriter(new FileWriter(master_file, false));
-                                updated_ptr = master_ptr.equals("A")? "B" : "A";
-                                bw.write(updated_ptr + ":" + xid);
-                                bw.newLine();
-                                bw.close();
-                            }
-
+                            System.out.println("Updating master record from " + master_ptr + " to " + updated_ptr);
+                            bw = new BufferedWriter(new FileWriter(master_file, false));
+                            updated_ptr = master_ptr.equals("A")? "B" : "A";
+                            bw.write(updated_ptr + ":" + xid);
+                            bw.newLine();
+                            bw.close();
+                            
                             // Store data to disk
                             File data_file = new File("data_" + m_name + "_" + updated_ptr + ".txt");
                             data_file.createNewFile();
@@ -305,7 +305,10 @@ public class ResourceManager extends LockManager implements IResourceManager
                 master_file.createNewFile();
                 br = new BufferedReader(new FileReader(master_file));
                 String master_record = br.readLine();
-                if (master_record != null && master_record.length() > 0) record_ptr = master_record.trim().split(":")[0].toUpperCase();
+                if (master_record != null && master_record.length() > 0) {
+                    System.out.println("WRITE_MAIN_MEMORY on restart (should only be read if already existing");
+                    record_ptr = master_record.trim().split(":")[0].toUpperCase();
+                }
                 br.close();
             }
             catch (IOException e) {
