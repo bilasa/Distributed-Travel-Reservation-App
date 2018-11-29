@@ -292,6 +292,7 @@ public abstract class Middleware implements IResourceManager
                     System.out.println("ATTENTION: Middleware sending decision " + (canCommit? "COMMIT" : "ABORT"));
                     HashMap<RESOURCE_MANAGER_TYPE,Boolean> completed = new HashMap<RESOURCE_MANAGER_TYPE,Boolean>();
                     ack = false;
+                    boolean isAborted = false;
                     if (canCommit) {
                         for (RESOURCE_MANAGER_TYPE rm : set) {
                             int attempt_commit = 0;
@@ -336,8 +337,9 @@ public abstract class Middleware implements IResourceManager
                         }
                     }
                     else {
+                        isAborted = true;
                         for (RESOURCE_MANAGER_TYPE rm : votes.keySet()) {   
-                            if (votes.get(rm)) {   
+                            if (votes.get(rm)) {  
                                 int attempt_abort = 0;
                                 while (attempt_abort < 2) {
                                     try {
@@ -371,6 +373,9 @@ public abstract class Middleware implements IResourceManager
                                                 e2.printStackTrace();
                                             }
                                         }
+                                        else {
+                                            isAborted = false;
+                                        }
                                     }
                                 }
                             }
@@ -385,6 +390,7 @@ public abstract class Middleware implements IResourceManager
                     
                     this.transactions.remove(xid);
                     recordEndOfTransaction(xid);
+                    if (isAborted) return false;
                     return true;
                 }
                 return false;
@@ -507,7 +513,7 @@ public abstract class Middleware implements IResourceManager
             System.out.println("ATTENTION: Middleware recovery checking for transactions with START_OF_TRANSACTION, BUT NO START_OF_2PC");
             while ((line = br.readLine()) != null) {
                 if (line.length() > 0) {
-                    String[] record = line.trim().split(":");
+                    String[] record = line.trim().split("\\:");
                     int xid = Integer.parseInt(record[0]);
                     String record_type = record[1];
 
@@ -519,7 +525,7 @@ public abstract class Middleware implements IResourceManager
                         case "S_O_2PC":
                             ArrayList<String> list = new ArrayList<String>();
                             if (record != null && record.length > 2 && record[2].length() > 0) {
-                                String[] rms = record[2].split(";");
+                                String[] rms = record[2].split("\\;");
                                 for (String rm : rms) list.add(rm);
                             }
                             s_o_2pc.put(xid,list);
@@ -1257,7 +1263,7 @@ public abstract class Middleware implements IResourceManager
             for (ReservedItem item : items) 
             {
                 String key = item.getKey();
-                String[] parts = key.split("-");
+                String[] parts = key.split("\\-");
                 int count = item.getCount();
 
                 if (parts[0].equals("flight"))

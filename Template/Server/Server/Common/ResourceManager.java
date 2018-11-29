@@ -23,7 +23,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
     private HashMap<Integer,Timer> timers = new HashMap<Integer,Timer>(); // timers for vote request timeout
 
-    private long VOTE_REQUEST_TIME_LIMIT = 120000; // max allowed time for VOTE_REQ to come after starting transaction (2 mins)
+    private long VOTE_REQUEST_TIME_LIMIT = 18000; // max allowed time for VOTE_REQ to come after starting transaction (2 mins)
     
 	public ResourceManager(String p_name)
 	{   
