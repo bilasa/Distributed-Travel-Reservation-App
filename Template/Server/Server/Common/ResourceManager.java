@@ -219,8 +219,9 @@ public class ResourceManager extends LockManager implements IResourceManager
                             e.printStackTrace();
                         } 
                     }
-
+                    System.out.println("get here ever");
                     transaction_completed = true;
+                    break;
                 }
                 Trace.info("RM::commit(" + xid + ") succeeded");
                 return true;
