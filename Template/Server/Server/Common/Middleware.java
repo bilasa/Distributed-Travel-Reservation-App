@@ -315,8 +315,8 @@ public abstract class Middleware implements IResourceManager
                                             break;
                                     }
                                     completed.put(rm, ack);
-        
-                                    // Crash mode 6
+                                    attempt_commit = 2;
+                                    // Crash mode 6 
                                     if (crashes.get(6)) System.exit(1);
                                 }
                                 catch (RemoteException e) {
@@ -357,6 +357,7 @@ public abstract class Middleware implements IResourceManager
                                             default:
                                         }
                                         completed.put(rm,ack);
+                                        attempt_abort = 2;
                                     }
                                     catch (RemoteException e) {
                                         System.out.println("Exception caught: remote exception at abort (attempt again in 60s).");
