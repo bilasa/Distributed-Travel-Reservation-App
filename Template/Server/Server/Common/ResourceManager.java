@@ -208,10 +208,8 @@ public class ResourceManager extends LockManager implements IResourceManager
                         // Restore locks and local history
                         UnlockAll(xid);
                         recordDecision(xid, true); // log a COMMIT
-                        System.out.println("RM logged commit");
-
                         global_lock.unlock();
-                        transaction_completed = true;
+                        System.out.println("RM logged commit");    
                     }
                     else {
                         try {
@@ -221,6 +219,8 @@ public class ResourceManager extends LockManager implements IResourceManager
                             e.printStackTrace();
                         } 
                     }
+
+                    transaction_completed = true;
                 }
                 Trace.info("RM::commit(" + xid + ") succeeded");
                 return true;
