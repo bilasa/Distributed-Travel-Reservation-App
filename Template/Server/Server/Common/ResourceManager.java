@@ -229,6 +229,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
         // Restore locks and local history
         UnlockAll(xid);
+        System.out.println("RM removes xid - 2");
         local.remove(xid);
 
         recordDecision(xid, true); // log a COMMIT
@@ -252,6 +253,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                 synchronized(m_data) {
                     // No need to write contents of master file to m_data, as m_data not modified until commit
                 }
+                System.out.println("RM removes xid - 1");
                 local.remove(xid);
                 UnlockAll(xid);
             }
