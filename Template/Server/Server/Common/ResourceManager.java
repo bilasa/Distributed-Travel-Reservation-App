@@ -296,7 +296,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                     recordLocalHistory();
                 } 
 
-                System.out.println("ATTENTION: Participant vote decision for XID[" + xid + "] is" + (canCommit? "YES" : "NO"));
+                System.out.println("ATTENTION: Participant vote decision for XID[" + xid + "] is " + (canCommit? "YES" : "NO"));
                 return canCommit; // send vote
             }
         }
