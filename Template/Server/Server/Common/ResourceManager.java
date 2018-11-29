@@ -339,6 +339,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                     while ((line = br.readLine()) != null) {
                         if (line.length() > 0) {
+                            System.out.println("DEBUG: Reading line: " + line);
                             String[] record = line.trim().split(":");
                             String key = record[0];
                             String[] value = record[1].split("#");
@@ -354,6 +355,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                     while ((line = br.readLine()) != null) {
                         if (line.length() > 0) {
+                            System.out.println("DEBUG: Reading line: " + line);
                             String[] record = line.trim().split(":");
                             String key = record[0];
                             String[] value = record[1].split("#");
@@ -369,6 +371,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                     while ((line = br.readLine()) != null) {
                         if (line.length() > 0) {
+                            System.out.println("DEBUG: Reading line: " + line);
                             String[] record = line.trim().split(":");
                             String key = record[0];
                             String[] value = record[1].split("#");
@@ -384,6 +387,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                     while ((line = br.readLine()) != null) {
                         if (line.length() > 0) {
+                            System.out.println("DEBUG: Reading line: " + line);
                             String[] record = line.trim().split(":");
                             String key = record[0];
                             int customer_id = Integer.parseInt(record[1]);
@@ -504,10 +508,11 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                 while ((line = br.readLine()) != null) {
                     if (line.length() > 0) {
+                        System.out.println("DEBUG: Reading line: " + line);
                         String[] record = line.trim().split(":");
                         int key = Integer.parseInt(record[0]);
                         RMHashMap new_map = new RMHashMap();
-
+                        
                         if (record.length > 1) {
 
                             String[] list_items = record[1].split(";");
@@ -535,6 +540,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                 while ((line = br.readLine()) != null) {
                     if (line.length() > 0) {
+                        System.out.println("DEBUG: Reading line: " + line);
                         String[] record = line.trim().split(":");
                         int key = Integer.parseInt(record[0]);
                         RMHashMap new_map = new RMHashMap();
@@ -566,6 +572,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                 while ((line = br.readLine()) != null) {
                     if (line.length() > 0) {
+                        System.out.println("DEBUG: Reading line: " + line);
                         String[] record = line.trim().split(":");
                         int key = Integer.parseInt(record[0]);
                         RMHashMap new_map = new RMHashMap();
@@ -597,6 +604,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                 while ((line = br.readLine()) != null) {
                     if (line.length() > 0) {
+                        System.out.println("DEBUG: Reading line: " + line);
                         String[] record = line.trim().split(":");
                         int key = Integer.parseInt(record[0]); // xid
                         RMHashMap new_map = new RMHashMap();
