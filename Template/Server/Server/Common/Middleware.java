@@ -525,10 +525,12 @@ public abstract class Middleware implements IResourceManager
                             s_o_t.add(xid);
                             break;
                         case "S_O_2PC":
-                            ArrayList<String> list = new ArrayList<String>();
-                            String[] rms = record[2].split(";");
-                            for (String rm : rms) list.add(rm);
-                            s_o_2pc.put(xid,list);
+                            if (record[2].length() > 0) {
+                                ArrayList<String> list = new ArrayList<String>();
+                                String[] rms = record[2].split(";");
+                                for (String rm : rms) list.add(rm);
+                                s_o_2pc.put(xid,list);
+                            }
                             break;
                         case "MW_DEC":
                             if (record[2].equals("COMMIT")) mw_dec.put(xid,true);
