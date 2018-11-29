@@ -75,9 +75,13 @@ public class ResourceManager extends LockManager implements IResourceManager
                 boolean transaction_completed = false;
                 while (!transaction_completed) {
                     
+                    System.out.println("ATTENTION: Participant checking if global lock is free.");
                     boolean free = global_lock.tryLock();
-                    if (free) {
 
+                    if (free) {
+                        
+                        System.out.println("ATTENTION: Participant has accessed global lock and will proceed to shadowing.");
+                        
                         global_lock.lock();
                         RMHashMap local_data = local.get(xid);
                         if (local_data == null) {
@@ -219,6 +223,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                     }
                     else {
                         try {
+                            System.out.println("ATTENTION: Participant cannot access global lock and will sleep.");
                             Thread.sleep(1000);
                         }
                         catch (InterruptedException e) {
