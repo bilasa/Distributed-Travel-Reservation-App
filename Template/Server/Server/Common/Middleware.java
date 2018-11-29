@@ -38,7 +38,8 @@ public abstract class Middleware implements IResourceManager
     private int count = 0;
     
     public Middleware(String p_name)
-    {
+    {   
+        System.out.println("ATTENTION: Starting/Restarting Middleware");
         m_name = p_name;
 
         // Set crash modes
@@ -52,6 +53,7 @@ public abstract class Middleware implements IResourceManager
     // Crash functions
     public void resetCrashes() throws RemoteException 
     {   
+        System.out.println("ATTENTION: Middleware crashes reset");
         for (int i = 1; i <= 7; i++) {
             crashes.put(i, false);
         }
@@ -64,8 +66,9 @@ public abstract class Middleware implements IResourceManager
     }
    
     public void crashMiddleware(int mode) throws RemoteException
-    {
+    {   
         crashes.put(mode, true);
+        System.out.println("ATTENTION: Middleware sets crash mode " + mode);
         return; 
     }
    
@@ -147,6 +150,8 @@ public abstract class Middleware implements IResourceManager
         synchronized(transactions) {
             synchronized (timers) {
 
+                System.out.println("ATTENTION: Middleware commit function called");
+
                 HashSet<RESOURCE_MANAGER_TYPE> set = new HashSet<RESOURCE_MANAGER_TYPE>();
 
                 if (!transactions.containsKey(xid)) {
@@ -210,6 +215,7 @@ public abstract class Middleware implements IResourceManager
                 HashMap<RESOURCE_MANAGER_TYPE,Boolean> votes = new HashMap<RESOURCE_MANAGER_TYPE,Boolean>();
                 boolean ack = false;
 
+                System.out.println("ATTENTION: Middleware sending vote request(s)");
                 for (RESOURCE_MANAGER_TYPE rm : set) {
                     int attempt_vote = 0;
                     while (attempt_vote < 2) {
@@ -271,6 +277,8 @@ public abstract class Middleware implements IResourceManager
                         }
                     }
 
+                    System.out.println("ATTENTION: Middleware made decision");
+
                     // Crash mode 4
                     if (crashes.get(4)) System.exit(1);
 
@@ -281,6 +289,7 @@ public abstract class Middleware implements IResourceManager
                     if (crashes.get(5)) System.exit(1);
 
                     // Commit or Abort based on vote request
+                    System.out.println("ATTENTION: Middleware sending decision " + (canCommit? "COMMIT" : "ABORT"));
                     HashMap<RESOURCE_MANAGER_TYPE,Boolean> completed = new HashMap<RESOURCE_MANAGER_TYPE,Boolean>();
                     ack = false;
                     if (canCommit) {
@@ -387,6 +396,7 @@ public abstract class Middleware implements IResourceManager
     public void recordStartOfTransaction(int xid) 
     {   
         try {
+            System.out.println("ATTENTION: Middleware recording START_OF_TRANSACTION");
             File middleware_records = new File("middleware_records_" + m_name + ".txt");
             middleware_records.createNewFile();
             BufferedWriter bw = new BufferedWriter(new FileWriter(middleware_records, true));
@@ -404,6 +414,7 @@ public abstract class Middleware implements IResourceManager
     public void recordStartOf2PC(int xid, ArrayList<String> resourceManagers) 
     {   
         try {
+            System.out.println("ATTENTION: Middleware recording START_OF_2PC");
             File middleware_records = new File("middleware_records_" + m_name + ".txt");
             middleware_records.createNewFile();
             BufferedWriter bw = new BufferedWriter(new FileWriter(middleware_records, true));
@@ -427,6 +438,7 @@ public abstract class Middleware implements IResourceManager
     public void recordMiddlewareDecision(int xid, boolean canCommit) 
     {   
         try {
+            System.out.println("ATTENTION: Middleware recording decision " + (canCommit? "COMMIT" : "ABORT"));
             File middleware_records = new File("middleware_records_" + m_name + ".txt");
             middleware_records.createNewFile();
             BufferedWriter bw = new BufferedWriter(new FileWriter(middleware_records, true));
@@ -444,6 +456,7 @@ public abstract class Middleware implements IResourceManager
     public void recordEndOfTransaction(int xid)
     {   
         try {
+            System.out.println("ATTENTION: Middleware recording END_OF_TRANSACTION");
             File middleware_records = new File("middleware_records_" + m_name + ".txt");
             middleware_records.createNewFile();
             BufferedWriter bw = new BufferedWriter(new FileWriter(middleware_records, true));
@@ -476,6 +489,8 @@ public abstract class Middleware implements IResourceManager
          * - xid:E_O_T
          */
 
+        System.out.println("ATTENTION: Middleware recovery is initiated");
+
         // Log information 
         Set<Integer> s_o_t = new HashSet<Integer>();
         Set<Integer> e_o_t = new HashSet<Integer>();
@@ -489,6 +504,7 @@ public abstract class Middleware implements IResourceManager
             BufferedReader br = new BufferedReader(new FileReader(middleware_records));
             String line = null;
 
+            System.out.println("ATTENTION: Middleware recovery checking for transactions with START_OF_TRANSACTION, BUT NO START_OF_2PC");
             while ((line = br.readLine()) != null) {
                 if (line.length() > 0) {
                     String[] record = line.trim().split(":");
@@ -529,6 +545,7 @@ public abstract class Middleware implements IResourceManager
 
         // Attempt communication again, if necessary
         // Phase between START and 2PC
+        System.out.println("ATTENTION: Middleware recovery checking for transactions with START_OF_TRANSACTION AND START_OF_2PC");
         for (Integer xid : s_o_t) {
             
             if (!s_o_2pc.containsKey(xid)) {
@@ -578,6 +595,7 @@ public abstract class Middleware implements IResourceManager
         }
 
         // Phase between 2PC and END
+        System.out.println("ATTENTION: Middleware recovery checking for START_OF_TRANSACTION OR END_OF_TRANSACTION");
         for (Integer xid : s_o_2pc.keySet()) {
             // Transaction not ended
             if (!e_o_t.contains(xid)) {
@@ -706,6 +724,7 @@ public abstract class Middleware implements IResourceManager
         if (crashes.get(8)) System.exit(1);
 
         // Garbage collection
+        System.out.println("ATTENTION: Middleware recovery performing garbage collection of log file");
         try {
             File middleware_records = new File("middleware_records_" + m_name + ".txt");
             middleware_records.createNewFile();
@@ -752,6 +771,8 @@ public abstract class Middleware implements IResourceManager
     {   
         synchronized(transactions) {
             synchronized(timers) {
+
+                System.out.println("ATTENTION: Middleware vote failure handler called");
 
                 Timer t = timers.get(xid);
                 t.cancel();
@@ -806,6 +827,7 @@ public abstract class Middleware implements IResourceManager
     {   
         synchronized(this.transactions)
         {   
+            System.out.println("ATTENTION: Middleware abort function called");
             if (!this.transactions.containsKey(xid)) {
                 throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid (from middleware)");
             }

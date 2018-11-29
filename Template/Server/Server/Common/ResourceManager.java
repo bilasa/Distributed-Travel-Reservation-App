@@ -26,7 +26,8 @@ public class ResourceManager extends LockManager implements IResourceManager
     private long VOTE_REQUEST_TIME_LIMIT = 120000; // max allowed time for VOTE_REQ to come after starting transaction (2 mins)
     
 	public ResourceManager(String p_name)
-	{
+	{   
+        System.out.println("ATTENTION: Starting/Restarting Participant");
         m_name = p_name;
 
         // Set crash mdoes
@@ -48,7 +49,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
             // Set VOTE_REQUEST timer
             Timer vote_timer = new Timer();
-            this.timers.put(xid, vote_timer);
+            timers.put(xid, vote_timer);
             vote_timer.schedule(new TimerTask(){
                 
                 @Override
@@ -244,6 +245,8 @@ public class ResourceManager extends LockManager implements IResourceManager
     {   
         synchronized(local) {
 
+            System.out.println("ATTENTION: Participation abort function is called for XID: " + xid);
+
              // Crash mode 4
              if (crashes.get(4)) System.exit(1);
              if (local.get(xid) != null) {
@@ -251,13 +254,15 @@ public class ResourceManager extends LockManager implements IResourceManager
                 synchronized(m_data) {
                     // No need to write contents of master file to m_data, as m_data not modified until commit
                 }
-                System.out.println("RM removes xid - 1");
+            
                 local.remove(xid);
                 UnlockAll(xid);
             }
             else {
                 throw new InvalidTransactionException(xid,"Cannot abort to a non-existent transaction xid");
             }
+
+            System.out.println("ATTENTION: Participation abort is recording abort decision for XID: " + xid);
             recordDecision(xid, false); // log an ABORT
 
             return true;
@@ -307,12 +312,14 @@ public class ResourceManager extends LockManager implements IResourceManager
     {
         synchronized(m_data) {
 
+            System.out.println("ATTENTION: WriteMainMemory is initiated");
+
             BufferedReader br = null;
             File master_file = null;
             m_data = new RMHashMap();
 
             String record_ptr = "A";
-
+           
             try {
                 master_file = new File("master_" + m_name + ".txt");
                 master_file.createNewFile();
@@ -329,7 +336,8 @@ public class ResourceManager extends LockManager implements IResourceManager
             }
 
             File data_file = null;
-
+            
+            System.out.println("ATTENTION: WriteMainMemory has read master record with pointer " + record_ptr);
             // Crash mode 5
             if (crashes.get(5)) System.exit(1);
 
@@ -413,7 +421,6 @@ public class ResourceManager extends LockManager implements IResourceManager
                                 }
                             }
 
-                            
                             m_data.put(key, customer);
                         }
                     }
@@ -428,6 +435,8 @@ public class ResourceManager extends LockManager implements IResourceManager
     public void recordLocalHistory() 
     {   
         synchronized(local) {
+
+            System.out.println("ATTENTION: RecordLocalHistory is initiated");
 
             try {
                 File local_history_file = new File("local_history_" + m_name + ".txt");
@@ -504,6 +513,8 @@ public class ResourceManager extends LockManager implements IResourceManager
     public void recoverLocalHistory()
     {
         try {
+            System.out.println("ATTENTION: RecoverLocalHistory is reading master record");
+
             File local_history_file = new File("local_history_" + m_name + ".txt");
             local_history_file.createNewFile();
             BufferedReader br = new BufferedReader(new FileReader(local_history_file));
@@ -670,10 +681,11 @@ public class ResourceManager extends LockManager implements IResourceManager
     }
 
     public void resetCrashes() throws RemoteException 
-    {      
+    {     
         for (int i = 1; i <= 5; i++) {
             crashes.put(i, false);
         }
+        System.out.println("ATTENTION: Participant crashes reset");
         return;
     }
    
@@ -685,6 +697,7 @@ public class ResourceManager extends LockManager implements IResourceManager
     public void crashResourceManager(String name, int mode) throws RemoteException
     {   
         crashes.put(mode, true);
+        System.out.println("ATTENTION: Participant[" + name + "] set crash for mode" + mode);
         return;
     }
 
