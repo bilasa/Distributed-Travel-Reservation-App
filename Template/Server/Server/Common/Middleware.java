@@ -877,7 +877,7 @@ public abstract class Middleware implements IResourceManager
 
         synchronized(transactions) {
             
-            Transaction ts = ransactions.get(xid);
+            Transaction ts = transactions.get(xid);
             ArrayList<Operation> ops = ts.getOperations();
 
             for (Operation op : ops) {
