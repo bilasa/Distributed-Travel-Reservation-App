@@ -134,14 +134,13 @@ public class ResourceManager extends LockManager implements IResourceManager
                             BufferedWriter bw = null;
                             String updated_ptr = "A";
                             // Nothing has been recorded previously to master record
-                            if (master_ptr == null && master_transaction == -1) {
-                                System.out.println("This should happen - 0");
-                                updated_ptr = master_ptr;
+                            if (master_ptr != null && master_transaction != -1) {
+                                System.out.println("This should not happen - 1");
+                                updated_ptr = master_ptr.equals("A")? "B" : "A";
                             }
                             // Update new master record
                             System.out.println("Updating master record from " + master_ptr + " to " + updated_ptr);
                             bw = new BufferedWriter(new FileWriter(master_file, false));
-                            updated_ptr = master_ptr.equals("A")? "B" : "A";
                             bw.write(updated_ptr + ":" + xid);
                             bw.newLine();
                             bw.close();
