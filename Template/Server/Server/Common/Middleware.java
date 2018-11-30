@@ -633,7 +633,7 @@ public abstract class Middleware implements IResourceManager
                     
                     // Commit decision
                     if (mw_dec.get(xid)) {
-                        
+                        System.out.println("Transaction " + xid + " had recorded a COMMIT log");
                         if (!e_o_t.contains(xid)) {
                             
                             for (String rm : rms) {
@@ -674,7 +674,7 @@ public abstract class Middleware implements IResourceManager
                     }
                     // abort decision
                     else {
-                    
+                        System.out.println("Transaction " + xid + " had recorded an ABORT log");
                         for (String rm : rms) {
                             try {
                                 switch (rm) {
@@ -712,6 +712,7 @@ public abstract class Middleware implements IResourceManager
                 }
                 // Middleware does not have decision yet
                 else {
+                    System.out.println("Transaction " + xid + " had not made a decision log");
                     for (String rm : rms) {
                         try {
                             switch (rm) {
