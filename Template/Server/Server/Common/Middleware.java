@@ -671,7 +671,7 @@ public abstract class Middleware implements IResourceManager
                     else {
                         System.out.println("ATTENTION: Middleware crashed when 2PC is initiated for " + xid + " but no decision has been made yet...");
                         System.out.println("Therefore, no need to commit/abort to RM(s). This transaction is disposed in Middleware.");
-                        throw new TransactionAbo
+                       
                         /*
                         for (String rm : rms) {
                             try {
