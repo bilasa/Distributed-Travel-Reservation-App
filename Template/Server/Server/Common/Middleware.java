@@ -226,7 +226,7 @@ public abstract class Middleware implements IResourceManager
                 for (RESOURCE_MANAGER_TYPE rm : set) {
                     int attempt_vote = 0;
                     while (attempt_vote < 2) {
-                        System.out.println("ATTEMPTE VOTE: " + attempt_vote);
+                      
                         try {
                             switch (rm) {
                                 case FLIGHT:
@@ -666,8 +666,11 @@ public abstract class Middleware implements IResourceManager
                             e_o_t.remove(xid);
                         }
                     }
-                    // abort
+                    // ignore 
                     else {
+                        System.out.println("ATTENTION: Middleware crashed when 2PC is initiated for " + xid + " but no decision has been made yet...");
+                        System.out.println("Therefore, no need to commit/abort to RM(s). This transaction is disposed in Middleware.");
+                        /*
                         for (String rm : rms) {
                             try {
                                 switch (rm) {
@@ -696,7 +699,7 @@ public abstract class Middleware implements IResourceManager
                             catch (Exception e) {
                                 e.printStackTrace();
                             }
-                        }
+                        } */
                     }
 
                     s_o_t.remove(xid);
