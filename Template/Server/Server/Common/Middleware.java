@@ -742,10 +742,10 @@ public abstract class Middleware implements IResourceManager
                 }
             }
             else {
-                if (s_o_t.containsKey(xid)) s_o_t.remove(xid);
+                if (s_o_t.contains(xid)) s_o_t.remove(xid);
                 if (s_o_2pc.containsKey(xid)) s_o_2pc.remove(xid);
                 if (mw_dec.containsKey(xid)) mw_dec.remove(xid);
-                if (e_o_t.containsKey(xid)) e_o_t.remove(xid);
+                if (e_o_t.contains(xid)) e_o_t.remove(xid);
             }
         }
 
