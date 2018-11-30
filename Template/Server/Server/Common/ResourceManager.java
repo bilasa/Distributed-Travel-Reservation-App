@@ -119,6 +119,10 @@ public class ResourceManager extends LockManager implements IResourceManager
                  // Crash mode 4
                 if (crashes.get(4)) System.exit(1);
 
+                if (!local.containsKey(xid)) {
+                    throw new InvalidTransactionException(xid,"Cannot commit to a non-existent transaction xid");
+                }
+
                 boolean transaction_completed = false;
                 while (!transaction_completed) {
                     
@@ -1546,6 +1550,7 @@ public class ResourceManager extends LockManager implements IResourceManager
     // Function to handle vote request failure
     public void vote_failure_handler(int xid) 
     {   
+        System.out.println("note: rm vote_failure_handler was called");
         try {
             abort(xid);
             recordDecision(xid, false); // write ABORT to log

@@ -226,7 +226,7 @@ public abstract class Middleware implements IResourceManager
                 for (RESOURCE_MANAGER_TYPE rm : set) {
                     int attempt_vote = 0;
                     while (attempt_vote < 2) {
-                        System.out.println("ATTEMPTE VOTE: " + attempt_vote);
+                      
                         try {
                             switch (rm) {
                                 case FLIGHT:
@@ -566,10 +566,13 @@ public abstract class Middleware implements IResourceManager
         // Attempt communication again, if necessary
         // Phase between START and 2PC
         System.out.println("ATTENTION: Middleware recovery checking for transactions with START_OF_TRANSACTION AND START_OF_2PC");
-        for (Integer xid : s_o_t) {
+
+        HashSet<Integer> s_o_t_copy = new HashSet<Integer>();
+        s_o_t_copy.addAll(s_o_t);
+        for (Integer xid : s_o_t_copy) {
             
             if (!s_o_2pc.containsKey(xid)) {
-
+                System.out.println("No 2PC record: attempt to abort all RM(s)");
                 try {
                     flightResourceManager.abort(xid);
                 }
@@ -616,20 +619,23 @@ public abstract class Middleware implements IResourceManager
 
         // Phase between 2PC and END
         System.out.println("ATTENTION: Middleware recovery checking for START_OF_TRANSACTION OR END_OF_TRANSACTION");
-        for (Integer xid : s_o_2pc.keySet()) {
+        HashMap<Integer,ArrayList<String>> s_o_2pc_copy = new HashMap<Integer,ArrayList<String>>(s_o_2pc);
+
+        for (Integer xid : s_o_2pc_copy.keySet()) {
             // Transaction not ended
+            System.out.println("Transaction " + xid + " had initiated 2PC. Investigating...");
             if (!e_o_t.contains(xid)) {
 
-                List<String> rms = s_o_2pc.get(xid);
+                List<String> rms = s_o_2pc_copy.get(xid);
 
                 // Middleware already has a decision
                 if (mw_dec.containsKey(xid)) {
                     
-                    // Commit
+                    // Commit decision
                     if (mw_dec.get(xid)) {
-                        
+                        System.out.println("Transaction " + xid + " had recorded a COMMIT log");
                         if (!e_o_t.contains(xid)) {
-                            /*
+                            
                             for (String rm : rms) {
                                 try {
                                     System.out.println(rm);
@@ -660,14 +666,15 @@ public abstract class Middleware implements IResourceManager
                                 catch (Exception e) {
                                     e.printStackTrace();
                                 }
-                            } */
+                            } 
                         }
                         else {
                             e_o_t.remove(xid);
                         }
                     }
-                    // abort
+                    // abort decision
                     else {
+                        System.out.println("Transaction " + xid + " had recorded an ABORT log");
                         for (String rm : rms) {
                             try {
                                 switch (rm) {
@@ -696,7 +703,7 @@ public abstract class Middleware implements IResourceManager
                             catch (Exception e) {
                                 e.printStackTrace();
                             }
-                        }
+                        } 
                     }
 
                     s_o_t.remove(xid);
@@ -705,6 +712,7 @@ public abstract class Middleware implements IResourceManager
                 }
                 // Middleware does not have decision yet
                 else {
+                    System.out.println("Transaction " + xid + " had not made a decision log");
                     for (String rm : rms) {
                         try {
                             switch (rm) {
@@ -738,6 +746,12 @@ public abstract class Middleware implements IResourceManager
                     s_o_t.remove(xid);
                     s_o_2pc.remove(xid);
                 }
+            }
+            else {
+                if (s_o_t.contains(xid)) s_o_t.remove(xid);
+                if (s_o_2pc_copy.containsKey(xid)) s_o_2pc.remove(xid);
+                if (mw_dec.containsKey(xid)) mw_dec.remove(xid);
+                if (e_o_t.contains(xid)) e_o_t.remove(xid);
             }
         }
 
