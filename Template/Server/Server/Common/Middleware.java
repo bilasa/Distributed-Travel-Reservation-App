@@ -14,6 +14,10 @@ import java.rmi.RemoteException;
 import java.rmi.ConnectException;
 import java.rmi.ServerException;
 import java.rmi.UnmarshalException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.NotBoundException;
+import java.rmi.server.UnicastRemoteObject;
 import java.io.*;
 
 /*
@@ -85,6 +89,9 @@ public abstract class Middleware implements IResourceManager
         }
         else if (name.equals("Customers")) {
             customerResourceManager.crashResourceManager(name, mode);
+        }
+        else {
+            System.out.println("ATTENTION: Invalid resource manager name for crash");
         }
         return;
     }
@@ -219,23 +226,31 @@ public abstract class Middleware implements IResourceManager
                 for (RESOURCE_MANAGER_TYPE rm : set) {
                     int attempt_vote = 0;
                     while (attempt_vote < 2) {
+                        System.out.println("ATTEMPTE VOTE: " + attempt_vote);
                         try {
+                            System.out.println("A");
                             switch (rm) {
                                 case FLIGHT:
+                                    System.out.println("B");
                                     ack = flightResourceManager.prepare(xid);
                                     break;
                                 case CAR:
+                                    System.out.println("C");
                                     ack = carResourceManager.prepare(xid);
                                     break;
                                 case ROOM:
+                                    System.out.println("D");
                                     ack = roomResourceManager.prepare(xid);
                                     break;
                                 case CUSTOMER:
+                                    System.out.println("E");
                                     ack = customerResourceManager.prepare(xid);
                                     break;
                                 default:
+                                    System.out.println("F");
                                     break;
                             }
+                            System.out.println("G");
                             votes.put(rm, ack);
                             attempt_vote = 2;
                         }
@@ -245,7 +260,8 @@ public abstract class Middleware implements IResourceManager
                             attempt_vote++;
                             if (attempt_vote <= 1) {
                                 try {
-                                    Thread.sleep(60000);
+                                    Thread.sleep(15000);
+                                    connectServers();
                                 }
                                 catch (InterruptedException e2) {
                                     e2.printStackTrace();
@@ -326,7 +342,8 @@ public abstract class Middleware implements IResourceManager
                                     attempt_commit++;
                                     if (attempt_commit <= 1) {
                                         try {
-                                            Thread.sleep(60000);
+                                            Thread.sleep(15000);
+                                             connectServers();
                                         }
                                         catch (InterruptedException e2) {
                                             e2.printStackTrace();
@@ -367,7 +384,8 @@ public abstract class Middleware implements IResourceManager
                                         attempt_abort++;
                                         if (attempt_abort <= 1) {
                                             try {
-                                                Thread.sleep(60000);
+                                                Thread.sleep(15000);
+                                                connectServers();
                                             }
                                             catch (InterruptedException e2) {
                                                 e2.printStackTrace();
@@ -495,6 +513,8 @@ public abstract class Middleware implements IResourceManager
          * - xid:E_O_T
          */
 
+        connectServers();
+
         System.out.println("ATTENTION: Middleware recovery is initiated");
 
         // Log information 
@@ -615,6 +635,7 @@ public abstract class Middleware implements IResourceManager
                     if (mw_dec.get(xid)) {
                         
                         if (!e_o_t.contains(xid)) {
+                            /*
                             for (String rm : rms) {
                                 try {
                                     System.out.println(rm);
@@ -645,7 +666,7 @@ public abstract class Middleware implements IResourceManager
                                 catch (Exception e) {
                                     e.printStackTrace();
                                 }
-                            }
+                            } */
                         }
                         else {
                             e_o_t.remove(xid);
@@ -881,23 +902,42 @@ public abstract class Middleware implements IResourceManager
                 transactions.remove(xid);
 
                 for (RESOURCE_MANAGER_TYPE rm : set) {
-                    switch (rm)
-                        {
-                            case FLIGHT:
-                                flightResourceManager.abort(xid);
-                                break;
-                            case CAR:
-                                carResourceManager.abort(xid);
-                                break;
-                            case ROOM:
-                                roomResourceManager.abort(xid);
-                                break;
-                            case CUSTOMER:
-                                customerResourceManager.abort(xid);
-                                break;
-                            default:
-                                break;
+                    int attempt_abort = 0;
+                    while (attempt_abort < 2) {
+                        try {
+                            switch (rm)
+                            {
+                                case FLIGHT:
+                                    flightResourceManager.abort(xid);
+                                    break;
+                                case CAR:
+                                    carResourceManager.abort(xid);
+                                    break;
+                                case ROOM:
+                                    roomResourceManager.abort(xid);
+                                    break;
+                                case CUSTOMER:
+                                    customerResourceManager.abort(xid);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            attempt_abort = 2;
                         }
+                        catch (RemoteException e) {
+                            System.out.println("Exception caught: remote exception at abort (attempt again in 60s).");
+                            attempt_abort++;
+                            if (attempt_abort <= 1) {
+                                try {
+                                    Thread.sleep(15000);
+                                    connectServers();
+                                }
+                                catch (InterruptedException e2) {
+                                    e2.printStackTrace();
+                                }
+                            }
+                        }
+                    }
                 }
 
                 return true;
@@ -1459,6 +1499,61 @@ public abstract class Middleware implements IResourceManager
         }
 
          return false;
+    }
+
+    // Connects the Middleware to all 4 ResourceManager servers
+    public void connectServers()
+    {   
+        connectServer("Flights", 2138, "cs-4.cs.mcgill.ca");
+        connectServer("Cars", 2134, "cs-5.cs.mcgill.ca");
+        connectServer("Rooms", 2135, "cs-6.cs.mcgill.ca");
+        connectServer("Customers", 2136, "lab1-1.cs.mcgill.ca");
+    }
+    
+    public void connectServer(String server, int port, String host) // middleware name, port, RM hostname
+    {
+        String s_rmiPrefix = "group32";
+        try {
+            boolean first = true;
+            while (true) {
+                try {
+                    Registry registry = LocateRegistry.getRegistry(host, port);
+                    
+                    // Assign the remote interface corresponding to the server name
+                    if (server.equals("Flights")) 
+                    {
+                        flightResourceManager = (IResourceManager) registry.lookup(s_rmiPrefix + server);
+                    } 
+                    else if (server.equals("Cars")) 
+                    {
+                        carResourceManager = (IResourceManager) registry.lookup(s_rmiPrefix + server);
+                    } 
+                    else if (server.equals("Rooms")) 
+                    {
+                        roomResourceManager = (IResourceManager) registry.lookup(s_rmiPrefix + server);
+                    } 
+                    else if (server.equals("Customers")) 
+                    {
+                        customerResourceManager = (IResourceManager) registry.lookup(s_rmiPrefix + server);
+                    }
+                    
+                    System.out.println("Connected to '" + server + "' server [" + host + ":" + port + "/" + s_rmiPrefix + server + "]");
+                    break;
+                }
+                catch (NotBoundException|RemoteException e) {
+                    if (first) {
+                        System.out.println("Waiting for '" + server + "' server [" + server + ":" + port + "/" + s_rmiPrefix + server + "]");
+                        first = false;
+                    }
+                }
+                Thread.sleep(500);
+            }
+        }
+        catch (Exception e) {
+            System.err.println((char)27 + "[31;1mServer exception: " + (char)27 + "[0mUncaught exception");
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     //====================================================================================================

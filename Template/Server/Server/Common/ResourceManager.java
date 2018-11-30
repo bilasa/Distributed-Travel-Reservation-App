@@ -23,7 +23,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
     private HashMap<Integer,Timer> timers = new HashMap<Integer,Timer>(); // timers for vote request timeout
 
-    private long VOTE_REQUEST_TIME_LIMIT = 18000; // max allowed time for VOTE_REQ to come after starting transaction (2 mins)
+    private long VOTE_REQUEST_TIME_LIMIT = 120000; // max allowed time for VOTE_REQ to come after starting transaction (2 mins)
     
 	public ResourceManager(String p_name)
 	{   
@@ -37,7 +37,53 @@ public class ResourceManager extends LockManager implements IResourceManager
 
         writeMainMemory();
         recoverLocalHistory();
+        readLog();
 	}
+
+    public void readLog() {
+        synchronized (local) {
+            try {
+                System.out.println("ATTENTION: Reading the resource manager log");
+                File record_file = new File("rm_records_" + m_name + ".txt");
+                record_file.createNewFile();
+                BufferedReader br = new BufferedReader(new FileReader(record_file));
+                String line = null;
+                HashMap<Integer, Boolean> map = new HashMap<Integer, Boolean>();
+                while ((line = br.readLine()) != null) {
+                    if (line.length() > 0) {
+                        String[] record = line.trim().split("\\:");
+                        int xid = Integer.parseInt(record[0]);
+                        map.put(xid, true);
+                    }
+                }
+
+                // Crash mode 5
+                if (crashes.get(5)) System.exit(1);
+
+                for (int xid : local.keySet()) {
+                    if (!map.containsKey(xid)) {
+                        try {
+                            abort(xid);
+                        }
+                        catch (InvalidTransactionException e) {
+                            e.printStackTrace();
+                        }
+                        catch (RemoteException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                System.out.println("FILE NAME: " + record_file.getName());
+                br.close();
+                PrintWriter pw = new PrintWriter(record_file);
+                pw.print("");
+                pw.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 	// Start a transaction, add the a local history for the transaction in the hashmap of local histories
     public boolean start(int xid) throws RemoteException 
@@ -84,6 +130,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                         System.out.println("ATTENTION: Participant has accessed global lock and will proceed to shadowing.");
                         
                         global_lock.lock();
+                        System.out.println("NOOOTTTT STUUUUUCCKKKK");
                         RMHashMap local_data = local.get(xid);
                         if (local_data == null) {
                             global_lock.unlock();
@@ -210,7 +257,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                             bw.close();
 
                             UnlockAll(xid); // Restore locks and local history
-                            //local.remove(xid);
+                            local.remove(xid);
 
                             System.out.println("ATTENTION: Participant decision log is recorded");
                             recordDecision(xid, true); // log a COMMIT
@@ -253,6 +300,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
              // Crash mode 4
              if (crashes.get(4)) System.exit(1);
+
              if (local.get(xid) != null) {
                 // Discard main memory copy, put latest committed copy into main memory (this step is unecessary for our implementation)
                 synchronized(m_data) {
@@ -281,9 +329,12 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                 System.out.println("ATTENTION: Participant prepare function is called for XID[" + xid + "]");
 
-                Timer t = timers.get(xid); // Cancel the vote request timer
-                t.cancel();
-                timers.remove(t);
+                // Cancel the vote request timer
+                Timer t = timers.get(xid);
+                if (t != null) {
+                    t.cancel();
+                    timers.remove(t);
+                }
 
                  // Crash mode 1
                 if (crashes.get(1)) System.exit(1);
@@ -291,8 +342,6 @@ public class ResourceManager extends LockManager implements IResourceManager
                 boolean canCommit = false;
                 canCommit = this.local.containsKey(xid);
 
-                // Crash mode 2
-                if (crashes.get(2)) System.exit(1);
 
                 if (!canCommit) {
                     System.out.println("ATTENTION: Participant vote decision for XID[" + xid + "] is record");
@@ -304,6 +353,12 @@ public class ResourceManager extends LockManager implements IResourceManager
                     System.out.println("ATTENTION: Participant for XID[" + xid + "] is recording local history");
                     recordLocalHistory();
                 } 
+
+                // Crash mode 2
+                if (crashes.get(2)) {
+                    System.out.println("CRASH MODE 2 RM");
+                    System.exit(1);
+                }
 
                 System.out.println("ATTENTION: Participant vote decision for XID[" + xid + "] is " + (canCommit? "YES" : "NO"));
                 return canCommit; // send vote
@@ -342,8 +397,6 @@ public class ResourceManager extends LockManager implements IResourceManager
             File data_file = null;
             
             System.out.println("ATTENTION: WriteMainMemory has read master record with pointer " + record_ptr);
-            // Crash mode 5
-            if (crashes.get(5)) System.exit(1);
 
             try {
                 String line = null;
