@@ -618,6 +618,7 @@ public abstract class Middleware implements IResourceManager
         System.out.println("ATTENTION: Middleware recovery checking for START_OF_TRANSACTION OR END_OF_TRANSACTION");
         for (Integer xid : s_o_2pc.keySet()) {
             // Transaction not ended
+            System.out.println("Transaction " + xid + " had initiated 2PC. Investigating...");
             if (!e_o_t.contains(xid)) {
 
                 List<String> rms = s_o_2pc.get(xid);
