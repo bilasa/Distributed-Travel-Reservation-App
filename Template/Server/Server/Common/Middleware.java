@@ -569,7 +569,7 @@ public abstract class Middleware implements IResourceManager
         for (Integer xid : s_o_t) {
             
             if (!s_o_2pc.containsKey(xid)) {
-
+                System.out.println("No 2PC record: attempt to abort all RM(s)");
                 try {
                     flightResourceManager.abort(xid);
                 }
@@ -670,6 +670,7 @@ public abstract class Middleware implements IResourceManager
                     else {
                         System.out.println("ATTENTION: Middleware crashed when 2PC is initiated for " + xid + " but no decision has been made yet...");
                         System.out.println("Therefore, no need to commit/abort to RM(s). This transaction is disposed in Middleware.");
+                        throw new TransactionAbo
                         /*
                         for (String rm : rms) {
                             try {
