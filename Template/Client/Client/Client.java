@@ -91,7 +91,7 @@ public abstract class Client
 					checkArgumentsCount(2, arguments.size());
 					int mode = toInt(arguments.elementAt(1));
 					m_resourceManager.crashMiddleware(mode);
-					System.out.println("Crashed Middleware.");
+					System.out.println("Crash Middleware Set.");
 					break;
 				}
 				case CrashResourceManager: {
@@ -99,7 +99,7 @@ public abstract class Client
 					String name = arguments.elementAt(1);
 					int mode = toInt(arguments.elementAt(2));
 					m_resourceManager.crashResourceManager(name, mode);
-					System.out.println("Crashed " + name + " Resource Manager.");
+					System.out.println("Crash" + name + " Resource Manager Set");
 					break;
 				}
 				case ResetCrashes: {

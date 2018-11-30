@@ -1550,6 +1550,7 @@ public class ResourceManager extends LockManager implements IResourceManager
     // Function to handle vote request failure
     public void vote_failure_handler(int xid) 
     {   
+        System.out.println("note: rm vote_failure_handler was called");
         try {
             abort(xid);
             recordDecision(xid, false); // write ABORT to log
