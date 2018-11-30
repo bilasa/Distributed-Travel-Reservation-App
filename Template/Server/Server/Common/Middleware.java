@@ -626,11 +626,11 @@ public abstract class Middleware implements IResourceManager
                 // Middleware already has a decision
                 if (mw_dec.containsKey(xid)) {
                     
-                    // Commit
+                    // Commit decision
                     if (mw_dec.get(xid)) {
                         
                         if (!e_o_t.contains(xid)) {
-                            /*
+                            
                             for (String rm : rms) {
                                 try {
                                     System.out.println(rm);
@@ -661,18 +661,15 @@ public abstract class Middleware implements IResourceManager
                                 catch (Exception e) {
                                     e.printStackTrace();
                                 }
-                            } */
+                            } 
                         }
                         else {
                             e_o_t.remove(xid);
                         }
                     }
-                    // ignore 
+                    // abort decision
                     else {
-                        System.out.println("ATTENTION: Middleware crashed when 2PC is initiated for " + xid + " but no decision has been made yet...");
-                        System.out.println("Therefore, no need to commit/abort to RM(s). This transaction is disposed in Middleware.");
-                       
-                        /*
+                    
                         for (String rm : rms) {
                             try {
                                 switch (rm) {
@@ -701,7 +698,7 @@ public abstract class Middleware implements IResourceManager
                             catch (Exception e) {
                                 e.printStackTrace();
                             }
-                        } */
+                        } 
                     }
 
                     s_o_t.remove(xid);
@@ -743,6 +740,12 @@ public abstract class Middleware implements IResourceManager
                     s_o_t.remove(xid);
                     s_o_2pc.remove(xid);
                 }
+            }
+            else {
+                if (s_o_t.containsKey(xid)) s_o_t.remove(xid);
+                if (s_o_2pc.containsKey(xid)) s_o_2pc.remove(xid);
+                if (mw_dec.containsKey(xid)) mw_dec.remove(xid);
+                if (e_o_t.containsKey(xid)) e_o_t.remove(xid);
             }
         }
 
