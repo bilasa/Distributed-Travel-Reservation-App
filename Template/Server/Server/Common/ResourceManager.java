@@ -266,11 +266,9 @@ public class ResourceManager extends LockManager implements IResourceManager
                         catch (IOException e) {
                             e.printStackTrace();
                         }
-                        finally {
-                            System.out.println("ATTENTION: global lock unlocked (A)");
+                        finally {  
                             global_lock.unlock();
                         }
-                        System.out.println("ATTENTION: global lock unlocked (B)");
                         global_lock.unlock();
                     }
                     else {
