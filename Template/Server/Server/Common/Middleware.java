@@ -228,29 +228,23 @@ public abstract class Middleware implements IResourceManager
                     while (attempt_vote < 2) {
                         System.out.println("ATTEMPTE VOTE: " + attempt_vote);
                         try {
-                            System.out.println("A");
                             switch (rm) {
                                 case FLIGHT:
-                                    System.out.println("B");
                                     ack = flightResourceManager.prepare(xid);
                                     break;
                                 case CAR:
-                                    System.out.println("C");
                                     ack = carResourceManager.prepare(xid);
                                     break;
                                 case ROOM:
-                                    System.out.println("D");
                                     ack = roomResourceManager.prepare(xid);
                                     break;
                                 case CUSTOMER:
-                                    System.out.println("E");
                                     ack = customerResourceManager.prepare(xid);
                                     break;
                                 default:
-                                    System.out.println("F");
                                     break;
                             }
-                            System.out.println("G");
+                          
                             votes.put(rm, ack);
                             attempt_vote = 2;
                         }
@@ -898,7 +892,7 @@ public abstract class Middleware implements IResourceManager
                         if (!set.contains(rm)) set.add(rm);
                     }
                 }
-    
+                
                 transactions.remove(xid);
 
                 for (RESOURCE_MANAGER_TYPE rm : set) {

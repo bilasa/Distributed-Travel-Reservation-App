@@ -130,7 +130,7 @@ public class ResourceManager extends LockManager implements IResourceManager
                         System.out.println("ATTENTION: Participant has accessed global lock and will proceed to shadowing.");
                         
                         global_lock.lock();
-                        System.out.println("NOOOTTTT STUUUUUCCKKKK");
+                
                         RMHashMap local_data = local.get(xid);
                         if (local_data == null) {
                             global_lock.unlock();
@@ -356,7 +356,6 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                 // Crash mode 2
                 if (crashes.get(2)) {
-                    System.out.println("CRASH MODE 2 RM");
                     System.exit(1);
                 }
 
@@ -600,11 +599,7 @@ public class ResourceManager extends LockManager implements IResourceManager
 
                                     String[] data = item.split("\\$");
                                     String key_data = data[0];
-                                    System.out.println("DATA[0]: " + data[0]);
-                                    System.out.println("DATA LENGTH: " + data.length);
                                     String[] details = data[1].split("\\#");
-                                    for(String d : details)
-                                        System.out.println("DETAIL: " + d);
                                     Flight f = new Flight(Integer.parseInt(details[1]), Integer.parseInt(details[2]), Integer.parseInt(details[3]));
                                     f.setReserved(Integer.parseInt(details[4]));
                                     new_map.put(key_data,f);
